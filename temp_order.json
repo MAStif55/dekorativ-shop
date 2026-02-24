@@ -1,0 +1,17 @@
+{
+    "cartItems": [
+        {
+            "productId": "test-id-123",
+            "productTitle": "Test API Verification Product",
+            "price": 100,
+            "quantity": 1
+        }
+    ],
+    "customerInfo": {
+        "customerName": "Test User",
+        "email": "test@example.com",
+        "phone": "+79991234567",
+        "address": "123 Test Street, Mock City",
+        "telegram": "@test_bot_verification"
+    }
+}

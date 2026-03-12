@@ -1,12 +1,18 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { CATEGORIES } from '@/types/category';
+import { useCategoryStore } from '@/store/category-store';
 import { ArrowRight } from 'lucide-react';
 
 export default function FeaturedCategories() {
     const { locale, t } = useLanguage();
+    const { categories, fetchCategories } = useCategoryStore();
+
+    useEffect(() => {
+        fetchCategories();
+    }, [fetchCategories]);
 
     return (
         <section id="categories" className="py-6 px-6 bg-[#0D0A0B] relative overflow-hidden">
@@ -25,7 +31,7 @@ export default function FeaturedCategories() {
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-8">
-                    {CATEGORIES.map((cat) => (
+                    {categories.map((cat) => (
                         <Link
                             key={cat.slug}
                             href={`/catalog/${cat.slug}`}

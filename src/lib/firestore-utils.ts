@@ -31,6 +31,7 @@ import {
 export const productsCol = collection(db, 'products');
 export const ordersCol = collection(db, 'orders');
 export const optionsCol = collection(db, 'options');
+export const categoriesCol = collection(db, 'categories');
 export const subcategoriesCol = collection(db, 'subcategories');
 export const galleryCol = collection(db, 'gallery'); // Changed from gallery_images and made non-exported
 export const contentCol = collection(db, 'content');
@@ -316,6 +317,35 @@ export const withTimeout = <T>(
         )
     ]);
 };
+
+// ============================================================================
+// MAIN CATEGORY (PAGE) HELPERS
+// ============================================================================
+
+export async function getCategories<T>(): Promise<T[]> {
+    const q = query(categoriesCol, orderBy('order', 'asc'));
+    try {
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
+    } catch {
+        // Fallback if index doesn't exist
+        const snapshot = await getDocs(categoriesCol);
+        const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
+        return docs.sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+    }
+}
+
+export async function createMainCategory<T extends DocumentData>(data: T): Promise<string> {
+    return createDocument(categoriesCol, data);
+}
+
+export async function updateMainCategory<T extends DocumentData>(id: string, data: Partial<T>): Promise<void> {
+    return updateDocument('categories', id, data);
+}
+
+export async function deleteMainCategory(id: string): Promise<void> {
+    return deleteDocument('categories', id);
+}
 
 // ============================================================================
 // SUBCATEGORY HELPERS

@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
-import { CATEGORIES, CategorySlug, getCategoryBySlug } from '@/types/category';
+import { Category, CategorySlug } from '@/types/category';
+import { getCategories } from '@/lib/firestore-utils';
 import CategoryPageContent from './CategoryPageContent';
 
 // Required for static export with dynamic routes
-export function generateStaticParams() {
-    return CATEGORIES.map((category) => ({
+export async function generateStaticParams() {
+    const categories = await getCategories<Category>();
+    return categories.map((category) => ({
         category: category.slug,
     }));
 }
@@ -15,7 +17,8 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
     const { category } = await params;
-    const cat = getCategoryBySlug(category);
+    const categories = await getCategories<Category>();
+    const cat = categories.find(c => c.slug === category);
     if (!cat) {
         return { title: 'Категория не найдена' };
     }

@@ -90,7 +90,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     const navItems = [
         { href: '/admin', label: t('admin.dashboard'), icon: LayoutDashboard },
         { href: '/admin/products', label: t('admin.products'), icon: Package },
-        { href: '/admin/subcategories', label: locale === 'ru' ? 'Подкатегории' : 'Subcategories', icon: Sliders },
+        { href: '/admin/subcategories', label: locale === 'ru' ? 'Страницы и блоки' : 'Pages & Blocks', icon: Sliders },
         { href: '/admin/variations', label: locale === 'ru' ? 'Вариации' : 'Variations', icon: Sliders },
         { href: '/admin/portfolio', label: locale === 'ru' ? 'Портфолио' : 'Portfolio', icon: ImageIcon },
         { href: '/admin/fonts', label: locale === 'ru' ? 'Шрифты' : 'Fonts', icon: Type },

@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { useEffect, useState, useMemo } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { CATEGORIES, getCategoryBySlug, CategorySlug, SubCategory } from '@/types/category';
+import { CategorySlug, SubCategory } from '@/types/category';
+import { useCategoryStore } from '@/store/category-store';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getProductsByCategory, getSubcategories } from '@/lib/firestore-utils';
@@ -20,7 +21,8 @@ interface CategoryPageContentProps {
 
 export default function CategoryPageContent({ categorySlug }: CategoryPageContentProps) {
     const { locale, t } = useLanguage();
-    const category = getCategoryBySlug(categorySlug);
+    const { categories, fetchCategories } = useCategoryStore();
+    const category = categories.find(c => c.slug === categorySlug);
 
     // Global Store
     const { products: allProducts, isLoading: isProductsLoading, hasHydrated, fetchProducts } = useProductStore();
@@ -35,6 +37,7 @@ export default function CategoryPageContent({ categorySlug }: CategoryPageConten
     // Initial fetch of products (if needed) and subcategories
     useEffect(() => {
         fetchProducts();
+        fetchCategories();
 
         async function loadSubcats() {
             setSubcatsLoading(true);
@@ -48,7 +51,7 @@ export default function CategoryPageContent({ categorySlug }: CategoryPageConten
             }
         }
         loadSubcats();
-    }, [categorySlug, fetchProducts]);
+    }, [categorySlug, fetchProducts, fetchCategories]);
 
     // Restore scroll position - ready when products are loaded AND store is hydrated
     const shouldBeVisible = useScrollRestore(!isProductsLoading && hasHydrated);

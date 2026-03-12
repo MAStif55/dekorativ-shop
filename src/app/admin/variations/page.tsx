@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { VariationGroup, Product } from '@/types/product';
 import { getCategoryVariations, saveCategoryVariations } from '@/lib/variations-service';
-import { CATEGORIES } from '@/types/category';
+import { Category } from '@/types/category';
+import { getCategories } from '@/lib/firestore-utils';
 import { getProductsByCategory, bulkUpdateProductPrices } from '@/lib/firestore-utils';
 import VariationsEditor from '@/components/admin/VariationsEditor';
 import { useTranslation } from '@/contexts/LanguageContext';
@@ -11,7 +12,8 @@ import { Loader2, Save, Check, DollarSign } from 'lucide-react';
 
 export default function VariationsPage() {
     const { locale } = useTranslation();
-    const [activeCategory, setActiveCategory] = useState(CATEGORIES[0].slug);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [activeCategory, setActiveCategory] = useState('');
     const [variations, setVariations] = useState<Record<string, VariationGroup[]>>({});
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -25,16 +27,21 @@ export default function VariationsPage() {
     const [bulkUpdating, setBulkUpdating] = useState(false);
 
     useEffect(() => {
-        async function loadVariations() {
+        async function loadAll() {
             setLoading(true);
+            const cats = await getCategories<Category>();
+            setCategories(cats);
+            if (cats.length > 0 && !activeCategory) {
+                setActiveCategory(cats[0].slug);
+            }
             const result: Record<string, VariationGroup[]> = {};
-            for (const cat of CATEGORIES) {
+            for (const cat of cats) {
                 result[cat.slug] = await getCategoryVariations(cat.slug);
             }
             setVariations(result);
             setLoading(false);
         }
-        loadVariations();
+        loadAll();
     }, []);
 
     // Fetch products when category changes
@@ -136,7 +143,7 @@ export default function VariationsPage() {
 
             {/* Category Tabs */}
             <div className="flex gap-2 mb-6 border-b">
-                {CATEGORIES.map(cat => (
+                {categories.map(cat => (
                     <button
                         key={cat.slug}
                         onClick={() => setActiveCategory(cat.slug)}
@@ -158,7 +165,7 @@ export default function VariationsPage() {
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-lg font-semibold text-gray-900">
                         {locale === 'ru' ? 'Вариации по умолчанию для' : 'Default variations for'}{' '}
-                        {CATEGORIES.find(c => c.slug === activeCategory)?.title[locale as 'en' | 'ru']}
+                        {categories.find(c => c.slug === activeCategory)?.title[locale as 'en' | 'ru']}
                     </h2>
                     <button
                         onClick={() => handleSave(activeCategory)}

@@ -16,10 +16,9 @@ import AutoResizeTextarea from '@/components/ui/AutoResizeTextarea';
 import VariationsEditor from './VariationsEditor';
 import { VariationGroup } from '@/types/product';
 
-// Predefined categories - customize for your project
-// Predefined categories - specific to Somanatha Shop
-import { CATEGORIES, SubCategory } from '@/types/category';
+import { SubCategory } from '@/types/category';
 import { getSubcategories } from '@/lib/firestore-utils';
+import { useCategoryStore } from '@/store/category-store';
 
 interface ProductFormProps {
     initialData?: Product | null;
@@ -30,6 +29,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const { t, locale } = useTranslation();
+    const { categories: CATEGORIES, fetchCategories } = useCategoryStore();
     const [isDirty, setIsDirty] = useState(false);
 
     const [showExitConfirmation, setShowExitConfirmation] = useState(false);
@@ -54,6 +54,10 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     );
 
     // Load category variations when category changes
+    useEffect(() => {
+        fetchCategories();
+    }, [fetchCategories]);
+
     useEffect(() => {
         async function loadCategoryVariations() {
             if (formData.category) {

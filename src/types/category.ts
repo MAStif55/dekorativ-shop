@@ -4,7 +4,7 @@
  * Defines the product categories for Somanatha Shop (Vedic Store).
  */
 
-export type CategorySlug = 'keychains' | 'seals' | 'flasks' | 'bracelets' | 'pet-tags' | 'lighters' | 'stationery';
+export type CategorySlug = string;
 
 export interface SubCategory {
     id?: string;

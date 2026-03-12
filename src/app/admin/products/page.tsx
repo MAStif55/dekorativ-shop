@@ -12,14 +12,15 @@ import { AdminProductCard } from '@/components/admin/AdminProductCard';
 import { AddProductCard } from '@/components/admin/AddProductCard';
 import { formatPrice } from '@/utils/currency';
 
-import { CATEGORIES as APP_CATEGORIES } from '@/types/category';
-const CATEGORIES = APP_CATEGORIES.map(c => ({ id: c.slug, label: c.title }));
+import { Category } from '@/types/category';
+import { getCategories } from '@/lib/firestore-utils';
 
 export default function AdminProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [categoryFilter, setCategoryFilter] = useState<string>('');
+    const [CATEGORIES, setCATEGORIES] = useState<{ id: string; label: { en: string; ru: string } }[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<string | null>(null);
@@ -40,6 +41,9 @@ export default function AdminProductsPage() {
 
     useEffect(() => {
         fetchProducts();
+        getCategories<Category>().then(cats => {
+            setCATEGORIES(cats.map(c => ({ id: c.slug, label: c.title })));
+        });
     }, []);
 
     const filteredProducts = products.filter(p => {

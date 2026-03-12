@@ -20,7 +20,7 @@ import RelatedProducts from '@/components/RelatedProducts';
 import VariationSelector from '@/components/VariationSelector';
 import { SelectedVariation } from '@/types/order';
 import Markdown from 'react-markdown';
-import { CATEGORIES } from '@/types/category';
+import { useCategoryStore } from '@/store/category-store';
 import { Button } from '@/components/ui/Button';
 
 export default function ProductDetailsContent() {
@@ -33,6 +33,7 @@ export default function ProductDetailsContent() {
     const router = useRouter();
     const addToCart = useCartStore((state) => state.addItem);
     const { addToast } = useToastStore();
+    const { categories: allCategories, fetchCategories } = useCategoryStore();
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [selectedImage, setSelectedImage] = useState(0);
@@ -40,6 +41,10 @@ export default function ProductDetailsContent() {
     const [variationDetails, setVariationDetails] = useState<SelectedVariation[]>([]);
     const [effectiveVariations, setEffectiveVariations] = useState<VariationGroup[]>([]);
     const [addedToCart, setAddedToCart] = useState(false);
+
+    useEffect(() => {
+        fetchCategories();
+    }, [fetchCategories]);
 
     useEffect(() => {
         if (!slug) return;
@@ -215,13 +220,10 @@ export default function ProductDetailsContent() {
                     {/* Breadcrumbs */}
                     {(() => {
                         // Category translation helper
-                        const categoryLabels: { [key: string]: { en: string; ru: string } } = CATEGORIES.reduce((acc, cat) => ({
-                            ...acc,
-                            [cat.slug]: cat.title
-                        }), {} as { [key: string]: { en: string; ru: string } });
                         const currentLocale = (locale || 'ru') as 'en' | 'ru';
                         const category = product.category || '';
-                        const categoryLabel = categoryLabels[category]?.[currentLocale] || category;
+                        const matchedCat = allCategories.find(c => c.slug === category);
+                        const categoryLabel = matchedCat?.title?.[currentLocale] || category;
 
                         return (
                             <nav className="flex items-center gap-2 text-sm text-slate-light mb-8 overflow-x-auto whitespace-nowrap pb-2">

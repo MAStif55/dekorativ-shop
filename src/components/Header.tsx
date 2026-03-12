@@ -8,7 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useCartStore } from '@/store/cart-store';
 import { useCartUIStore } from '@/store/cart-ui-store';
 import { Menu, X, ShoppingBag, Home, Grid3X3, Type, Info, ChevronDown, Keyboard } from 'lucide-react';
-import { CATEGORIES } from '@/types/category';
+import { useCategoryStore } from '@/store/category-store';
 
 interface HeaderProps {
     variant?: 'transparent' | 'solid';
@@ -19,13 +19,15 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
     const pathname = usePathname();
     const { getTotalItems } = useCartStore();
     const { openDrawer } = useCartUIStore();
+    const { categories, fetchCategories } = useCategoryStore();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [catalogOpen, setCatalogOpen] = useState(false);
 
     useEffect(() => {
         setMounted(true);
-    }, []);
+        fetchCategories();
+    }, [fetchCategories]);
 
     const totalItems = mounted ? getTotalItems() : 0;
 
@@ -49,7 +51,7 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
     };
 
     const currentLocale = (locale || 'ru') as 'en' | 'ru';
-    const catalogCategories = CATEGORIES.map(cat => ({
+    const catalogCategories = categories.map(cat => ({
         href: `/catalog/${cat.slug}`,
         label: cat.title[currentLocale],
     }));

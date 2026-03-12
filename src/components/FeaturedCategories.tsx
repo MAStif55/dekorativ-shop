@@ -9,7 +9,7 @@ export default function FeaturedCategories() {
     const { locale, t } = useLanguage();
 
     return (
-        <section id="categories" className="py-24 px-6 bg-[#0D0A0B] relative overflow-hidden">
+        <section id="categories" className="py-6 px-6 bg-[#0D0A0B] relative overflow-hidden">
             {/* Soft border transition from previous section */}
             <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-[#1A1517] to-transparent pointer-events-none z-10"></div>
 
@@ -17,7 +17,7 @@ export default function FeaturedCategories() {
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#C9A227] opacity-[0.02] rounded-full blur-3xl pointer-events-none"></div>
 
             <div className="max-w-7xl mx-auto relative z-20">
-                <div className="text-center mb-16">
+                <div className="text-center mb-8">
                     {/* Collections label removed */}
                     <h2 className="text-4xl md:text-5xl font-ornamental text-[#E8D48B] text-glow-gold">
                         {locale === 'ru' ? 'Священные Категории' : 'Sacred Categories'}

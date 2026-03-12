@@ -8,7 +8,7 @@ import { Plus, Trash2, Loader2, AlertCircle } from 'lucide-react';
 
 export default function SubcategoriesPage() {
     const { t, locale } = useTranslation();
-    const [activeTab, setActiveTab] = useState<CategorySlug>('kavacha');
+    const [activeTab, setActiveTab] = useState<CategorySlug>('keychains');
     const [subcategories, setSubcategories] = useState<SubCategory[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -102,8 +102,8 @@ export default function SubcategoriesPage() {
                         key={cat.slug}
                         onClick={() => setActiveTab(cat.slug)}
                         className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === cat.slug
-                                ? 'border-primary text-primary'
-                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                            ? 'border-primary text-primary'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
                             }`}
                     >
                         {cat.title[locale]}

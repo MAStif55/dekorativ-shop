@@ -99,7 +99,7 @@ function PaymentResultContent() {
         return (
             <main className="min-h-screen bg-gradient-to-b from-[#0D0A0B] via-[#1A1517] to-[#0D0A0B] flex flex-col">
                 <Header />
-                <section className="flex-1 flex items-center justify-center py-16 px-6">
+                <section className="flex-1 flex items-center justify-center py-8 px-6">
                     <div className="max-w-lg w-full text-center">
                         {/* Success Icon */}
                         <div className="mb-8">
@@ -168,7 +168,7 @@ function PaymentResultContent() {
         return (
             <main className="min-h-screen bg-gradient-to-b from-[#0D0A0B] via-[#1A1517] to-[#0D0A0B] flex flex-col">
                 <Header />
-                <section className="flex-1 flex items-center justify-center py-16 px-6">
+                <section className="flex-1 flex items-center justify-center py-8 px-6">
                     <div className="max-w-lg w-full text-center">
                         {/* Error Icon */}
                         <div className="mb-8">
@@ -216,7 +216,7 @@ function PaymentResultContent() {
     return (
         <main className="min-h-screen bg-gradient-to-b from-[#0D0A0B] via-[#1A1517] to-[#0D0A0B] flex flex-col">
             <Header />
-            <section className="flex-1 flex items-center justify-center py-16 px-6">
+            <section className="flex-1 flex items-center justify-center py-8 px-6">
                 <div className="max-w-lg w-full text-center">
                     {/* Loading spinner */}
                     <div className="mb-8">

@@ -370,7 +370,7 @@ export default function ImageUpload({
                                         type="text"
                                         value={(image.keywords || []).join(', ')}
                                         onChange={(e) => updateKeywords(idx, e.target.value)}
-                                        placeholder={locale === 'ru' ? 'янтра, медь, ведический (через запятую)' : 'yantra, copper, vedic (comma-separated)'}
+                                        placeholder={locale === 'ru' ? 'ручная работа, медь, элитарный (через запятую)' : 'handmade, copper, elite (comma-separated)'}
                                         className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     />
                                     <p className="text-xs text-gray-400 mt-1">

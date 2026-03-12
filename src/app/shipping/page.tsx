@@ -8,8 +8,8 @@ export default function ShippingPage() {
         <main className="min-h-screen bg-[#FAF9F6] flex flex-col">
             <Header />
 
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-16 flex-1">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-ornamental text-[#2D1B1F] mb-8 sm:mb-12 text-center">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-5 sm:py-8 flex-1">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-ornamental text-[#2D1B1F] mb-8 sm:mb-6 text-center">
                     Оплата и доставка
                 </h1>
 

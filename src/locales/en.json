@@ -21,18 +21,18 @@
         "catalog": "Catalog",
         "cart": "Cart",
         "admin": "Admin",
-        "about": "Contact Us",
+        "about": "About Us",
         "contact": "Contact",
         "shipping": "Payment & Delivery",
         "offer": "Offer",
-        "yantras": "Yantras",
-        "kavacha": "Kavacha"
+        "yantras": "Decor",
+        "kavacha": "Gifts"
     },
     "categories": {
-        "yantras": "Yantras",
-        "yantrasDesc": "Sacred geometric diagrams used in worship and meditation",
-        "kavacha": "Kavacha",
-        "kavachaDesc": "Protective amulets and talismans with sacred mantras",
+        "yantras": "Decor",
+        "yantrasDesc": "Exclusive interior items for your home",
+        "kavacha": "Gifts",
+        "kavachaDesc": "Original gifts with meaning",
         "all": "All Products"
     },
     "cart": {
@@ -110,6 +110,30 @@
             "completed": "Completed",
             "cancelled": "Cancelled",
             "archived": "Archived"
+        }
+    },
+    "services": {
+        "title": "We work with various items and materials",
+        "keyboard": "Keyboard Engraving",
+        "metal": "Engraving on Metal",
+        "glass": "Engraving on Glass",
+        "wood": "Engraving on Wood",
+        "gifts": "Keychains, Tags & Gifts",
+        "stamps": "Wax Seals & Stamps",
+        "more": "Details"
+    },
+    "wholesale": {
+        "banner": "Favorable discounts for wholesale customers!"
+    },
+    "gallery": {
+        "title": "Gallery of Our Work",
+        "viewAll": "View full gallery",
+        "filters": {
+            "all": "All Works",
+            "metal": "Metal",
+            "glass": "Glass",
+            "wood": "Wood",
+            "corporate": "Corporate"
         }
     }
 }

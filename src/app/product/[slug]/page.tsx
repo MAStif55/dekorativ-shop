@@ -6,12 +6,20 @@ import { Product, getImageUrl } from '@/types/product';
 // Ensure this page is statically generated
 export const dynamic = 'force-static';
 
+// Allow Next.js to dynamically generate static pages for missing params at runtime
+// This is necessary since we start with an empty database but `output: export` demands paths.
+export const dynamicParams = true;
+
 export async function generateStaticParams() {
     try {
         const products = await getAllProducts<Product>();
 
-        // If no products, we can't generate paths. 
-        // In a real static export, this might mean no product pages are generated.
+        if (!products || products.length === 0) {
+            // Next.js static export requires at least one parameter if the function is defined
+            // Returning a dummy path allows the build to succeed.
+            return [{ slug: 'dummy-product' }];
+        }
+
         return products.map((product) => ({
             slug: product.slug,
         }));
@@ -26,26 +34,26 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
     if (!product) {
         return {
-            title: 'Товар не найден | Somanatha',
+            title: 'Товар не найден | Dekorativ',
             description: 'Запрашиваемый товар не найден.',
         };
     }
 
     // Use Russian as primary (main audience), English as fallback
-    const titleRu = product.title?.ru || product.title?.en || 'Ведический артефакт';
-    const titleEn = product.title?.en || product.title?.ru || 'Vedic Artifact';
+    const titleRu = product.title?.ru || product.title?.en || 'Эксклюзивный декор';
+    const titleEn = product.title?.en || product.title?.ru || 'Exclusive Decor';
     const descriptionRu = product.description?.ru
         ? product.description.ru.slice(0, 160).replace(/<[^>]*>/g, '').replace(/\n/g, ' ') + '...'
-        : `${titleRu} — Сакральные янтры и кавача для вашей духовной практики.`;
+        : `${titleRu} — Эксклюзивный декор для вашего интерьера.`;
 
     return {
-        title: `${titleRu} | Somanatha Store`,
+        title: `${titleRu} | Dekorativ Store`,
         description: descriptionRu,
         alternates: {
             canonical: `/product/${params.slug}`,
         },
         openGraph: {
-            title: `${titleRu} | Somanatha`,
+            title: `${titleRu} | Dekorativ`,
             description: descriptionRu,
             images: product.images?.[0] ? [getImageUrl(product.images[0])] : [],
         },
@@ -61,10 +69,10 @@ export default async function ProductPage({ params }: { params: { slug: string }
 
     let jsonLd = null;
     if (product) {
-        const title = product.title?.en || 'Vedic Artifact';
+        const title = product.title?.en || 'Exclusive Decor';
         const description = product.description?.en
             ? product.description.en.replace(/<[^>]*>/g, '')
-            : 'Authentic Vedic Artifact';
+            : 'Premium Interior Decor';
 
         jsonLd = {
             '@context': 'https://schema.org',

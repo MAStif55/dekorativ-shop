@@ -8,6 +8,7 @@ import { getCategoryVariations } from '@/lib/variations-service';
 import { Loader2, Save, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import Link from 'next/link';
 import ImageUpload from './ImageUpload';
+import VideoUpload from './VideoUpload';
 import { useTranslation } from '@/contexts/LanguageContext';
 import ConfirmModal from '@/components/admin/ConfirmModal';
 import MarkdownEditor from './MarkdownEditor';
@@ -48,12 +49,9 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
             basePrice: 0,
             images: [],
             category: '',
-            tags: [],
             variations: [],
         }
     );
-
-    const [tagsInput, setTagsInput] = useState((initialData?.tags || []).join(', '));
 
     // Load category variations when category changes
     useEffect(() => {
@@ -102,13 +100,6 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setIsDirty(true);
         setFormData(prev => ({ ...prev, basePrice: Number(e.target.value) }));
-    };
-
-    const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setIsDirty(true);
-        setTagsInput(e.target.value);
-        const tags = e.target.value.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
-        setFormData(prev => ({ ...prev, tags }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -174,7 +165,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                             onChange={handleChange}
                             required
                             className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-gray-900"
-                            placeholder="yantra-shri"
+                            placeholder="product-name"
                         />
                     </div>
                     <div>
@@ -226,29 +217,6 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                     </option>
                                 ))}
                             </select>
-                        </div>
-                    )}
-                </div>
-
-                {/* Tags */}
-                <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-1">
-                        {locale === 'ru' ? 'Теги (через запятую)' : 'Tags (comma-separated)'}
-                    </label>
-                    <input
-                        type="text"
-                        value={tagsInput}
-                        onChange={handleTagsChange}
-                        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-gray-900"
-                        placeholder="protection, wealth, health"
-                    />
-                    {formData.tags && formData.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2">
-                            {formData.tags.map(tag => (
-                                <span key={tag} className="px-2 py-1 bg-gray-200 text-gray-800 text-xs rounded-full font-medium">
-                                    {tag}
-                                </span>
-                            ))}
                         </div>
                     )}
                 </div>
@@ -475,6 +443,20 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                             )}
                         </div>
                     )}
+                </div>
+
+                {/* Video Preview */}
+                <div className="border-t pt-6">
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">
+                        {locale === 'ru' ? 'Live-видео (Предпросмотр)' : 'Live Video (Preview)'}
+                    </label>
+                    <VideoUpload
+                        value={formData.videoPreviewUrl || ''}
+                        onChange={(url) => {
+                            setIsDirty(true);
+                            setFormData(prev => ({ ...prev, videoPreviewUrl: url }));
+                        }}
+                    />
                 </div>
 
                 {/* Images */}

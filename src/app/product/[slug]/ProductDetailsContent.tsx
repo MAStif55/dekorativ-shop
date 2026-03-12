@@ -16,11 +16,12 @@ import { VariationGroup } from '@/types/product';
 import { useCartStore } from '@/store/cart-store';
 import { useToastStore } from '@/store/toast-store';
 
-// New Components
 import RelatedProducts from '@/components/RelatedProducts';
 import VariationSelector from '@/components/VariationSelector';
 import { SelectedVariation } from '@/types/order';
 import Markdown from 'react-markdown';
+import { CATEGORIES } from '@/types/category';
+import { Button } from '@/components/ui/Button';
 
 export default function ProductDetailsContent() {
     const params = useParams();
@@ -108,40 +109,39 @@ export default function ProductDetailsContent() {
 
     if (loading) {
         return (
-            <main className="min-h-screen bg-gradient-to-b from-[#2D1B1F] to-[#1A1517] flex flex-col">
+            <main className="min-h-screen flex flex-col">
                 <Header />
-                <div className="flex-1 w-full bg-sacred-pattern relative">
-                    <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-[#2D1B1F] to-transparent pointer-events-none z-0"></div>
+                <div className="flex-1 w-full relative">
                     <div className="max-w-7xl mx-auto px-6 py-8 relative z-10 animate-pulse">
                         {/* Breadcrumbs skeleton */}
-                        <div className="h-4 w-48 bg-[#3D2B2F] rounded mb-8"></div>
+                        <div className="h-4 w-48 bg-slate-200 rounded mb-8"></div>
 
                         <div className="grid lg:grid-cols-2 gap-12 items-start">
                             {/* Image skeleton */}
                             <div className="space-y-4">
-                                <div className="aspect-square bg-[#3D2B2F] rounded-2xl"></div>
+                                <div className="aspect-square bg-slate-200 rounded-2xl border border-slate-100"></div>
                                 <div className="flex gap-4">
-                                    <div className="w-20 h-20 bg-[#3D2B2F] rounded-lg"></div>
-                                    <div className="w-20 h-20 bg-[#3D2B2F] rounded-lg"></div>
-                                    <div className="w-20 h-20 bg-[#3D2B2F] rounded-lg"></div>
+                                    <div className="w-20 h-20 bg-slate-200 rounded-lg"></div>
+                                    <div className="w-20 h-20 bg-slate-200 rounded-lg"></div>
+                                    <div className="w-20 h-20 bg-slate-200 rounded-lg"></div>
                                 </div>
                             </div>
 
                             {/* Content skeleton */}
                             <div className="space-y-6">
-                                <div className="h-4 w-20 bg-[#C9A227]/30 rounded"></div>
-                                <div className="h-12 w-3/4 bg-[#3D2B2F] rounded"></div>
+                                <div className="h-4 w-20 bg-slate-200 rounded"></div>
+                                <div className="h-12 w-3/4 bg-slate-300 rounded"></div>
                                 <div className="flex items-center gap-4">
-                                    <div className="h-10 w-32 bg-[#3D2B2F] rounded"></div>
-                                    <div className="h-6 w-24 bg-[#2E7D32]/30 rounded-full"></div>
+                                    <div className="h-10 w-32 bg-slate-200 rounded"></div>
+                                    <div className="h-6 w-24 bg-green-100 rounded-full"></div>
                                 </div>
                                 <div className="space-y-3 pt-4">
-                                    <div className="h-4 w-full bg-[#3D2B2F] rounded"></div>
-                                    <div className="h-4 w-5/6 bg-[#3D2B2F] rounded"></div>
-                                    <div className="h-4 w-4/5 bg-[#3D2B2F] rounded"></div>
-                                    <div className="h-4 w-full bg-[#3D2B2F] rounded"></div>
+                                    <div className="h-4 w-full bg-slate-200 rounded"></div>
+                                    <div className="h-4 w-5/6 bg-slate-200 rounded"></div>
+                                    <div className="h-4 w-4/5 bg-slate-200 rounded"></div>
+                                    <div className="h-4 w-full bg-slate-200 rounded"></div>
                                 </div>
-                                <div className="h-14 w-full bg-[#C9A227]/30 rounded-xl mt-8"></div>
+                                <div className="h-14 w-full bg-slate-300 rounded-xl mt-8"></div>
                             </div>
                         </div>
                     </div>
@@ -153,16 +153,15 @@ export default function ProductDetailsContent() {
 
     if (!product) {
         return (
-            <main className="min-h-screen bg-gradient-to-b from-[#2D1B1F] to-[#0D0A0B] flex flex-col">
+            <main className="min-h-screen flex flex-col">
                 <Header />
-                <div className="flex-1 flex flex-col items-center justify-center py-32 text-center relative">
-                    <div className="absolute inset-0 bg-sacred-pattern opacity-10 pointer-events-none"></div>
+                <div className="flex-1 flex flex-col items-center justify-center py-16 text-center relative">
                     <div className="relative z-10">
-                        <div className="text-6xl mb-4 text-[#C9A227]/50">🔍</div>
-                        <h1 className="text-2xl font-bold text-[#E8D48B] mb-4 font-ornamental">
+                        <div className="text-6xl mb-4 text-slate-300">🔍</div>
+                        <h1 className="text-2xl font-bold text-slate-dark mb-4 font-ornamental">
                             {locale === 'ru' ? 'Товар не найден' : 'Product not found'}
                         </h1>
-                        <Link href="/catalog" className="text-[#C9A227] hover:text-[#E8D48B] hover:underline font-medium transition-colors">
+                        <Link href="/catalog" className="text-primary hover:underline font-medium transition-colors">
                             {locale === 'ru' ? 'Вернуться в каталог' : 'Return to Catalog'}
                         </Link>
                     </div>
@@ -208,34 +207,31 @@ export default function ProductDetailsContent() {
     };
 
     return (
-        <main className="min-h-screen bg-gradient-to-b from-[#2D1B1F] to-[#1A1517] flex flex-col">
+        <main className="min-h-screen flex flex-col">
             <Header />
 
-            <div className="flex-1 w-full bg-sacred-pattern relative">
-                {/* Gradient Mask for top edge */}
-                <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-[#2D1B1F] to-transparent pointer-events-none z-0"></div>
-
+            <div className="flex-1 w-full relative">
                 <div className="max-w-7xl mx-auto px-6 py-8 relative z-10">
                     {/* Breadcrumbs */}
                     {(() => {
                         // Category translation helper
-                        const categoryLabels: { [key: string]: { en: string; ru: string } } = {
-                            'yantras': { en: 'Yantras', ru: 'Янтры' },
-                            'kavacha': { en: 'Kavacha', ru: 'Кавача' },
-                        };
+                        const categoryLabels: { [key: string]: { en: string; ru: string } } = CATEGORIES.reduce((acc, cat) => ({
+                            ...acc,
+                            [cat.slug]: cat.title
+                        }), {} as { [key: string]: { en: string; ru: string } });
                         const currentLocale = (locale || 'ru') as 'en' | 'ru';
                         const category = product.category || '';
                         const categoryLabel = categoryLabels[category]?.[currentLocale] || category;
 
                         return (
-                            <nav className="flex items-center gap-2 text-sm text-[#F5ECD7]/60 mb-8 overflow-x-auto whitespace-nowrap pb-2">
-                                <Link href="/" className="hover:text-[#C9A227] transition-colors">{t('nav.home')}</Link>
-                                <span className="text-[#F5ECD7]/30">/</span>
-                                <Link href="/catalog" className="hover:text-[#C9A227] transition-colors">{t('nav.catalog')}</Link>
-                                <span className="text-[#F5ECD7]/30">/</span>
-                                <Link href={`/catalog/${product.category}`} className="hover:text-[#C9A227] text-xs font-bold tracking-wider">{categoryLabel}</Link>
-                                <span className="text-[#F5ECD7]/30">/</span>
-                                <span className="text-[#C9A227] font-medium truncate max-w-[200px]">{product.title[locale]}</span>
+                            <nav className="flex items-center gap-2 text-sm text-slate-light mb-8 overflow-x-auto whitespace-nowrap pb-2">
+                                <Link href="/" className="hover:text-primary transition-colors">{t('nav.home')}</Link>
+                                <span className="text-slate-200">/</span>
+                                <Link href="/catalog" className="hover:text-primary transition-colors">{t('nav.catalog')}</Link>
+                                <span className="text-slate-200">/</span>
+                                <Link href={`/catalog/${product.category}`} className="hover:text-primary text-xs font-bold tracking-wider">{categoryLabel}</Link>
+                                <span className="text-slate-200">/</span>
+                                <span className="text-primary font-medium truncate max-w-[200px]">{product.title[locale]}</span>
                             </nav>
                         );
                     })()}
@@ -244,7 +240,7 @@ export default function ProductDetailsContent() {
                         {/* Left: Images */}
                         <div className="space-y-4">
                             <div
-                                className="aspect-square bg-[#0D0A0B] rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)] border border-[#C9A227]/20 relative group product-image-container"
+                                className="aspect-square bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 relative group product-image-container"
                                 onContextMenu={(e) => e.preventDefault()}
                             >
                                 {product.images && product.images.length > 0 ? (
@@ -259,7 +255,7 @@ export default function ProductDetailsContent() {
                                         onDragStart={(e) => e.preventDefault()}
                                     />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-6xl bg-[#1A1517] text-[#C9A227]/20">
+                                    <div className="w-full h-full flex items-center justify-center text-6xl bg-slate-50 text-slate-300">
                                         🕉️
                                     </div>
                                 )}
@@ -273,7 +269,7 @@ export default function ProductDetailsContent() {
                                             key={idx}
                                             onClick={() => setSelectedImage(idx)}
                                             onContextMenu={(e) => e.preventDefault()}
-                                            className={`relative w-20 h-20 rounded-lg overflow-hidden transition-all flex-shrink-0 product-image-container ${selectedImage === idx ? 'shadow-[0_0_15px_rgba(201,162,39,0.3)] scale-105 z-10' : 'opacity-60 hover:opacity-100'
+                                            className={`relative w-20 h-20 rounded-lg overflow-hidden transition-all flex-shrink-0 product-image-container border ${selectedImage === idx ? 'border-primary shadow-sm scale-105 z-10' : 'border-transparent opacity-70 hover:opacity-100 hover:border-slate-300'
                                                 }`}
                                         >
                                             <Image
@@ -285,8 +281,7 @@ export default function ProductDetailsContent() {
                                                 sizes="80px"
                                                 onDragStart={(e) => e.preventDefault()}
                                             />
-                                            {/* Selection Frame Overlay */}
-                                            <div className={`absolute inset-0 rounded-lg border-2 pointer-events-none transition-colors ${selectedImage === idx ? 'border-[#C9A227]' : 'border-[#C9A227]/20'
+                                            <div className={`absolute inset-0 rounded-lg border-2 pointer-events-none transition-colors ${selectedImage === idx ? 'border-primary' : 'border-transparent'
                                                 }`} />
                                         </button>
                                     ))}
@@ -297,23 +292,23 @@ export default function ProductDetailsContent() {
                         {/* Right: Info */}
                         <div className="flex flex-col">
                             <div className="mb-2">
-                                <span className="text-[#C9A227] font-bold text-xs uppercase tracking-[0.2em] opacity-80">
+                                <span className="text-primary font-semibold text-xs uppercase tracking-widest opacity-80">
                                     {t(`categories.${product.category}`)}
                                 </span>
                             </div>
 
-                            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#E8D48B] text-glow-gold mb-6 font-ornamental leading-tight">
+                            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-dark mb-6 font-ornamental leading-tight">
                                 {product.title[locale]}
                             </h1>
 
-                            <div className="flex items-end gap-4 mb-8 pb-8 border-b border-[#C9A227]/20">
+                            <div className="flex items-end gap-4 mb-8 pb-8 border-b border-slate-100">
                                 <div className="flex flex-col">
-                                    <span className="text-sm text-[#F5ECD7]/60 mb-1">{locale === 'ru' ? 'Цена' : 'Price'}</span>
-                                    <span className="text-4xl font-bold text-[#C9A227] font-elegant drop-shadow-sm">
+                                    <span className="text-sm text-slate-light mb-1">{locale === 'ru' ? 'Цена' : 'Price'}</span>
+                                    <span className="text-4xl font-bold text-primary font-elegant">
                                         {formatPrice(totalPrice)}
                                     </span>
                                 </div>
-                                <span className="mb-2 px-3 py-1 bg-[#1A1517] border border-[#2E7D32]/50 text-[#4CAF50] rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 shadow-[0_0_10px_rgba(46,125,50,0.2)]">
+                                <span className="mb-2 px-3 py-1 bg-green-50 text-green-700 border border-green-200 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1">
                                     <Check size={12} strokeWidth={3} />
                                     {locale === 'ru' ? 'В наличии' : 'In Stock'}
                                 </span>
@@ -332,55 +327,48 @@ export default function ProductDetailsContent() {
                                 />
                             )}
 
-                            {/* Actions */}
-                            <div className="space-y-4 mt-8">
-                                <button
+                            <div className="space-y-4 mt-8 w-full max-w-sm">
+                                <Button
                                     onClick={handleAddToCart}
                                     disabled={addedToCart}
-                                    className={`w-full py-4 px-8 rounded-lg text-lg font-bold uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden group border-2 ${addedToCart
-                                        ? 'bg-green-600 border-green-500 text-white cursor-default'
-                                        : 'bg-gradient-to-r from-[#C9A227] via-[#E8D48B] to-[#C9A227] border-[#C9A227] text-[#0D0A0B] hover:shadow-[0_0_40px_rgba(201,162,39,0.5)] hover:scale-[1.02]'
-                                        }`}
+                                    variant="primary"
+                                    className="w-full text-sm py-4 shadow-sm"
                                 >
-                                    {/* Animated shimmer effect */}
-                                    {!addedToCart && (
-                                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out"></span>
-                                    )}
-                                    <span className="relative z-10 flex items-center gap-3">
+                                    <span className="flex items-center justify-center gap-2">
                                         {addedToCart ? (
                                             <>
-                                                <Check size={22} />
+                                                <Check size={20} />
                                                 <span>{locale === 'ru' ? 'Добавлено!' : 'Added!'}</span>
                                             </>
                                         ) : (
                                             <>
-                                                <ShoppingCart size={22} />
+                                                <ShoppingCart size={20} />
                                                 <span>{t('product.addToCart') || 'Add to Cart'}</span>
                                             </>
                                         )}
                                     </span>
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>
 
                     {/* Full-width Description Section */}
-                    <div className="mt-12 pt-8 border-t border-[#C9A227]/20">
-                        <h2 className="text-2xl font-bold text-[#E8D48B] font-ornamental mb-6">
+                    <div className="mt-6 pt-8 border-t border-slate-200">
+                        <h2 className="text-2xl font-bold text-slate-dark font-ornamental mb-6">
                             {locale === 'ru' ? 'Описание' : 'Description'}
                         </h2>
-                        <div className="prose prose-invert prose-p:text-[#F5ECD7]/80 prose-headings:text-[#E8D48B] prose-strong:text-[#C9A227] prose-li:text-[#F5ECD7]/80 max-w-none leading-relaxed font-sans">
+                        <div className="prose prose-slate max-w-none leading-relaxed font-sans">
                             <Markdown
                                 components={{
-                                    h1: ({ ...props }) => <h3 className="text-2xl font-bold mt-6 mb-3 font-ornamental text-[#E8D48B]" {...props} />,
-                                    h2: ({ ...props }) => <h4 className="text-xl font-bold mt-5 mb-2 font-ornamental text-[#E8D48B]" {...props} />,
-                                    h3: ({ ...props }) => <h5 className="text-lg font-bold mt-4 mb-2 font-ornamental text-[#E8D48B]" {...props} />,
-                                    ul: ({ ...props }) => <ul className="list-disc pl-5 my-4 space-y-1 marker:text-[#C9A227]" {...props} />,
-                                    ol: ({ ...props }) => <ol className="list-decimal pl-5 my-4 space-y-1 marker:text-[#C9A227]" {...props} />,
-                                    li: ({ ...props }) => <li className="pl-1" {...props} />,
-                                    p: ({ ...props }) => <p className="mb-4" {...props} />,
-                                    strong: ({ ...props }) => <strong className="font-bold text-[#C9A227]" {...props} />,
-                                    em: ({ ...props }) => <em className="italic text-[#E8D48B]" {...props} />,
+                                    h1: ({ ...props }) => <h3 className="text-2xl font-bold mt-6 mb-3 font-ornamental text-slate-dark" {...props} />,
+                                    h2: ({ ...props }) => <h4 className="text-xl font-bold mt-5 mb-2 font-ornamental text-slate-dark" {...props} />,
+                                    h3: ({ ...props }) => <h5 className="text-lg font-bold mt-4 mb-2 font-ornamental text-slate-dark" {...props} />,
+                                    ul: ({ ...props }) => <ul className="list-disc pl-5 my-4 space-y-1 marker:text-primary" {...props} />,
+                                    ol: ({ ...props }) => <ol className="list-decimal pl-5 my-4 space-y-1 marker:text-primary" {...props} />,
+                                    li: ({ ...props }) => <li className="pl-1 text-slate" {...props} />,
+                                    p: ({ ...props }) => <p className="mb-4 text-slate" {...props} />,
+                                    strong: ({ ...props }) => <strong className="font-bold text-slate-dark" {...props} />,
+                                    em: ({ ...props }) => <em className="italic text-slate-dark" {...props} />,
                                     img: () => null,
                                 }}
                             >

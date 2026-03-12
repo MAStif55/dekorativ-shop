@@ -39,8 +39,8 @@ export default function Testimonials() {
 
     if (loading) {
         return (
-            <section className="py-16 sm:py-24 px-4 sm:px-6 bg-[#0D0A0B] border-t border-[#C9A227]/10 relative">
-                <div className="max-w-6xl mx-auto text-center text-[#F5ECD7]/60">
+            <section className="py-8 sm:py-6 px-4 sm:px-6 bg-white border-t border-secondary/20 relative">
+                <div className="max-w-6xl mx-auto text-center text-graphite/60">
                     Loading reviews...
                 </div>
             </section>
@@ -52,13 +52,13 @@ export default function Testimonials() {
     }
 
     return (
-        <section className="py-16 sm:py-24 px-4 sm:px-6 bg-[#0D0A0B] border-t border-[#C9A227]/10 relative">
+        <section className="py-8 sm:py-6 px-4 sm:px-6 bg-white border-t border-secondary/20 relative">
             <div className="max-w-6xl mx-auto">
-                <div className="text-center mb-10 sm:mb-16">
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-ornamental text-[#F5ECD7] mb-4">
+                <div className="text-center mb-5 sm:mb-8">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-ornamental text-graphite mb-4">
                         {locale === 'ru' ? 'Отзывы' : 'Reviews'}
                     </h2>
-                    <div className="w-24 h-1 bg-[#C9A227] mx-auto rounded-full"></div>
+                    <div className="w-24 h-1 bg-primary mx-auto rounded-full"></div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">

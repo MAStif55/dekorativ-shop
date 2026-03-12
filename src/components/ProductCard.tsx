@@ -1,14 +1,18 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import { Product, getImageUrl, getImageAlt } from '@/types/product';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ShoppingCart } from 'lucide-react';
+import { useLiveVideoContext } from '@/contexts/LiveVideoContext';
+import { ShoppingCart, Play } from 'lucide-react';
 import { formatPrice } from '@/utils/currency';
 import { useCartStore } from '@/store/cart-store';
 import { useToastStore } from '@/store/toast-store';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/Button';
 
 interface ProductCardProps {
     product: Product;
@@ -18,6 +22,37 @@ export default function ProductCard({ product }: ProductCardProps) {
     const { locale, t } = useLanguage();
     const { addItem } = useCartStore();
     const { addToast } = useToastStore();
+
+    // Video Preview State
+    const [isHovered, setIsHovered] = useState(false);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const hasVideo = !!product.videoPreviewUrl;
+
+    const { activeHeroId, registerCard, unregisterCard } = useLiveVideoContext();
+
+    useEffect(() => {
+        if (hasVideo && containerRef.current) {
+            registerCard(product.id, containerRef.current);
+            return () => unregisterCard(product.id);
+        }
+    }, [hasVideo, product.id, registerCard, unregisterCard]);
+
+    useEffect(() => {
+        if (!videoRef.current) return;
+
+        const isHero = activeHeroId === product.id;
+        const shouldPlay = isHero || isHovered;
+
+        if (hasVideo) {
+            if (shouldPlay) {
+                videoRef.current.play().catch(e => console.log('Autoplay prevented:', e));
+            } else {
+                videoRef.current.pause();
+                videoRef.current.currentTime = 0; // reset
+            }
+        }
+    }, [isHovered, activeHeroId, hasVideo, product.id]);
 
     const handleAddToCart = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -42,64 +77,94 @@ export default function ProductCard({ product }: ProductCardProps) {
         });
     };
 
+    const router = useRouter();
+
+    const handleDetailsClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        router.push(`/product/${productSlug}`);
+    };
+
     // Fallback to product ID if slug is missing
     const productSlug = product.slug || product.id;
 
     return (
-        <Link href={`/product/${productSlug}`} className="group bg-[#1A1517] rounded-xl shadow-lg hover:shadow-[0_10px_40px_rgba(0,0,0,0.5)] transition-all duration-300 border border-[#C9A227]/20 hover:border-[#C9A227]/60 flex flex-col h-full overflow-hidden relative">
-            {/* Gold accent line at top */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#8B6914] via-[#C9A227] to-[#8B6914] opacity-60 group-hover:opacity-100 transition-opacity" />
-
-            {/* Image Container */}
-            <div
-                className="relative aspect-square overflow-hidden bg-[#0D0A0B] product-image-container"
-                onContextMenu={(e) => e.preventDefault()}
+        <div ref={containerRef} className="h-full">
+            <Link
+                href={`/product/${productSlug}`}
+                className="group bg-white/80 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-slate-100 flex flex-col h-full overflow-hidden relative backdrop-blur-sm"
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                onFocus={() => setIsHovered(true)}
+                onBlur={() => setIsHovered(false)}
             >
-                {product.images && product.images.length > 0 ? (
-                    <Image
-                        src={getImageUrl(product.images[0])}
-                        alt={getImageAlt(product.images[0], locale as 'en' | 'ru', product.title[locale])}
-                        fill
-                        draggable={false}
-                        className="object-cover transform group-hover:scale-105 transition-transform duration-500"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                        onDragStart={(e) => e.preventDefault()}
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-4xl bg-[#0D0A0B] text-[#C9A227]/30">
-                        🕉️
-                    </div>
-                )}
-            </div>
+                {/* Subtle top accent line */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary-light via-primary to-primary-light opacity-0 group-hover:opacity-100 transition-opacity z-20" />
 
-            {/* Content */}
-            <div className="p-5 flex flex-col flex-1">
-                <h3 className="text-xl sm:text-2xl font-bold text-[#E8D48B] mb-2 group-hover:text-glow-gold transition-all font-elegant text-center line-clamp-2 min-h-[3.5rem] flex items-center justify-center">
-                    {product.title[locale]}
-                </h3>
+                {/* Image/Video Container */}
+                <div
+                    className="relative aspect-square overflow-hidden bg-slate-50 border-b border-slate-100 product-image-container"
+                    onContextMenu={(e) => e.preventDefault()}
+                >
 
-                <div className="text-sm text-[#F5ECD7]/70 mb-4 flex-1 font-medium text-center">
-                    <div className="[&>p]:mb-2 last:[&>p]:mb-0">
-                        <ReactMarkdown>
-                            {product.shortDescription?.[locale] || product.description[locale].replace(/<[^>]*>/g, '')}
-                        </ReactMarkdown>
-                    </div>
+
+                    {/* Video Element */}
+                    {hasVideo && (
+                        <video
+                            ref={videoRef}
+                            src={product.videoPreviewUrl}
+                            className={`absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-500 ${isHovered || activeHeroId === product.id ? 'opacity-100' : 'opacity-0'}`}
+                            playsInline
+                            muted
+                            loop
+                            preload="metadata"
+                        />
+                    )}
+
+                    {product.images && product.images.length > 0 ? (
+                        <Image
+                            src={getImageUrl(product.images[0])}
+                            alt={getImageAlt(product.images[0], locale as 'en' | 'ru', product.title[locale])}
+                            fill
+                            draggable={false}
+                            className={`object-cover transform transition-all duration-500 ${isHovered && hasVideo ? 'scale-100 opacity-0' : 'group-hover:scale-105 opacity-100 z-0'}`}
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                            onDragStart={(e) => e.preventDefault()}
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center text-4xl bg-slate-50 text-slate-300">
+                            🕉️
+                        </div>
+                    )}
                 </div>
 
-                <div className="flex items-center justify-between mt-auto pt-4 border-t border-[#C9A227]/20">
-                    <span className="text-xl font-bold text-[#C9A227]">
-                        {formatPrice(product.basePrice)}
-                    </span>
-                    <button
-                        onClick={handleAddToCart}
-                        className="flex items-center justify-center gap-2 h-11 min-w-[44px] px-4 rounded-lg bg-gradient-to-r from-[#C9A227] to-[#8B6914] text-[#0D0A0B] font-bold text-sm uppercase tracking-wide hover:shadow-[0_0_20px_rgba(201,162,39,0.5)] hover:scale-105 transition-all duration-200 border border-[#C9A227]"
-                        title={t('product.addToCart')}
-                    >
-                        <ShoppingCart size={18} />
-                        <span className="hidden sm:inline">{locale === 'ru' ? 'В корзину' : 'Add'}</span>
-                    </button>
+                {/* Content */}
+                <div className="p-5 flex flex-col flex-1 bg-white relative z-10">
+                    <h3 className="text-xl sm:text-2xl font-medium text-slate-dark mb-2 group-hover:text-primary transition-all font-heading text-center line-clamp-2 min-h-[3.5rem] flex items-center justify-center">
+                        {product.title[locale]}
+                    </h3>
+
+                    <div className="text-sm text-slate-light mb-4 flex-1 font-medium text-center">
+                        <div className="[&>p]:mb-2 last:[&>p]:mb-0">
+                            <ReactMarkdown>
+                                {product.shortDescription?.[locale] || product.description[locale].replace(/<[^>]*>/g, '')}
+                            </ReactMarkdown>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
+                        <span className="text-xl font-bold text-primary">
+                            {formatPrice(product.basePrice)}
+                        </span>
+                        <Button
+                            onClick={handleDetailsClick}
+                            title={t('product.details')}
+                        >
+                            {locale === 'ru' ? 'Подробнее' : 'Details'}
+                        </Button>
+                    </div>
                 </div>
-            </div>
-        </Link>
+            </Link>
+        </div>
     );
 }

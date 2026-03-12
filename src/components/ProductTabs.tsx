@@ -21,7 +21,7 @@ export default function ProductTabs({ product }: ProductTabsProps) {
     ] as const;
 
     return (
-        <div className="mt-12 bg-white rounded-2xl p-6 shadow-sm border border-[#E8D48B]/20">
+        <div className="mt-6 bg-white rounded-2xl p-6 shadow-sm border border-[#E8D48B]/20">
             {/* Tabs Header */}
             <div className="flex flex-wrap gap-2 border-b border-gray-100 pb-4 mb-6">
                 {tabs.map((tab) => (
@@ -59,12 +59,12 @@ export default function ProductTabs({ product }: ProductTabsProps) {
                         </div>
                         {/* Placeholder for future specific attributes */}
                         <div className="flex justify-between py-2 border-b border-gray-100">
-                            <span className="font-medium text-gray-900">{locale === 'ru' ? 'Материал' : 'Material'}</span>
-                            <span>{locale === 'ru' ? 'Медь / Золото 24К' : 'Copper / 24K Gold'}</span>
+                            <span className="font-medium text-gray-900">{locale === 'ru' ? 'Метод нанесения' : 'Engraving Method'}</span>
+                            <span>{locale === 'ru' ? 'Глубокая лазерная гравировка' : 'Deep Laser Engraving'}</span>
                         </div>
                         <div className="flex justify-between py-2 border-b border-gray-100">
-                            <span className="font-medium text-gray-900">{locale === 'ru' ? 'Освящение' : 'Consecration'}</span>
-                            <span>{locale === 'ru' ? 'Ведическая Пуджа' : 'Vedic Puja'}</span>
+                            <span className="font-medium text-gray-900">{locale === 'ru' ? 'Срок изготовления' : 'Production Time'}</span>
+                            <span>{locale === 'ru' ? '1-3 дня' : '1-3 Days'}</span>
                         </div>
                     </div>
                 )}
@@ -73,13 +73,13 @@ export default function ProductTabs({ product }: ProductTabsProps) {
                     <div className="space-y-4">
                         <p>
                             {locale === 'ru'
-                                ? 'Этот артефакт создан в соответствии с древними ведическими текстами. Геометрия янтры резонирует с определенными космическими энергиями, принося гармонию и защиту в пространство.'
-                                : 'This artifact is created in accordance with ancient Vedic texts. The geometry of the Yantra resonates with specific cosmic energies, bringing harmony and protection to the space.'}
+                                ? 'Каждое изделие создается нашими мастерами с особым вниманием к деталям. Глубокая и точная гравировка гарантирует долговечность и премиальный вид, превращая обычный предмет в уникальный личный аксессуар.'
+                                : 'Each piece is created by our artisans with special attention to detail. Deep and precise engraving guarantees durability and a premium look, turning an ordinary item into a unique personal accessory.'}
                         </p>
                         <div className="p-4 bg-[#F5ECD7]/30 rounded-xl border border-[#C9A227]/20 italic text-[#8B4513]">
                             {locale === 'ru'
-                                ? '"Янтра — это физическое воплощение божественной звуковой вибрации (Мантры)."'
-                                : '"The Yantra is the physical embodiment of the divine sound vibration (Mantra)."'}
+                                ? '"Искусство в каждом изгибе, качество на всю жизнь."'
+                                : '"Art in every curve, quality for a lifetime."'}
                         </div>
                     </div>
                 )}
@@ -87,9 +87,8 @@ export default function ProductTabs({ product }: ProductTabsProps) {
                 {activeTab === 'care' && (
                     <ul className="list-disc pl-5 space-y-2">
                         <li>{locale === 'ru' ? 'Протирайте мягкой чистой тканью.' : 'Wipe with a soft clean cloth.'}</li>
-                        <li>{locale === 'ru' ? 'Избегайте попадания агрессивных химикатов.' : 'Avoid contact with harsh chemicals.'}</li>
-                        <li>{locale === 'ru' ? 'Рекомендуется периодически подносить благовония.' : 'It is recommended to offer incense periodically.'}</li>
-                        <li>{locale === 'ru' ? 'Относитесь с уважением как к священному объекту.' : 'Treat with respect as a sacred object.'}</li>
+                        <li>{locale === 'ru' ? 'Избегайте сильных механических повреждений и царапин.' : 'Avoid severe mechanical damage and scratches.'}</li>
+                        <li>{locale === 'ru' ? 'Избегайте контакта с агрессивными химикатами.' : 'Avoid contact with harsh chemicals.'}</li>
                     </ul>
                 )}
             </div>

@@ -1,43 +1,36 @@
 import type { Metadata } from 'next';
-import { Cinzel_Decorative, Cormorant_Garamond, Open_Sans } from 'next/font/google';
+import { Lora, Inter } from 'next/font/google';
 import './globals.css';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import ToastContainer from '@/components/Toast';
 import CartDrawer from '@/components/CartDrawer';
+import { LiveVideoProvider } from '@/contexts/LiveVideoContext';
 
-const cinzel = Cinzel_Decorative({
-    weight: ['400', '700', '900'],
-    subsets: ['latin'],
+const lora = Lora({
+    weight: ['400', '500', '600', '700'],
+    subsets: ['latin', 'cyrillic'],
     display: 'swap',
-    variable: '--font-cinzel',
+    variable: '--font-lora',
 });
 
-const cormorant = Cormorant_Garamond({
-    weight: ['400', '600', '700'],
-    style: ['normal', 'italic'],
-    subsets: ['latin'],
+const inter = Inter({
+    subsets: ['latin', 'cyrillic'],
     display: 'swap',
-    variable: '--font-cormorant',
-});
-
-const openSans = Open_Sans({
-    subsets: ['latin'],
-    display: 'swap',
-    variable: '--font-open-sans',
+    variable: '--font-inter',
 });
 
 export const metadata: Metadata = {
-    metadataBase: new URL('https://somanatha.ru'),
+    metadataBase: new URL('https://dekorativ.ru'),
     title: {
-        default: 'Соманатха | Somanatha — Ведический магазин',
-        template: '%s | Somanatha',
+        default: 'Dekorativ | Декоратив — Интернет-магазин',
+        template: '%s | Dekorativ',
     },
     description:
-        'Священные Янтры и Кавача — Sacred Yantras and Kavacha. Authentic Vedic items for spiritual practice.',
+        'Эксклюзивные товары и декор — Exclusive goods and decor.',
     openGraph: {
         type: 'website',
         locale: 'ru_RU',
-        siteName: 'Somanatha — Vedic Store',
+        siteName: 'Dekorativ — Online Store',
         images: [{ url: '/og-default.png', width: 1200, height: 630 }],
     },
     alternates: {
@@ -51,12 +44,14 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="en" className={`${cinzel.variable} ${cormorant.variable} ${openSans.variable}`}>
-            <body className={openSans.className}>
+        <html lang="en" className={`${lora.variable} ${inter.variable}`}>
+            <body className={inter.className}>
                 <LanguageProvider>
-                    {children}
-                    <CartDrawer />
-                    <ToastContainer />
+                    <LiveVideoProvider>
+                        {children}
+                        <CartDrawer />
+                        <ToastContainer />
+                    </LiveVideoProvider>
                 </LanguageProvider>
             </body>
         </html>

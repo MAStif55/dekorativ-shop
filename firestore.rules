@@ -38,5 +38,23 @@ service cloud.firestore {
       allow read: if true;
       allow write: if request.auth != null;
     }
+
+    // Portfolio Categories: Public read, authenticated write
+    match /portfolioCategories/{categoryId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Portfolio Photos: Public read, authenticated write
+    match /portfolioPhotos/{photoId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Fonts: Public read, authenticated write
+    match /fonts/{fontId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
   }
 }

@@ -32,6 +32,12 @@ export const productsCol = collection(db, 'products');
 export const ordersCol = collection(db, 'orders');
 export const optionsCol = collection(db, 'options');
 export const subcategoriesCol = collection(db, 'subcategories');
+export const galleryCol = collection(db, 'gallery'); // Changed from gallery_images and made non-exported
+export const contentCol = collection(db, 'content');
+export const settingsCol = collection(db, 'settings');
+export const portfolioCategoriesCol = collection(db, 'portfolioCategories');
+export const portfolioPhotosCol = collection(db, 'portfolioPhotos');
+export const fontsCol = collection(db, 'fonts');
 
 // ============================================================================
 // GENERIC CRUD OPERATIONS
@@ -327,4 +333,227 @@ export async function createSubcategory<T extends DocumentData>(data: T): Promis
 
 export async function deleteSubcategory(id: string): Promise<void> {
     return deleteDocument('subcategories', id);
+}
+
+// ============================================================================
+// GALLERY HELPERS
+// ============================================================================
+
+export async function addGalleryImage<T extends DocumentData>(data: T): Promise<string> {
+    return createDocument(galleryCol, data);
+}
+
+export async function deleteGalleryImage(id: string): Promise<void> {
+    return deleteDocument('gallery_images', id);
+}
+
+export async function getGalleryImages<T>(categorySlug?: string): Promise<T[]> {
+    let q;
+    if (categorySlug && categorySlug !== 'all') {
+        q = query(galleryCol, where('category', '==', categorySlug), orderBy('createdAt', 'desc'));
+    } else {
+        q = query(galleryCol, orderBy('createdAt', 'desc'));
+    }
+
+    try {
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
+    } catch {
+        // Fallback if index misses
+        const snapshot = await getDocs(galleryCol);
+        const images = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
+        // @ts-ignore
+        const filtered = categorySlug && categorySlug !== 'all' ? images.filter(img => img.category === categorySlug) : images;
+        return filtered.sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
+    }
+}
+
+// ==========================================
+// PORTFOLIO (Dynamic Gallery)
+// ==========================================
+
+import { PortfolioCategory, PortfolioPhoto } from '@/types/portfolio';
+
+// --- Categories ---
+
+export async function getPortfolioCategories(): Promise<PortfolioCategory[]> {
+    const q = query(portfolioCategoriesCol, orderBy('order', 'asc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PortfolioCategory));
+}
+
+export async function getPortfolioCategoriesByPage(targetPageId: string): Promise<PortfolioCategory[]> {
+    const q = query(
+        portfolioCategoriesCol,
+        where('targetPageId', '==', targetPageId),
+        where('isActive', '==', true),
+        orderBy('order', 'asc')
+    );
+    try {
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PortfolioCategory));
+    } catch {
+        // Fallback for missing composite index
+        const simpleQ = query(portfolioCategoriesCol, where('targetPageId', '==', targetPageId));
+        const snapshot = await getDocs(simpleQ);
+        const cats = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PortfolioCategory));
+        return cats
+            .filter(cat => cat.isActive)
+            .sort((a, b) => (a.order || 0) - (b.order || 0));
+    }
+}
+
+export async function getPortfolioCategory(id: string): Promise<PortfolioCategory | null> {
+    const docRef = doc(db, 'portfolioCategories', id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) return { id: docSnap.id, ...docSnap.data() } as PortfolioCategory;
+    return null;
+}
+
+export async function createPortfolioCategory(data: Omit<PortfolioCategory, 'id' | 'createdAt'>): Promise<string> {
+    const docRef = await addDoc(portfolioCategoriesCol, {
+        ...data,
+        createdAt: Timestamp.now().toMillis()
+    });
+    return docRef.id;
+}
+
+export async function updatePortfolioCategory(id: string, data: Partial<PortfolioCategory>): Promise<void> {
+    const docRef = doc(db, 'portfolioCategories', id);
+    await updateDoc(docRef, data);
+}
+
+export async function deletePortfolioCategory(id: string): Promise<void> {
+    const docRef = doc(db, 'portfolioCategories', id);
+    await deleteDoc(docRef);
+}
+
+// --- Photos ---
+
+export async function getPortfolioPhotosByCategory(categoryId: string): Promise<PortfolioPhoto[]> {
+    const q = query(portfolioPhotosCol, where('categoryId', '==', categoryId), orderBy('order', 'asc'));
+    try {
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PortfolioPhoto));
+    } catch {
+        // Fallback if composite index is missing: just query by category and sort client-side
+        const simpleQ = query(portfolioPhotosCol, where('categoryId', '==', categoryId));
+        const snapshot = await getDocs(simpleQ);
+        const photos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PortfolioPhoto));
+        return photos.sort((a, b) => (a.order || 0) - (b.order || 0));
+    }
+}
+
+export async function getNewestPortfolioPhotos(limitCount: number = 4): Promise<PortfolioPhoto[]> {
+    const q = query(portfolioPhotosCol, orderBy('createdAt', 'desc'), firestoreLimit(limitCount));
+    try {
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PortfolioPhoto));
+    } catch {
+        // Fallback for missing index
+        const fallbackQ = query(portfolioPhotosCol);
+        const snapshot = await getDocs(fallbackQ);
+        const photos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PortfolioPhoto));
+        return photos.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, limitCount);
+    }
+}
+
+export async function getPortfolioPhotos(targetPageId?: string): Promise<PortfolioPhoto[]> {
+    if (!targetPageId) {
+        // Return all photos ordered by creation
+        const q = query(portfolioPhotosCol, orderBy('createdAt', 'desc'));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PortfolioPhoto));
+    }
+
+    // 1. Find categories linked to targetPageId
+    const catQuery = query(
+        portfolioCategoriesCol,
+        where('targetPageId', '==', targetPageId),
+        where('isActive', '==', true)
+    );
+    const catSnapshot = await getDocs(catQuery);
+    const categoryIds = catSnapshot.docs.map(doc => doc.id);
+
+    if (categoryIds.length === 0) return [];
+
+    // 2. Find photos for those categories
+    const photos: PortfolioPhoto[] = [];
+
+    // Batch processing to handle > 10 categories if needed
+    for (let i = 0; i < categoryIds.length; i += 10) {
+        const batchIds = categoryIds.slice(i, i + 10);
+        const photoQuery = query(
+            portfolioPhotosCol,
+            where('categoryId', 'in', batchIds)
+        );
+        const pSnapshot = await getDocs(photoQuery);
+        photos.push(...pSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PortfolioPhoto)));
+    }
+
+    return photos.sort((a, b) => a.order - b.order); // Sort client side for simplicity
+}
+
+export async function createPortfolioPhoto(data: Omit<PortfolioPhoto, 'id' | 'createdAt'>): Promise<string> {
+    const docRef = await addDoc(portfolioPhotosCol, {
+        ...data,
+        createdAt: Timestamp.now().toMillis()
+    });
+    return docRef.id;
+}
+
+export async function updatePortfolioPhoto(id: string, data: Partial<PortfolioPhoto>): Promise<void> {
+    const docRef = doc(db, 'portfolioPhotos', id);
+    await updateDoc(docRef, data);
+}
+
+export async function deletePortfolioPhoto(id: string): Promise<void> {
+    const docRef = doc(db, 'portfolioPhotos', id);
+    await deleteDoc(docRef);
+}
+
+// ==========================================
+// FONTS MANAGEMENT
+// ==========================================
+
+export interface FontModel {
+    id?: string;
+    name: string;
+    category: string;
+    file: string;
+    url: string;
+    tags: string[];
+    createdAt?: number;
+    isVerified?: boolean;
+}
+
+export async function getFonts(): Promise<FontModel[]> {
+    const q = query(fontsCol, orderBy('createdAt', 'desc'));
+    try {
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FontModel));
+    } catch {
+        // Fallback if index misses
+        const snapshot = await getDocs(fontsCol);
+        const fontDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FontModel));
+        return fontDocs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    }
+}
+
+export async function createFont(data: Omit<FontModel, 'id' | 'createdAt'>): Promise<string> {
+    const docRef = await addDoc(fontsCol, {
+        ...data,
+        createdAt: Timestamp.now().toMillis()
+    });
+    return docRef.id;
+}
+
+export async function updateFont(id: string, data: Partial<FontModel>): Promise<void> {
+    const docRef = doc(db, 'fonts', id);
+    await updateDoc(docRef, data);
+}
+
+export async function deleteFontDoc(id: string): Promise<void> {
+    const docRef = doc(db, 'fonts', id);
+    await deleteDoc(docRef);
 }

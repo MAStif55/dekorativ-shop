@@ -4,6 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useState } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { Send, MessageCircle, Info } from 'lucide-react';
 
 export default function AboutPage() {
     const { locale } = useLanguage();
@@ -21,7 +22,7 @@ export default function AboutPage() {
         setIsSubmitting(true);
         setSubmitError(false);
         try {
-            const res = await fetch('https://us-central1-somanatha-shop.cloudfunctions.net/submitFeedback', {
+            const res = await fetch('https://us-central1-dekorativ-5c737.cloudfunctions.net/submitFeedback', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -45,142 +46,142 @@ export default function AboutPage() {
     };
 
     return (
-        <main className="min-h-screen bg-[#0D0A0B]">
+        <main className="min-h-screen bg-canvas flex flex-col">
             <Header />
 
-            {/* Hero Banner */}
-            <section className="py-12 sm:py-20 px-4 sm:px-6 text-center bg-hero-premium">
-                <div className="divider-ornamental mb-4 sm:mb-6">
-                    <span className="text-[#C9A227] text-2xl sm:text-3xl">☸</span>
+            {/* Hero Section */}
+            <section className="pt-12 pb-8 px-4 sm:px-6 text-center relative overflow-hidden">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-turquoise-light/20 rounded-[100%] blur-3xl pointer-events-none"></div>
+
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-slate-100 text-slate text-sm font-semibold mb-6 shadow-sm">
+                    <Info className="w-4 h-4 text-turquoise" />
+                    {locale === 'ru' ? 'О Компании' : 'About Us'}
                 </div>
-                <h1 className="text-3xl sm:text-4xl md:text-6xl font-ornamental text-[#E8D48B] text-glow-gold mb-4">
-                    {locale === 'ru' ? 'Контакты' : 'Contact Us'}
+
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-ornamental text-slate-dark mb-6 relative z-10">
+                    {locale === 'ru' ? 'Мастерская Dekorativ' : 'Dekorativ Workshop'}
                 </h1>
+
+                <p className="text-lg text-slate max-w-2xl mx-auto font-light leading-relaxed relative z-10">
+                    {locale === 'ru'
+                        ? 'Мы воплощаем ваши идеи в материале, создавая уникальные гравировки на стекле, металле и дереве. Каждое изделие — это сочетание точности технологий и ручного труда.'
+                        : 'We bring your ideas to life in material, creating unique engravings on glass, metal, and wood. Each piece is a combination of precision technology and handcraft.'}
+                </p>
             </section>
 
-            {/* About Section */}
-            <section className="py-16 px-6 bg-gradient-to-b from-[#1A1517] to-[#0D0A0B]">
-                <div className="max-w-4xl mx-auto">
-
-
-                    {/* Values */}
-                    <div className="mb-12 sm:mb-16">
-                        <div className="flex items-center gap-3 sm:gap-4 mb-6">
-                            <span className="text-3xl sm:text-4xl">💎</span>
-                            <h2 className="text-xl sm:text-2xl font-elegant font-bold text-[#E8D48B]">
-                                {locale === 'ru' ? 'Наши Ценности' : 'Our Values'}
-                            </h2>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-                            {[
-                                { icon: '🙏', titleEn: 'Authenticity', titleRu: 'Подлинность', descEn: 'Only genuine items crafted according to sacred traditions', descRu: 'Только подлинные изделия по священным традициям' },
-                                { icon: '✨', titleEn: 'Quality', titleRu: 'Качество', descEn: 'Premium materials and meticulous attention to detail', descRu: 'Премиальные материалы и внимание к деталям' },
-                                { icon: '❤️', titleEn: 'Devotion', titleRu: 'Преданность', descEn: 'Deep respect for the spiritual significance', descRu: 'Глубокое уважение к духовному значению' }
-                            ].map((value, i) => (
-                                <div key={i} className="card-premium p-4 sm:p-6 text-center">
-                                    <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">{value.icon}</div>
-                                    <h4 className="text-base sm:text-lg font-bold text-[#2D1B1F] mb-2">{locale === 'ru' ? value.titleRu : value.titleEn}</h4>
-                                    <p className="text-[#4A2C32] text-xs sm:text-sm">{locale === 'ru' ? value.descRu : value.descEn}</p>
-                                </div>
-                            ))}
-                        </div>
+            {/* Values Grid */}
+            <section className="py-6 px-6">
+                <div className="max-w-5xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+                        {[
+                            { icon: '✨', titleEn: 'Aesthetics', titleRu: 'Эстетика', descEn: 'Beautiful minimalist designs for your home or business.', descRu: 'Красивый минималистичный дизайн для дома или бизнеса.' },
+                            { icon: '🎯', titleEn: 'Precision', titleRu: 'Точность', descEn: 'High-quality engraving ensuring every detail is perfect.', descRu: 'Высококачественная гравировка, где продумана каждая деталь.' },
+                            { icon: '🤝', titleEn: 'Care', titleRu: 'Забота', descEn: 'Personal approach and attentive customer service.', descRu: 'Индивидуальный подход и внимательное обслуживание.' }
+                        ].map((value, i) => (
+                            <div key={i} className="bg-white rounded-3xl p-8 text-center shadow-sm border border-slate-100 hover:shadow-md transition-shadow group">
+                                <div className="text-4xl mb-6 transform group-hover:scale-110 transition-transform">{value.icon}</div>
+                                <h4 className="text-xl font-bold text-slate-dark mb-3">{locale === 'ru' ? value.titleRu : value.titleEn}</h4>
+                                <p className="text-slate/80 text-sm leading-relaxed">{locale === 'ru' ? value.descRu : value.descEn}</p>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </section>
 
             {/* Contact Section */}
-            <section id="contact" className="py-12 sm:py-16 px-4 sm:px-6 bg-[#0D0A0B] bg-sacred-pattern">
+            <section id="contact" className="py-5 px-4 sm:px-6 relative flex-1">
                 <div className="max-w-6xl mx-auto">
-                    <div className="text-center mb-8 sm:mb-12">
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-ornamental text-[#E8D48B] text-glow-gold">
-                            {locale === 'ru' ? 'Связаться с Нами' : 'Contact Us'}
+                    <div className="text-center mb-8">
+                        <h2 className="text-3xl sm:text-4xl font-ornamental text-slate-dark mb-4">
+                            {locale === 'ru' ? 'Связаться с Нами' : 'Get in Touch'}
                         </h2>
+                        <p className="text-slate text-lg">
+                            {locale === 'ru' ? 'Выберите удобный способ связи или оставьте заявку.' : 'Choose a convenient way to connect or leave a request.'}
+                        </p>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12">
-                        {/* Messenger Buttons */}
-                        <div className="flex flex-col gap-5 justify-center">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start max-w-5xl mx-auto">
+                        {/* Messenger Links */}
+                        <div className="flex flex-col gap-6">
                             <a
                                 href="https://t.me/Trubitsina_Elena_Astrolog"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-5 p-6 rounded-xl border border-[#C9A227]/30 bg-[#1A1517]/80 hover:border-[#C9A227]/60 hover:bg-[#1A1517] transition-all group"
+                                className="flex items-center gap-6 p-6 rounded-3xl bg-white border border-slate-100 hover:border-turquoise hover:shadow-md transition-all group"
                             >
-                                <div className="w-14 h-14 bg-[#229ED9]/15 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <svg viewBox="0 0 24 24" className="w-7 h-7 text-[#229ED9]" fill="currentColor">
+                                <div className="w-16 h-16 bg-[#229ED9]/10 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:bg-[#229ED9]/20 transition-colors">
+                                    <svg viewBox="0 0 24 24" className="w-8 h-8 text-[#229ED9]" fill="currentColor">
                                         <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
                                     </svg>
                                 </div>
                                 <div>
-                                    <h4 className="font-bold text-[#E8D48B] text-lg group-hover:text-[#C9A227] transition-colors">Telegram</h4>
-                                    <p className="text-[#F5ECD7]/60 text-sm">{locale === 'ru' ? 'Напишите нам в Telegram' : 'Message us on Telegram'}</p>
+                                    <h4 className="font-bold text-slate-dark text-xl group-hover:text-turquoise-dark transition-colors mb-1">Telegram</h4>
+                                    <p className="text-slate text-sm">{locale === 'ru' ? 'Быстрые ответы в мессенджере' : 'Quick replies in messenger'}</p>
                                 </div>
-                                <svg className="w-5 h-5 text-[#C9A227]/50 ml-auto group-hover:text-[#C9A227] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
                             </a>
 
                             <a
                                 href="https://max.ru/u/f9LHodD0cOIistNNtQFWq4OLPx_ZPYrqvTyLMwLrRY0P9hHA7Zd06uRLwCg"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-5 p-6 rounded-xl border border-[#C9A227]/30 bg-[#1A1517]/80 hover:border-[#C9A227]/60 hover:bg-[#1A1517] transition-all group"
+                                className="flex items-center gap-6 p-6 rounded-3xl bg-white border border-slate-100 hover:border-turquoise hover:shadow-md transition-all group"
                             >
-                                <div className="w-14 h-14 bg-[#FF6600]/15 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <svg viewBox="0 0 24 24" className="w-7 h-7 text-[#FF6600]" fill="currentColor">
-                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6zm4 4h-2v-2h2v2zm0-4h-2V7h2v6z" />
-                                    </svg>
+                                <div className="w-16 h-16 bg-[#FF6600]/10 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:bg-[#FF6600]/20 transition-colors">
+                                    <MessageCircle className="w-8 h-8 text-[#FF6600]" />
                                 </div>
                                 <div>
-                                    <h4 className="font-bold text-[#E8D48B] text-lg group-hover:text-[#C9A227] transition-colors">Max</h4>
-                                    <p className="text-[#F5ECD7]/60 text-sm">{locale === 'ru' ? 'Напишите нам в Max' : 'Message us on Max'}</p>
+                                    <h4 className="font-bold text-slate-dark text-xl group-hover:text-turquoise-dark transition-colors mb-1">Max</h4>
+                                    <p className="text-slate text-sm">{locale === 'ru' ? 'Написать нам в Max' : 'Message us on Max'}</p>
                                 </div>
-                                <svg className="w-5 h-5 text-[#C9A227]/50 ml-auto group-hover:text-[#C9A227] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
                             </a>
                         </div>
 
                         {/* Contact Form */}
-                        <div>
+                        <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative">
+                            {/* Decorative element */}
+                            <div className="absolute -top-4 -right-4 w-24 h-24 bg-turquoise-light/40 rounded-full blur-2xl pointer-events-none"></div>
+
                             {submitted ? (
-                                <div className="card-premium p-8 text-center">
-                                    <div className="text-5xl mb-4">✅</div>
-                                    <h4 className="text-xl font-bold text-[#2D1B1F] mb-2">
-                                        {locale === 'ru' ? 'Сообщение отправлено!' : 'Message Sent!'}
+                                <div className="py-6 text-center">
+                                    <div className="w-20 h-20 bg-turquoise-light text-turquoise-dark rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">
+                                        ✓
+                                    </div>
+                                    <h4 className="text-2xl font-bold text-slate-dark mb-4">
+                                        {locale === 'ru' ? 'Спасибо за заявку!' : 'Thank you!'}
                                     </h4>
-                                    <p className="text-[#4A2C32] mb-4">{locale === 'ru' ? 'Мы свяжемся с вами в ближайшее время.' : 'We will get back to you soon.'}</p>
-                                    <button onClick={() => setSubmitted(false)} className="text-[#8B6914] hover:underline">
-                                        {locale === 'ru' ? 'Отправить ещё' : 'Send another message'}
+                                    <p className="text-slate mb-8">{locale === 'ru' ? 'Мы свяжемся с вами в течение рабочего дня.' : 'We will contact you shortly.'}</p>
+                                    <button onClick={() => setSubmitted(false)} className="text-turquoise font-semibold hover:text-turquoise-dark transition-colors">
+                                        {locale === 'ru' ? 'Отправить ещё одно сообщение' : 'Send another message'}
                                     </button>
                                 </div>
                             ) : (
-                                <form onSubmit={handleSubmit} className="card-premium p-8 space-y-5">
+                                <form onSubmit={handleSubmit} className="space-y-6">
                                     <div>
-                                        <label className="block text-sm font-semibold text-[#2D1B1F] mb-2">{locale === 'ru' ? 'Телефон' : 'Phone'} *</label>
+                                        <label className="block text-sm font-semibold text-slate-dark mb-2">{locale === 'ru' ? 'Телефон' : 'Phone'} *</label>
                                         <input type="tel" required value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                            className="w-full px-4 py-3 border border-[#C9A227]/30 rounded-lg bg-[#FAF6ED] text-[#2D1B1F] focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
+                                            className="w-full px-5 py-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-dark focus:outline-none focus:ring-2 focus:ring-turquoise focus:bg-white transition-all"
                                             placeholder={locale === 'ru' ? '+7 (___) ___-__-__' : '+1 (___) ___-____'} />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-semibold text-[#2D1B1F] mb-2">Telegram {locale === 'ru' ? '(необязательно)' : '(optional)'}</label>
+                                        <label className="block text-sm font-semibold text-slate-dark mb-2">Telegram {locale === 'ru' ? '(необязательно)' : '(optional)'}</label>
                                         <input type="text" value={formData.telegram} onChange={(e) => setFormData({ ...formData, telegram: e.target.value })}
-                                            className="w-full px-4 py-3 border border-[#C9A227]/30 rounded-lg bg-[#FAF6ED] text-[#2D1B1F] focus:outline-none focus:ring-2 focus:ring-[#C9A227]"
+                                            className="w-full px-5 py-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-dark focus:outline-none focus:ring-2 focus:ring-turquoise focus:bg-white transition-all"
                                             placeholder="@username" />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-semibold text-[#2D1B1F] mb-2">{locale === 'ru' ? 'Сообщение' : 'Message'} *</label>
+                                        <label className="block text-sm font-semibold text-slate-dark mb-2">{locale === 'ru' ? 'Сообщение' : 'Message'} *</label>
                                         <textarea required rows={4} value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                                            className="w-full px-4 py-3 border border-[#C9A227]/30 rounded-lg bg-[#FAF6ED] text-[#2D1B1F] focus:outline-none focus:ring-2 focus:ring-[#C9A227] resize-none"
-                                            placeholder={locale === 'ru' ? 'Введите сообщение...' : 'Enter your message...'} />
+                                            className="w-full px-5 py-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-dark focus:outline-none focus:ring-2 focus:ring-turquoise focus:bg-white transition-all resize-none"
+                                            placeholder={locale === 'ru' ? 'Опишите вашу идею...' : 'Describe your idea...'} />
                                     </div>
                                     {submitError && (
-                                        <div className="text-red-500 text-sm bg-red-50 px-4 py-3 rounded-lg">
-                                            {locale === 'ru' ? 'Ошибка отправки. Попробуйте ещё раз.' : 'Failed to send. Please try again.'}
+                                        <div className="text-red-500 text-sm bg-red-50 px-5 py-4 rounded-xl border border-red-200">
+                                            {locale === 'ru' ? 'Ошибка отправки. Пожалуйста, попробуйте позже.' : 'Failed to send. Please try again later.'}
                                         </div>
                                     )}
-                                    <button type="submit" disabled={isSubmitting} className="w-full btn-metallic-gold py-4 rounded-lg text-lg disabled:opacity-60">
+                                    <button type="submit" disabled={isSubmitting} className="w-full btn-primary py-4 rounded-xl text-lg flex items-center justify-center gap-2 group">
                                         {isSubmitting ? (locale === 'ru' ? 'Отправка...' : 'Sending...') : (locale === 'ru' ? 'Отправить' : 'Send Message')}
+                                        <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                                     </button>
                                 </form>
                             )}

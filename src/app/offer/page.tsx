@@ -11,8 +11,8 @@ export default function OfferPage() {
         <main className="min-h-screen bg-[#FAF9F6] flex flex-col">
             <Header />
 
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-16 flex-1">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-ornamental text-[#2D1B1F] mb-8 sm:mb-12 text-center">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-5 sm:py-8 flex-1">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-ornamental text-[#2D1B1F] mb-8 sm:mb-6 text-center">
                     {locale === 'ru' ? 'Публичная оферта' : 'Public Offer Agreement'}
                 </h1>
 
@@ -38,7 +38,7 @@ export default function OfferPage() {
                                     1.2. Покупатель — полностью дееспособное физическое лицо, размещающее Заказы на сайте Интернет-магазина, либо указанное в качестве получателя Товара, приобретающее Товар для личных, семейных, домашних и иных нужд, не связанных с осуществлением предпринимательской деятельности.
                                 </p>
                                 <p>
-                                    1.3. Интернет-магазин — интернет-сайт, расположенный в сети Интернет по адресу: <a href="https://somanatha.ru" className="text-[#8B4513]">somanatha.ru</a>, посредством которого Продавец осуществляет торговлю.
+                                    1.3. Интернет-магазин — интернет-сайт, расположенный в сети Интернет по адресу: <a href="https://dekorativ.ru" className="text-secondary/80">dekorativ.ru</a>, посредством которого Продавец осуществляет торговлю.
                                 </p>
                                 <p>
                                     1.4. Товар — перечень материальных объектов, размещенный в Интернет-магазине и доступный для Заказа.
@@ -162,7 +162,7 @@ export default function OfferPage() {
                             </section>
 
                             {/* Seller Details Block */}
-                            <div className="mt-12 pt-8 border-t-2 border-[#C9A227]/30">
+                            <div className="mt-6 pt-8 border-t-2 border-[#C9A227]/30">
                                 <h3 className="text-lg font-bold text-[#2D1B1F] mb-4">10. РЕКВИЗИТЫ ПРОДАВЦА</h3>
                                 <div className="bg-[#FAF9F6] p-4 sm:p-6 rounded-lg border border-gray-200">
                                     <p className="mb-2">
@@ -175,7 +175,7 @@ export default function OfferPage() {
                                         <strong>ИНН:</strong> 550617866892
                                     </p>
                                     <p>
-                                        <strong>Сайт:</strong> <a href="https://somanatha.ru" className="text-[#8B4513]">somanatha.ru</a>
+                                        <strong>Сайт:</strong> <a href="https://dekorativ.ru" className="text-secondary/80">dekorativ.ru</a>
                                     </p>
                                 </div>
                             </div>
@@ -196,7 +196,7 @@ export default function OfferPage() {
                             <section className="mb-8">
                                 <h3 className="text-lg font-bold text-[#2D1B1F] mb-4">1. GENERAL PROVISIONS</h3>
                                 <p>
-                                    1.1. An Individual Entrepreneur applying the special tax regime "Tax on Professional Income" (hereinafter referred to as the "Seller") publishes this public offer for the sale of goods by remote means through the online store located at: <a href="https://somanatha-shop.web.app" className="text-[#8B4513]">somanatha-shop.web.app</a> (hereinafter referred to as the "Online Store").
+                                    1.1. An Individual Entrepreneur applying the special tax regime "Tax on Professional Income" (hereinafter referred to as the "Seller") publishes this public offer for the sale of goods by remote means through the online store located at: <a href="https://dekorativ-5c737.web.app" className="text-secondary/80">dekorativ-5c737.web.app</a> (hereinafter referred to as the "Online Store").
                                 </p>
                                 <p>
                                     1.2. This agreement is an official proposal (public offer) of the Seller, addressed to any individual (hereinafter referred to as the "Buyer"), and contains all essential terms of the retail purchase and sale agreement for goods by remote means.
@@ -299,7 +299,7 @@ export default function OfferPage() {
                             </section>
 
                             {/* Seller Details Block */}
-                            <div className="mt-12 pt-8 border-t-2 border-[#C9A227]/30">
+                            <div className="mt-6 pt-8 border-t-2 border-[#C9A227]/30">
                                 <h3 className="text-lg font-bold text-[#2D1B1F] mb-4">SELLER DETAILS</h3>
                                 <div className="bg-[#FAF9F6] p-4 sm:p-6 rounded-lg border border-gray-200">
                                     <p className="mb-2">

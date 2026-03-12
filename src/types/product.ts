@@ -78,9 +78,9 @@ export interface Product {
     images: (string | ProductImage)[]; // Supports both legacy strings and new ProductImage objects
     category?: string;
     subcategory?: string;
-    tags?: string[];
     variations?: VariationGroup[]; // Custom variations (when not using defaults)
     variationOverrides?: VariationOverrides; // Category default controls
+    videoPreviewUrl?: string; // URL for the looping 'Live Photo' style video preview
     createdAt?: number; // timestamp
     order?: number; // for manual sorting
 }

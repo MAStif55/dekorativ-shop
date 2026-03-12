@@ -31,7 +31,7 @@ export default function CheckoutPage() {
         return (
             <main className="min-h-screen bg-gradient-to-b from-[#0D0A0B] via-[#1A1517] to-[#0D0A0B] flex flex-col">
                 <Header />
-                <section className="py-12 px-6 text-center">
+                <section className="py-6 px-6 text-center">
                     <h2 className="text-3xl md:text-4xl font-ornamental text-[#E8D48B] mb-2 text-glow-gold">
                         {locale === 'ru' ? 'Оформление заказа' : 'Checkout'}
                     </h2>
@@ -61,7 +61,7 @@ export default function CheckoutPage() {
 
             {/* Hero Banner */}
             <section
-                className="py-12 px-6 text-center relative overflow-hidden"
+                className="py-6 px-6 text-center relative overflow-hidden"
             >
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, #C9A227 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
@@ -74,7 +74,7 @@ export default function CheckoutPage() {
                 </p>
             </section>
 
-            <section className="flex-1 py-8 sm:py-12 px-4 sm:px-6 max-w-6xl mx-auto w-full">
+            <section className="flex-1 py-8 sm:py-6 px-4 sm:px-6 max-w-6xl mx-auto w-full">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
                     {/* Order Summary */}
                     <div>

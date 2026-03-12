@@ -24,7 +24,7 @@ export default function NotFound() {
                     {locale === 'ru' ? 'Путь в Никуда' : 'Path to the Void'}
                 </h1>
 
-                <p className="text-xl text-[#F5ECD7]/60 mb-12 font-elegant italic max-w-lg mx-auto">
+                <p className="text-xl text-[#F5ECD7]/60 mb-6 font-elegant italic max-w-lg mx-auto">
                     {locale === 'ru'
                         ? 'Страница, которую вы ищете, растворилась в пустоте.'
                         : 'The page you are looking for has dissolved into the ether.'}
@@ -32,7 +32,7 @@ export default function NotFound() {
 
                 <Link
                     href="/"
-                    className="btn-metallic-gold px-10 py-4 rounded-lg font-bold text-[#0D0A0B] inline-block hover:scale-105 transition-transform"
+                    className="btn-metallic-gold px-5 py-4 rounded-lg font-bold text-[#0D0A0B] inline-block hover:scale-105 transition-transform"
                 >
                     {locale === 'ru' ? 'Вернуться Домой' : 'Return Home'}
                 </Link>

@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Mail, MessageCircle, MapPin, Send, CheckCircle, AlertCircle } from 'lucide-react';
 
-const FEEDBACK_URL = 'https://us-central1-somanatha-shop.cloudfunctions.net/submitFeedback';
+const FEEDBACK_URL = 'https://us-central1-dekorativ-5c737.cloudfunctions.net/submitFeedback';
 
 export default function ContactPage() {
     const { locale } = useLanguage();
@@ -49,13 +49,13 @@ export default function ContactPage() {
         <main className="min-h-screen bg-[#FAF9F6] flex flex-col">
             <Header />
 
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-16 flex-1">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-5 sm:py-8 flex-1">
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-ornamental text-[#2D1B1F] mb-2 text-center">
                     {locale === 'ru' ? 'Свяжитесь с Нами' : 'Contact Us'}
                 </h1>
-                <div className="w-24 h-1 bg-[#C9A227] mx-auto rounded-full mb-8 sm:mb-12"></div>
+                <div className="w-24 h-1 bg-[#C9A227] mx-auto rounded-full mb-8 sm:mb-6"></div>
 
-                <div className="bg-white rounded-2xl shadow-lg border border-[#C9A227]/20 p-6 sm:p-8 md:p-12">
+                <div className="bg-white rounded-2xl shadow-lg border border-[#C9A227]/20 p-6 sm:p-8 md:p-6">
                     <div className="grid md:grid-cols-2 gap-8 md:gap-12">
                         <div>
                             <h2 className="text-xl font-bold text-[#8B4513] mb-6 uppercase tracking-wider">

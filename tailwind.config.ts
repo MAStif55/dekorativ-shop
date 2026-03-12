@@ -8,21 +8,29 @@ const config: Config = {
     ],
     theme: {
         extend: {
-            // Customize these colors for your brand
             colors: {
-                canvas: '#FAF9F6',      // Background color
+                ivory: '#FFFFF0',       // Warm, light base background
                 primary: {
-                    DEFAULT: '#E67E22',   // Primary brand color
-                    light: '#F1C40F',     // Lighter variant
-                    dark: '#D35400',      // Darker variant
+                    light: '#F5E6CC',   // Soft warm light gold
+                    DEFAULT: '#C5A059',  // Matte gold
+                    dark: '#A08044',     // Darker gold/bronze
                 },
-                secondary: '#2D5A27',   // Secondary color
-                graphite: '#333333',    // Text color
+                turquoise: {
+                    light: '#E0F7FA',   // Very light cyan/turquoise for gradients
+                    DEFAULT: '#4DD0E1',  // Main turquoise accent
+                    dark: '#00BCD4',     // Darker turquoise for hover states
+                },
+                slate: {
+                    light: '#94A3B8',
+                    DEFAULT: '#334155',
+                    dark: '#2C3338',     // Changed from #0F172A to deep graphite
+                },
             },
             fontFamily: {
-                // Customize fonts for your brand
-                heading: ['Montserrat Alternates', 'sans-serif'],
-                body: ['Open Sans', 'sans-serif'],
+                heading: ['var(--font-lora)', 'serif'],
+                body: ['var(--font-inter)', 'sans-serif'],
+                ornamental: ['var(--font-lora)', 'serif'],
+                elegant: ['var(--font-lora)', 'serif'],
             },
         },
     },

@@ -12,10 +12,8 @@ import { AdminProductCard } from '@/components/admin/AdminProductCard';
 import { AddProductCard } from '@/components/admin/AddProductCard';
 import { formatPrice } from '@/utils/currency';
 
-const CATEGORIES = [
-    { id: 'yantras', label: { en: 'Yantras', ru: 'Янтры' } },
-    { id: 'kavacha', label: { en: 'Kavacha', ru: 'Кавача' } },
-];
+import { CATEGORIES as APP_CATEGORIES } from '@/types/category';
+const CATEGORIES = APP_CATEGORIES.map(c => ({ id: c.slug, label: c.title }));
 
 export default function AdminProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -332,7 +330,7 @@ export default function AdminProductsPage() {
                 </div>
             ) : isReordering ? (
                 /* Reorder List View */
-                <div className="space-y-2 pb-20 max-w-2xl mx-auto">
+                <div className="space-y-2 pb-10 max-w-2xl mx-auto">
                     <p className="text-center text-sm text-gray-500 mb-4 bg-blue-50 p-2 rounded border border-blue-100">
                         {locale === 'ru'
                             ? 'Используйте стрелки для изменения порядка отображения товаров в каталоге.'
@@ -370,7 +368,7 @@ export default function AdminProductsPage() {
                     ))}
                 </div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-10">
                     {/* Add New Card - First Item */}
                     <AddProductCard />
 
@@ -401,7 +399,7 @@ export default function AdminProductsPage() {
 
             {/* Empty State */}
             {!loading && !isReordering && filteredProducts.length === 0 && (
-                <div className="text-center py-12">
+                <div className="text-center py-6">
                     <p className="text-gray-800 mb-4 font-medium">{t('admin.no_products')}</p>
                     <button onClick={() => setCategoryFilter('')} className="text-gray-900 underline font-bold hover:text-primary">
                         {locale === 'ru' ? 'Очистить фильтры' : 'Clear filters'}

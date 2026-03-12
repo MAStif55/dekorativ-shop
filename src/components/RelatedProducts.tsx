@@ -44,7 +44,7 @@ export default function RelatedProducts({ currentProductId, category }: RelatedP
     if (related.length === 0) return null;
 
     return (
-        <section className="w-full mt-20 pt-10 border-t border-[#C9A227]/20">
+        <section className="w-full mt-10 pt-5 border-t border-[#C9A227]/20">
             <h3 className="text-2xl md:text-3xl font-ornamental text-[#E8D48B] mb-8 text-center">
                 {locale === 'ru' ? 'Вам также может понравиться' : 'You Might Also Like'}
             </h3>

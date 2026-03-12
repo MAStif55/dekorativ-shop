@@ -10,7 +10,7 @@ import { getLocalizedSchema, CheckoutFormData } from '@/lib/checkout-schema';
 import { AddressAutocomplete } from './AddressAutocomplete';
 import { formatPrice } from '@/utils/currency';
 
-const CLOUD_FUNCTION_URL = 'https://us-central1-somanatha-shop.cloudfunctions.net/createOrder';
+const CLOUD_FUNCTION_URL = 'https://us-central1-dekorativ-5c737.cloudfunctions.net/createOrder';
 
 export default function CheckoutForm() {
     const { locale, t } = useLanguage();

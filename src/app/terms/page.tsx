@@ -7,7 +7,7 @@ export default function TermsPage() {
     return (
         <main className="min-h-screen bg-[#FAF9F6]">
             <Header />
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 py-5 sm:py-8">
                 <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Terms of Service</h1>
                 <div className="prose max-w-none text-sm sm:text-base">
                     <p>Last updated: January 2026</p>

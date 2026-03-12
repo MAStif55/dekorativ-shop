@@ -36,7 +36,7 @@ export default function CartPage() {
         return (
             <main className="min-h-screen bg-gradient-to-b from-[#0D0A0B] via-[#1A1517] to-[#0D0A0B] flex flex-col">
                 <Header />
-                <section className="py-12 px-6 text-center">
+                <section className="py-6 px-6 text-center">
                     <h2 className="text-3xl md:text-4xl font-ornamental text-[#E8D48B] mb-2 text-glow-gold">
                         {t('cart.title')}
                     </h2>
@@ -80,7 +80,7 @@ export default function CartPage() {
 
             {/* Hero Banner */}
             <section
-                className="py-12 px-6 text-center relative overflow-hidden"
+                className="py-6 px-6 text-center relative overflow-hidden"
             >
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, #C9A227 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
@@ -98,7 +98,7 @@ export default function CartPage() {
             {/* Cart Content */}
             <section className="flex-1 py-6 sm:py-8 px-4 sm:px-6 max-w-4xl mx-auto w-full">
                 {isEmpty ? (
-                    <div className="text-center py-16 bg-[#1A1517] border border-[#C9A227]/20 rounded-2xl shadow-2xl relative overflow-hidden group">
+                    <div className="text-center py-8 bg-[#1A1517] border border-[#C9A227]/20 rounded-2xl shadow-2xl relative overflow-hidden group">
                         <div className="absolute inset-0 bg-gradient-to-b from-[#C9A227]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
                         <div className="text-7xl mb-6 opacity-80">🛒</div>

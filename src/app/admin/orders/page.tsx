@@ -257,7 +257,7 @@ export default function AdminOrdersPage() {
                                     {colOrders.length > 0 ? (
                                         colOrders.map(order => <OrderCard key={order.id} order={order} />)
                                     ) : (
-                                        <div className="text-center py-10 text-gray-400 text-sm italic">
+                                        <div className="text-center py-5 text-gray-400 text-sm italic">
                                             {t('admin.no_products')}
                                         </div>
                                     )}

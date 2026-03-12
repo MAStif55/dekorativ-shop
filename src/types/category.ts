@@ -4,7 +4,7 @@
  * Defines the product categories for Somanatha Shop (Vedic Store).
  */
 
-export type CategorySlug = 'yantras' | 'kavacha';
+export type CategorySlug = 'keychains' | 'seals' | 'flasks' | 'bracelets' | 'pet-tags' | 'lighters' | 'stationery';
 
 export interface SubCategory {
     id?: string;
@@ -28,28 +28,88 @@ export interface Category {
  */
 export const CATEGORIES: Category[] = [
     {
-        slug: 'yantras',
+        slug: 'keychains',
         title: {
-            en: 'Yantras',
-            ru: 'Янтры'
+            en: 'Keychains & Pendants',
+            ru: 'Брелки, жетоны, подвески с гравировкой'
         },
         description: {
-            en: 'Sacred geometric diagrams used in worship and meditation',
-            ru: 'Священные геометрические диаграммы для поклонения и медитации'
+            en: 'Engraved keychains, tags, and pendants',
+            ru: 'Брелки, жетоны, подвески с гравировкой'
         },
-        icon: '🕉️'
+        icon: '🔑'
     },
     {
-        slug: 'kavacha',
+        slug: 'seals',
         title: {
-            en: 'Kavacha',
-            ru: 'Кавача'
+            en: 'Wax & Clay Seals',
+            ru: 'Печати и штампы для сургуча и пластилина'
         },
         description: {
-            en: 'Protective amulets and talismans with sacred mantras',
-            ru: 'Защитные амулеты и талисманы со священными мантрами'
+            en: 'Custom seals and stamps for wax and clay',
+            ru: 'Печати и штампы для сургуча и пластилина'
         },
-        icon: '🛡️'
+        icon: '✉️'
+    },
+    {
+        slug: 'flasks',
+        title: {
+            en: 'Flasks & Thermoses',
+            ru: 'Фляжки, термосы с гравировкой'
+        },
+        description: {
+            en: 'Engraved flasks and thermoses',
+            ru: 'Фляжки, термосы с гравировкой'
+        },
+        icon: '🧊'
+    },
+    {
+        slug: 'bracelets',
+        title: {
+            en: 'Engraved Bracelets',
+            ru: 'Браслеты с гравировкой'
+        },
+        description: {
+            en: 'Custom engraved bracelets',
+            ru: 'Браслеты с гравировкой'
+        },
+        icon: '🔗'
+    },
+    {
+        slug: 'pet-tags',
+        title: {
+            en: 'Pet ID Tags',
+            ru: 'Адресники'
+        },
+        description: {
+            en: 'Engraved pet ID tags',
+            ru: 'Адресники для домашних животных'
+        },
+        icon: '🐾'
+    },
+    {
+        slug: 'lighters',
+        title: {
+            en: 'Lighters',
+            ru: 'Зажигалки'
+        },
+        description: {
+            en: 'Engraved lighters',
+            ru: 'Зажигалки с гравировкой'
+        },
+        icon: '🔥'
+    },
+    {
+        slug: 'stationery',
+        title: {
+            en: 'Engraved Stationery',
+            ru: 'Канцелярия с гравировкой'
+        },
+        description: {
+            en: 'Engraved stationery and office supplies',
+            ru: 'Канцелярия с гравировкой'
+        },
+        icon: '🖊️'
     }
 ];
 

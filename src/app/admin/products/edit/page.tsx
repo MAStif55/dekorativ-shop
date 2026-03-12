@@ -25,8 +25,8 @@ function EditProductContent() {
         fetchProduct();
     }, [id]);
 
-    if (loading) return <div className="text-center py-12">Loading...</div>;
-    if (!product) return <div className="text-center py-12">Product not found.</div>;
+    if (loading) return <div className="text-center py-6">Loading...</div>;
+    if (!product) return <div className="text-center py-6">Product not found.</div>;
 
     return (
         <div className="container mx-auto max-w-4xl">
@@ -37,7 +37,7 @@ function EditProductContent() {
 
 export default function EditProductPage() {
     return (
-        <Suspense fallback={<div className="text-center py-12">Loading...</div>}>
+        <Suspense fallback={<div className="text-center py-6">Loading...</div>}>
             <EditProductContent />
         </Suspense>
     );

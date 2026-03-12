@@ -1,6 +1,6 @@
 // Types are defined locally below
 
-const CLOUD_FUNCTION_URL = 'https://us-central1-somanatha-shop.cloudfunctions.net/createOrder';
+const CLOUD_FUNCTION_URL = 'https://us-central1-dekorativ-5c737.cloudfunctions.net/createOrder';
 // Re-export types that might be used elsewhere
 export interface OrderItem {
     productId: string;

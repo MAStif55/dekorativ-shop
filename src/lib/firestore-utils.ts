@@ -324,7 +324,8 @@ export const withTimeout = <T>(
 export async function getSubcategories<T>(categorySlug: string): Promise<T[]> {
     const q = query(subcategoriesCol, where('parentCategory', '==', categorySlug));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
+    const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
+    return docs.sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
 }
 
 export async function createSubcategory<T extends DocumentData>(data: T): Promise<string> {

@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { CATEGORIES, getCategoryBySlug, CategorySlug, SubCategory } from '@/types/category';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getProductsByCategory, getSubcategories } from '@/lib/firestore-utils';
-import { Product } from '@/types/product';
+import { Product, getImageUrl } from '@/types/product';
 import ProductCard from '@/components/ProductCard';
 import { useScrollRestore } from '@/hooks/useScrollRestore';
 import { useProductStore } from '@/store/product-store';
@@ -78,17 +78,36 @@ export default function CategoryPageContent({ categorySlug }: CategoryPageConten
         );
     }
 
-    const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
+    // Memoize random images for each subcategory block
+    const subcategoryThumbnails = useMemo(() => {
+        const thumbnails: Record<string, string> = {};
+        subcategories.forEach(sub => {
+            const blockProducts = products.filter(p => p.subcategory === sub.slug);
+            if (blockProducts.length > 0) {
+                // Pick random product
+                const randomIndex = Math.floor(Math.random() * blockProducts.length);
+                const product = blockProducts[randomIndex];
+                if (product.images && product.images.length > 0) {
+                    thumbnails[sub.slug] = getImageUrl(product.images[0]);
+                }
+            }
+        });
+        return thumbnails;
+    }, [subcategories, products]);
 
-    // Filter products by selected tags (AND Logic) and Search Query
-    const filteredProducts = products.filter(product => {
-        // 1. Filter by Subcategory
-        if (selectedSubcategory && product.subcategory !== selectedSubcategory) {
-            return false;
+    const scrollToBlock = (slug: string) => {
+        const element = document.getElementById(`block-${slug}`);
+        if (element) {
+            const headerOffset = 100; // Account for sticky header if exists
+            const elementPosition = element.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.scrollY - headerOffset;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
         }
-
-        return true;
-    });
+    };
 
     return (
         <main
@@ -120,62 +139,104 @@ export default function CategoryPageContent({ categorySlug }: CategoryPageConten
                         <span className="text-primary font-medium">{category.title[locale]}</span>
                     </nav>
 
-                    {/* Subcategories Filter - Only if current category has them */}
-                    {subcategories.length > 0 && (
-                        <div className="flex gap-2 sm:gap-3 mb-6 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:justify-center scrollbar-hide flex-nowrap">
-                            <button
-                                onClick={() => setSelectedSubcategory(null)}
-                                className={`px-4 sm:px-5 py-1.5 sm:py-2 rounded-lg border font-medium transition-all text-sm whitespace-nowrap flex-shrink-0 ${!selectedSubcategory
-                                    ? 'bg-primary text-white border-primary shadow-sm'
-                                    : 'bg-white text-slate border-slate-200 hover:border-primary/50'
-                                    }`}
-                            >
-                                {t('categories.all')}
-                            </button>
-                            {subcategories.map((sub) => (
-                                <button
-                                    key={sub.slug}
-                                    onClick={() => setSelectedSubcategory(sub.slug === selectedSubcategory ? null : sub.slug)}
-                                    className={`px-4 sm:px-5 py-1.5 sm:py-2 rounded-lg border font-medium transition-all text-sm whitespace-nowrap flex-shrink-0 ${selectedSubcategory === sub.slug
-                                        ? 'bg-primary text-white border-primary shadow-sm'
-                                        : 'bg-white text-slate border-slate-200 hover:border-primary hover:text-primary'
-                                        }`}
-                                >
-                                    {sub.title[locale]}
-                                </button>
-                            ))}
+                    {/* Anchor Navigation Row */}
+                    {!isProductsLoading && subcategories.length > 0 && (
+                        <div className="flex gap-4 mb-12 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide snap-x">
+                            {subcategories.map(sub => {
+                                const thumb = subcategoryThumbnails[sub.slug];
+                                const hasProducts = products.some(p => p.subcategory === sub.slug);
+                                if (!hasProducts) return null;
+                                
+                                return (
+                                    <button
+                                        key={`nav-${sub.slug}`}
+                                        onClick={() => scrollToBlock(sub.slug)}
+                                        className="flex flex-col items-center flex-shrink-0 w-32 sm:w-40 group text-center cursor-pointer transition-transform hover:-translate-y-1 snap-start focus:outline-none"
+                                    >
+                                        <div className="w-full aspect-square rounded-2xl overflow-hidden mb-3 border border-slate-200 shadow-sm relative bg-slate-50 group-hover:border-primary/50 group-hover:shadow-md transition-all">
+                                            {thumb ? (
+                                                <img src={thumb} alt={sub.title[locale]} className="w-full h-full object-cover" loading="lazy" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <span className="text-sm font-medium text-slate-dark group-hover:text-primary transition-colors line-clamp-2 px-1">
+                                            {sub.title[locale]}
+                                        </span>
+                                        <div className="mt-1.5 text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {locale === 'ru' ? 'Перейти →' : 'Go →'}
+                                        </div>
+                                    </button>
+                                );
+                            })}
                         </div>
                     )}
 
-
-
-                    {/* Products Grid */}
+                    {/* Catalog Blocks */}
                     {isProductsLoading ? (
-                        <div className="flex justify-center items-center py-10">
+                        <div className="flex justify-center items-center py-20">
                             <div className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
                         </div>
-                    ) : filteredProducts.length > 0 ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
-                            {filteredProducts.map((product) => (
-                                <ProductCard key={product.id} product={product} />
-                            ))}
+                    ) : products.length > 0 ? (
+                        <div className="space-y-16 sm:space-y-24">
+                            {subcategories.map(sub => {
+                                const blockProducts = products.filter(p => p.subcategory === sub.slug);
+                                if (blockProducts.length === 0) return null;
+
+                                return (
+                                    <section key={sub.slug} id={`block-${sub.slug}`} className="scroll-mt-24">
+                                        <div className="mb-6 sm:mb-8 text-center sm:text-left">
+                                            <h3 className="text-2xl sm:text-3xl font-ornamental text-slate-dark mb-2">
+                                                {sub.title[locale]}
+                                            </h3>
+                                            {sub.description && sub.description[locale] && (
+                                                <p className="text-slate text-sm sm:text-base max-w-3xl font-elegant mx-auto sm:mx-0">
+                                                    {sub.description[locale]}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
+                                            {blockProducts.map((product) => (
+                                                <ProductCard key={product.id} product={product} />
+                                            ))}
+                                        </div>
+                                    </section>
+                                );
+                            })}
+
+                            {/* Default Block (Products without subcategory) */}
+                            {(() => {
+                                const defaultProducts = products.filter(p => !p.subcategory || !subcategories.some(sub => sub.slug === p.subcategory));
+                                if (defaultProducts.length === 0) return null;
+
+                                return (
+                                    <section id="block-other" className="scroll-mt-24 pt-4 border-t border-slate-100">
+                                        <div className="mb-6 sm:mb-8 text-center sm:text-left">
+                                            <h3 className="text-2xl sm:text-3xl font-ornamental text-slate-dark mb-2">
+                                                {locale === 'ru' ? 'Другое' : 'Other'}
+                                            </h3>
+                                        </div>
+                                        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
+                                            {defaultProducts.map((product) => (
+                                                <ProductCard key={product.id} product={product} />
+                                            ))}
+                                        </div>
+                                    </section>
+                                );
+                            })()}
                         </div>
                     ) : (
-                        <div className="text-center py-12">
+                        <div className="text-center py-20">
                             <div className="text-6xl mb-4 opacity-50 grayscale">{category.icon}</div>
                             <p className="text-xl text-slate-dark mb-4 font-elegant">
                                 {locale === 'ru'
                                     ? 'Товары не найдены'
                                     : 'No products found'}
                             </p>
-                            <button
-                                onClick={() => {
-                                    setSelectedSubcategory(null);
-                                }}
-                                className="text-primary font-medium hover:underline transition-colors"
-                            >
-                                {locale === 'ru' ? 'Сбросить фильтры' : 'Reset filters'}
-                            </button>
                         </div>
                     )}
                 </div>

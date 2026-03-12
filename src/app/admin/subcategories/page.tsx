@@ -16,6 +16,9 @@ export default function SubcategoriesPage() {
     // New subcategory form state
     const [newTitleRu, setNewTitleRu] = useState('');
     const [newTitleEn, setNewTitleEn] = useState('');
+    const [newDescRu, setNewDescRu] = useState('');
+    const [newDescEn, setNewDescEn] = useState('');
+    const [newOrder, setNewOrder] = useState<number>(0);
     const [newSlug, setNewSlug] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -57,6 +60,11 @@ export default function SubcategoriesPage() {
                     ru: newTitleRu,
                     en: newTitleEn
                 },
+                description: {
+                    ru: newDescRu,
+                    en: newDescEn
+                },
+                order: newOrder,
                 parentCategory: activeTab
             };
 
@@ -65,6 +73,9 @@ export default function SubcategoriesPage() {
             // Reset form
             setNewTitleRu('');
             setNewTitleEn('');
+            setNewDescRu('');
+            setNewDescEn('');
+            setNewOrder(subcategories.length > 0 ? subcategories.length + 1 : 0);
             setNewSlug('');
 
             // Reload list
@@ -138,8 +149,14 @@ export default function SubcategoriesPage() {
                             {subcategories.map(sub => (
                                 <li key={sub.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border group hover:border-primary/30 transition-colors">
                                     <div>
-                                        <div className="font-medium text-gray-900">{sub.title[locale]}</div>
-                                        <div className="text-xs text-gray-500 font-mono">{sub.slug}</div>
+                                        <div className="font-medium text-gray-900">
+                                            {sub.title[locale]} 
+                                            {sub.order !== undefined && <span className="ml-2 text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full border">order: {sub.order}</span>}
+                                        </div>
+                                        {sub.description && (
+                                            <div className="text-sm text-gray-600 mt-1 line-clamp-1">{sub.description[locale]}</div>
+                                        )}
+                                        <div className="text-xs text-gray-500 font-mono mt-1">{sub.slug}</div>
                                     </div>
                                     <button
                                         onClick={() => sub.id && handleDelete(sub.id)}
@@ -190,22 +207,61 @@ export default function SubcategoriesPage() {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Slug (ID)
+                                {locale === 'ru' ? 'Описание (RU)' : 'Description (RU)'}
                             </label>
-                            <input
-                                type="text"
-                                value={newSlug}
-                                onChange={e => setNewSlug(e.target.value)}
-                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none font-mono text-sm"
-                                placeholder="rings"
-                                required
+                            <textarea
+                                value={newDescRu}
+                                onChange={e => setNewDescRu(e.target.value)}
+                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
+                                placeholder={locale === 'ru' ? 'Красивые кольца' : 'Beautiful rings'}
+                                rows={2}
                             />
-                            <p className="text-xs text-gray-500 mt-1">
-                                {locale === 'ru'
-                                    ? 'Используется в URL. Только латинские буквы, цифры и дефис.'
-                                    : 'Used in URL. Lowercase letters, numbers, and hyphens only.'}
-                            </p>
                         </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {locale === 'ru' ? 'Описание (EN)' : 'Description (EN)'}
+                            </label>
+                            <textarea
+                                value={newDescEn}
+                                onChange={e => setNewDescEn(e.target.value)}
+                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
+                                placeholder="Beautiful rings"
+                                rows={2}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    {locale === 'ru' ? 'Порядок' : 'Order'}
+                                </label>
+                                <input
+                                    type="number"
+                                    value={newOrder}
+                                    onChange={e => setNewOrder(Number(e.target.value) || 0)}
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Slug (ID)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={newSlug}
+                                    onChange={e => setNewSlug(e.target.value)}
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none font-mono text-sm"
+                                    placeholder="rings"
+                                    required
+                                />
+                            </div>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                            {locale === 'ru'
+                                ? 'Slug используется в URL. Только латинские буквы, цифры и дефис.'
+                                : 'Slug is used in URL. Lowercase letters, numbers, and hyphens only.'}
+                        </p>
 
                         <button
                             type="submit"

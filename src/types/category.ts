@@ -10,6 +10,8 @@ export interface SubCategory {
     id?: string;
     slug: string;
     title: { en: string; ru: string };
+    description?: { en: string; ru: string };
+    order?: number;
     parentCategory?: CategorySlug;
 }
 

@@ -107,10 +107,7 @@ export default function FontsPage() {
 
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-6">
-                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-slate-100 text-slate text-sm font-semibold mb-4 shadow-sm">
-                            <Type className="w-4 h-4 text-turquoise" />
-                            {locale === 'ru' ? 'Виртуальная примерочная' : 'Virtual Fitting Room'}
-                        </div>
+
                         <h1 className="text-4xl sm:text-5xl font-ornamental text-slate-dark mb-3">
                             {locale === 'ru' ? 'Примерка Шрифтов' : 'Font Preview Tool'}
                         </h1>

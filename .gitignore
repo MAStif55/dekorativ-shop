@@ -71,3 +71,6 @@ test-*.js
 
 # ── Vercel ───────────────────────────────────
 .vercel/
+
+# ── Firebase Service Account Keys ────────────
+*-firebase-adminsdk-*.json

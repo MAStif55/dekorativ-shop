@@ -3,8 +3,97 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { Category, SubCategory } from '@/types/category';
-import { getCategories, createMainCategory, deleteMainCategory, getSubcategories, createSubcategory, deleteSubcategory } from '@/lib/firestore-utils';
-import { Plus, Trash2, Loader2, AlertCircle } from 'lucide-react';
+import { getCategories, createMainCategory, updateMainCategory, deleteMainCategory, getSubcategories, createSubcategory, deleteSubcategory, updateDocument, bulkUpdateOrder } from '@/lib/firestore-utils';
+import { Plus, Trash2, Loader2, AlertCircle, GripVertical, Edit2, X, Save } from 'lucide-react';
+import MarkdownEditor from '@/components/admin/MarkdownEditor';
+
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+function SortableSubCategoryItem({ 
+    sub, 
+    onEdit,
+    onDelete, 
+    locale 
+}: { 
+    sub: SubCategory; 
+    onEdit: (sub: SubCategory) => void;
+    onDelete: (id: string) => void; 
+    locale: string;
+}) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id: sub.id as string });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 50 : 'auto',
+        opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+        <li 
+            ref={setNodeRef} 
+            style={style}
+            className="flex items-center justify-between p-3 bg-white rounded-lg border group hover:border-primary/30 transition-colors shadow-sm"
+        >
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div 
+                    {...attributes} 
+                    {...listeners} 
+                    className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 p-1"
+                >
+                    <GripVertical size={20} />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="font-medium text-gray-900 truncate">
+                        {sub.title[locale as 'en' | 'ru']} 
+                    </div>
+                    {sub.description && (
+                        <div className="text-sm text-gray-600 mt-1 line-clamp-1">{sub.description[locale as 'en' | 'ru']}</div>
+                    )}
+                </div>
+            </div>
+            <div className="flex items-center gap-2 ml-2">
+                <button
+                    onClick={() => onEdit(sub)}
+                    className="text-gray-400 hover:text-primary p-2 rounded-full hover:bg-primary/5 transition-colors"
+                    title={locale === 'ru' ? 'Редактировать' : 'Edit'}
+                >
+                    <Edit2 size={16} />
+                </button>
+                <button
+                    onClick={() => sub.id && onDelete(sub.id)}
+                    className="text-gray-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-colors"
+                    title={locale === 'ru' ? 'Удалить' : 'Delete'}
+                >
+                    <Trash2 size={16} />
+                </button>
+            </div>
+        </li>
+    );
+}
 
 export default function PageBuilderAdmin() {
     const { t, locale } = useTranslation();
@@ -19,7 +108,19 @@ export default function PageBuilderAdmin() {
     const [subcategories, setSubcategories] = useState<SubCategory[]>([]);
     const [loadingSubs, setLoadingSubs] = useState(false);
 
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8, // Require 8px drag before starting
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
     // Add Page Form State
+    const [editingCategory, setEditingCategory] = useState<Category | null>(null);
     const [newCatTitleRu, setNewCatTitleRu] = useState('');
     const [newCatTitleEn, setNewCatTitleEn] = useState('');
     const [newCatSlug, setNewCatSlug] = useState('');
@@ -27,6 +128,7 @@ export default function PageBuilderAdmin() {
     const [isSubmittingCat, setIsSubmittingCat] = useState(false);
 
     // Add Block Form State
+    const [editingSub, setEditingSub] = useState<SubCategory | null>(null);
     const [newTitleRu, setNewTitleRu] = useState('');
     const [newTitleEn, setNewTitleEn] = useState('');
     const [newDescRu, setNewDescRu] = useState('');
@@ -51,6 +153,8 @@ export default function PageBuilderAdmin() {
         try {
             const data = await getCategories<Category>();
             setCategories(data);
+            
+            // Handle cross-sync if route changes from outside, or on initial load
             if (data.length > 0 && !activeTab) {
                 setActiveTab(data[0].slug);
             } else if (data.length === 0) {
@@ -86,11 +190,38 @@ export default function PageBuilderAdmin() {
 
     // Auto-generate slug for new Block
     useEffect(() => {
-        if (newTitleEn && !newSlug) {
+        if (newTitleEn && !newSlug && !editingSub) {
             const slug = newTitleEn.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
             setNewSlug(slug);
         }
-    }, [newTitleEn]);
+    }, [newTitleEn, editingSub]);
+
+    function startEditPage() {
+        const cat = categories.find(c => c.slug === activeTab);
+        if (cat) {
+            setEditingCategory(cat);
+            setNewCatTitleRu(cat.title.ru);
+            setNewCatTitleEn(cat.title.en);
+            setNewCatSlug(cat.slug);
+            setNewCatOrder(cat.order || 0);
+            setActiveTab('NEW_PAGE');
+        }
+    }
+
+    function cancelEditPage() {
+        setEditingCategory(null);
+        setNewCatTitleRu('');
+        setNewCatTitleEn('');
+        setNewCatSlug('');
+        setNewCatOrder(0);
+        if (categories.length > 0) {
+            // Find a valid slug to return to, prefer the one we were just editing
+            const returnSlug = editingCategory?.slug || categories[0].slug;
+            setActiveTab(returnSlug);
+        } else {
+            setActiveTab('NEW_PAGE');
+        }
+    }
 
     async function handleAddPage(e: React.FormEvent) {
         e.preventDefault();
@@ -98,25 +229,30 @@ export default function PageBuilderAdmin() {
 
         setIsSubmittingCat(true);
         try {
-            const newCat: any = {
+            const pageData: any = {
                 slug: newCatSlug,
                 title: { ru: newCatTitleRu, en: newCatTitleEn },
-                description: { ru: '', en: '' }, // optional description
+                description: { ru: '', en: '' }, 
                 order: newCatOrder
             };
 
-            await createMainCategory(newCat);
+            if (editingCategory) {
+                await updateMainCategory((editingCategory as any).id, pageData);
+            } else {
+                await createMainCategory(pageData);
+            }
 
             setNewCatTitleRu('');
             setNewCatTitleEn('');
             setNewCatSlug('');
-            setNewCatOrder(categories.length > 0 ? categories.length * 10 : 0);
+            setNewCatOrder(0);
+            setEditingCategory(null);
             
             await loadCategories();
             setActiveTab(newCatSlug);
         } catch (err) {
-            console.error("Error adding page:", err);
-            setError(locale === 'ru' ? 'Ошибка при добавлении страницы' : 'Error adding page');
+            console.error("Error saving page:", err);
+            setError(locale === 'ru' ? 'Ошибка при сохранении страницы' : 'Error saving page');
         } finally {
             setIsSubmittingCat(false);
         }
@@ -153,7 +289,7 @@ export default function PageBuilderAdmin() {
 
         setIsSubmittingSub(true);
         try {
-            const newSub: SubCategory = {
+            const blockData: SubCategory = {
                 slug: newSlug,
                 title: { ru: newTitleRu, en: newTitleEn },
                 description: { ru: newDescRu, en: newDescEn },
@@ -161,22 +297,47 @@ export default function PageBuilderAdmin() {
                 parentCategory: activeTab
             };
 
-            await createSubcategory(newSub);
+            if (editingSub) {
+                await updateDocument('subcategories', editingSub.id as string, blockData);
+            } else {
+                await createSubcategory(blockData);
+            }
 
             setNewTitleRu('');
             setNewTitleEn('');
             setNewDescRu('');
             setNewDescEn('');
-            setNewOrder(subcategories.length > 0 ? subcategories.length + 1 : 0);
+            setNewOrder(editingSub ? 0 : (subcategories.length > 0 ? subcategories.length + 1 : 0));
             setNewSlug('');
+            setEditingSub(null);
 
             await loadSubcategories(activeTab);
         } catch (err) {
-            console.error("Error adding subcategory:", err);
-            setError(locale === 'ru' ? 'Ошибка при добавлении блока' : 'Error adding block');
+            console.error("Error saving block:", err);
+            setError(locale === 'ru' ? 'Ошибка при сохранении блока' : 'Error saving block');
         } finally {
             setIsSubmittingSub(false);
         }
+    }
+
+    function startEditSub(sub: SubCategory) {
+        setEditingSub(sub);
+        setNewTitleRu(sub.title.ru);
+        setNewTitleEn(sub.title.en);
+        setNewDescRu(sub.description?.ru || '');
+        setNewDescEn(sub.description?.en || '');
+        setNewOrder(sub.order || 0);
+        setNewSlug(sub.slug);
+    }
+
+    function cancelEditSub() {
+        setEditingSub(null);
+        setNewTitleRu('');
+        setNewTitleEn('');
+        setNewDescRu('');
+        setNewDescEn('');
+        setNewOrder(0);
+        setNewSlug('');
     }
 
     async function handleDeleteSub(id: string) {
@@ -191,6 +352,32 @@ export default function PageBuilderAdmin() {
         }
     }
 
+    async function handleDragEnd(event: DragEndEvent) {
+        const { active, over } = event;
+
+        if (over && active.id !== over.id) {
+            const oldIndex = subcategories.findIndex((sub) => sub.id === active.id);
+            const newIndex = subcategories.findIndex((sub) => sub.id === over.id);
+
+            const newOrder = arrayMove(subcategories, oldIndex, newIndex);
+            
+            // Optimistic UI update
+            setSubcategories(newOrder);
+
+            try {
+                const updates = newOrder.map((sub, index) => ({
+                    id: sub.id as string,
+                    order: index * 10 // Using 10 step for easier manual edits if needed, but consistent
+                }));
+                await bulkUpdateOrder('subcategories', updates);
+            } catch (error) {
+                console.error("Failed to update order in Firestore:", error);
+                // Revert on failure
+                loadSubcategories(activeTab);
+            }
+        }
+    }
+
     return (
         <div className="max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-6">
@@ -198,13 +385,22 @@ export default function PageBuilderAdmin() {
                     {locale === 'ru' ? 'Конструктор страниц' : 'Page Builder'}
                 </h1>
                 {activeTab !== 'NEW_PAGE' && categories.length > 0 && (
-                    <button
-                        onClick={handleDeletePage}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2 border border-red-200"
-                    >
-                        <Trash2 size={16} />
-                        {locale === 'ru' ? 'Удалить страницу' : 'Delete Page'}
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={startEditPage}
+                            className="text-slate-600 hover:text-primary hover:bg-slate-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2 border border-slate-200 shadow-sm"
+                        >
+                            <Edit2 size={16} />
+                            {locale === 'ru' ? 'Редактировать страницу' : 'Edit Page'}
+                        </button>
+                        <button
+                            onClick={handleDeletePage}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2 border border-red-200"
+                        >
+                            <Trash2 size={16} />
+                            {locale === 'ru' ? 'Удалить страницу' : 'Delete Page'}
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -250,9 +446,19 @@ export default function PageBuilderAdmin() {
             {activeTab === 'NEW_PAGE' ? (
                 /* ADD PAGE FORM */
                 <div className="bg-white p-6 rounded-lg shadow-sm border max-w-xl">
-                    <h2 className="text-lg font-semibold mb-4 text-gray-800">
-                        {locale === 'ru' ? 'Новая страница (Главная категория)' : 'New Page (Main Category)'}
-                    </h2>
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-lg font-semibold text-gray-800">
+                            {editingCategory 
+                                ? (locale === 'ru' ? 'Редактирование страницы' : 'Edit Page')
+                                : (locale === 'ru' ? 'Новая страница (Главная категория)' : 'New Page (Main Category)')
+                            }
+                        </h2>
+                        {editingCategory && (
+                            <button onClick={cancelEditPage} className="text-gray-400 hover:text-gray-600">
+                                <X size={20} />
+                            </button>
+                        )}
+                    </div>
                     <form onSubmit={handleAddPage} className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -301,14 +507,28 @@ export default function PageBuilderAdmin() {
                                 />
                             </div>
                         </div>
-                        <button
-                            type="submit"
-                            disabled={isSubmittingCat}
-                            className="bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 "
-                        >
-                            {isSubmittingCat ? <Loader2 className="animate-spin" size={18} /> : <Plus size={18} />}
-                            {locale === 'ru' ? 'Создать страницу' : 'Create Page'}
-                        </button>
+                        <div className="flex gap-3 pt-2">
+                            <button
+                                type="submit"
+                                disabled={isSubmittingCat}
+                                className="flex-1 bg-primary text-white px-6 py-2.5 rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 "
+                            >
+                                {isSubmittingCat ? <Loader2 className="animate-spin" size={18} /> : (editingCategory ? <Save size={18} /> : <Plus size={18} />)}
+                                {editingCategory 
+                                    ? (locale === 'ru' ? 'Сохранить изменения' : 'Save Changes')
+                                    : (locale === 'ru' ? 'Создать страницу' : 'Create Page')
+                                }
+                            </button>
+                            {editingCategory && (
+                                <button
+                                    type="button"
+                                    onClick={cancelEditPage}
+                                    className="px-6 py-2.5 border rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-600"
+                                >
+                                    {locale === 'ru' ? 'Отмена' : 'Cancel'}
+                                </button>
+                            )}
+                        </div>
                     </form>
                 </div>
             ) : (
@@ -329,36 +549,46 @@ export default function PageBuilderAdmin() {
                                 {locale === 'ru' ? 'Нет блоков' : 'No blocks found'}
                             </p>
                         ) : (
-                            <ul className="space-y-3">
-                                {subcategories.map(sub => (
-                                    <li key={sub.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border group hover:border-primary/30 transition-colors">
-                                        <div>
-                                            <div className="font-medium text-gray-900">
-                                                {sub.title[locale]} 
-                                                {sub.order !== undefined && <span className="ml-2 text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full border">order: {sub.order}</span>}
-                                            </div>
-                                            {sub.description && (
-                                                <div className="text-sm text-gray-600 mt-1 line-clamp-1">{sub.description[locale]}</div>
-                                            )}
-                                            <div className="text-xs text-gray-500 font-mono mt-1">{sub.slug}</div>
-                                        </div>
-                                        <button
-                                            onClick={() => sub.id && handleDeleteSub(sub.id)}
-                                            className="text-gray-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-colors"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
+                            <DndContext
+                                sensors={sensors}
+                                collisionDetection={closestCenter}
+                                onDragEnd={handleDragEnd}
+                            >
+                                <SortableContext
+                                    items={subcategories.map(s => s.id as string)}
+                                    strategy={verticalListSortingStrategy}
+                                >
+                                    <ul className="space-y-3">
+                                        {subcategories.map(sub => (
+                                            <SortableSubCategoryItem 
+                                                key={sub.id} 
+                                                sub={sub} 
+                                                onEdit={startEditSub}
+                                                onDelete={handleDeleteSub} 
+                                                locale={locale} 
+                                            />
+                                        ))}
+                                    </ul>
+                                </SortableContext>
+                            </DndContext>
                         )}
                     </div>
 
                     {/* Add Form Column */}
                     <div className="bg-white p-6 rounded-lg shadow-sm border h-fit">
-                        <h2 className="text-lg font-semibold mb-4 text-gray-800">
-                            {locale === 'ru' ? 'Добавить новый блок' : 'Add New Block'}
-                        </h2>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-semibold text-gray-800">
+                                {editingSub 
+                                    ? (locale === 'ru' ? 'Редактировать блок' : 'Edit Block')
+                                    : (locale === 'ru' ? 'Добавить новый блок' : 'Add New Block')
+                                }
+                            </h2>
+                            {editingSub && (
+                                <button onClick={cancelEditSub} className="text-gray-400 hover:text-gray-600">
+                                    <X size={20} />
+                                </button>
+                            )}
+                        </div>
 
                         <form onSubmit={handleAddSubcategory} className="space-y-4">
                             <div>
@@ -393,12 +623,11 @@ export default function PageBuilderAdmin() {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     {locale === 'ru' ? 'Описание (RU)' : 'Description (RU)'}
                                 </label>
-                                <textarea
+                                <MarkdownEditor
                                     value={newDescRu}
-                                    onChange={e => setNewDescRu(e.target.value)}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
+                                    onChange={setNewDescRu}
                                     placeholder={locale === 'ru' ? 'Красивые кольца' : 'Beautiful rings'}
-                                    rows={2}
+                                    className="min-h-[150px]"
                                 />
                             </div>
 
@@ -406,12 +635,11 @@ export default function PageBuilderAdmin() {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     {locale === 'ru' ? 'Описание (EN)' : 'Description (EN)'}
                                 </label>
-                                <textarea
+                                <MarkdownEditor
                                     value={newDescEn}
-                                    onChange={e => setNewDescEn(e.target.value)}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
+                                    onChange={setNewDescEn}
                                     placeholder="Beautiful rings"
-                                    rows={2}
+                                    className="min-h-[150px]"
                                 />
                             </div>
 
@@ -442,14 +670,28 @@ export default function PageBuilderAdmin() {
                                 </div>
                             </div>
 
-                            <button
-                                type="submit"
-                                disabled={isSubmittingSub}
-                                className="w-full bg-primary text-white py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                            >
-                                {isSubmittingSub ? <Loader2 className="animate-spin" size={18} /> : <Plus size={18} />}
-                                {locale === 'ru' ? 'Добавить блок' : 'Add Block'}
-                            </button>
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    type="submit"
+                                    disabled={isSubmittingSub}
+                                    className="flex-1 bg-primary text-white py-2.5 rounded-lg font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                >
+                                    {isSubmittingSub ? <Loader2 className="animate-spin" size={18} /> : (editingSub ? <Save size={18} /> : <Plus size={18} />)}
+                                    {editingSub 
+                                        ? (locale === 'ru' ? 'Сохранить изменения' : 'Save Changes')
+                                        : (locale === 'ru' ? 'Добавить блок' : 'Add Block')
+                                    }
+                                </button>
+                                {editingSub && (
+                                    <button
+                                        type="button"
+                                        onClick={cancelEditSub}
+                                        className="px-6 py-2.5 border rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-600"
+                                    >
+                                        {locale === 'ru' ? 'Отмена' : 'Cancel'}
+                                    </button>
+                                )}
+                            </div>
                         </form>
                     </div>
                 </div>

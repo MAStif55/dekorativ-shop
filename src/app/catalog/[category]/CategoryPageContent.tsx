@@ -8,19 +8,69 @@ import { useCategoryStore } from '@/store/category-store';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getProductsByCategory, getSubcategories } from '@/lib/firestore-utils';
-import { Product, getImageUrl } from '@/types/product';
+import { Product, ProductStatus, STATUS_PRIORITY, getImageUrl } from '@/types/product';
 import ProductCard from '@/components/ProductCard';
 import { useScrollRestore } from '@/hooks/useScrollRestore';
 import { useProductStore } from '@/store/product-store';
+import Markdown from 'react-markdown';
 
 interface CategoryPageContentProps {
     categorySlug: CategorySlug;
 }
 
-// ... (existing imports)
+/* ─── Ornamental divider between sections ─── */
+function SectionDivider() {
+    return (
+        <div className="flex items-center justify-center gap-3 py-2" aria-hidden="true">
+            <span className="block w-12 h-px bg-gradient-to-r from-transparent to-primary/40" />
+            <span className="block w-1.5 h-1.5 rounded-full bg-primary/50" />
+            <span className="block w-1.5 h-1.5 rounded-full bg-primary/30" />
+            <span className="block w-1.5 h-1.5 rounded-full bg-primary/50" />
+            <span className="block w-12 h-px bg-gradient-to-l from-transparent to-primary/40" />
+        </div>
+    );
+}
+
+/* ─── Decorative underline accent for section titles ─── */
+function TitleAccent() {
+    return (
+        <div className="flex justify-center mt-3 mb-6" aria-hidden="true">
+            <span className="block w-16 h-[2px] rounded-full bg-gradient-to-r from-primary-light via-primary to-primary-light" />
+        </div>
+    );
+}
+
+/* ─── Shared Markdown component config for descriptions ─── */
+const markdownComponents = {
+    p: ({ ...props }: React.ComponentPropsWithoutRef<'p'>) => (
+        <p className="mb-4 last:mb-0" {...props} />
+    ),
+    h1: ({ ...props }: React.ComponentPropsWithoutRef<'h2'>) => (
+        <h2 className="text-2xl font-ornamental text-slate-dark mb-4" {...props} />
+    ),
+    h2: ({ ...props }: React.ComponentPropsWithoutRef<'h3'>) => (
+        <h3 className="text-xl font-ornamental text-slate-dark mb-3" {...props} />
+    ),
+    img: ({ ...props }: React.ComponentPropsWithoutRef<'img'>) => (
+        <img className="rounded-2xl shadow-lg mx-auto my-10 max-w-full sm:max-w-[85%]" {...props} />
+    ),
+    blockquote: ({ ...props }: React.ComponentPropsWithoutRef<'blockquote'>) => (
+        <blockquote className="border-l-[3px] border-primary pl-5 text-slate-light italic my-6" {...props} />
+    ),
+    a: ({ ...props }: React.ComponentPropsWithoutRef<'a'>) => (
+        <a className="text-turquoise-dark underline underline-offset-2 hover:text-turquoise transition-colors" {...props} />
+    ),
+    ul: ({ ...props }: React.ComponentPropsWithoutRef<'ul'>) => (
+        <ul className="list-disc pl-6 my-4 space-y-2 text-left" {...props} />
+    ),
+    ol: ({ ...props }: React.ComponentPropsWithoutRef<'ol'>) => (
+        <ol className="list-decimal pl-6 my-4 space-y-2 text-left" {...props} />
+    ),
+};
 
 export default function CategoryPageContent({ categorySlug }: CategoryPageContentProps) {
     const { locale, t } = useLanguage();
+    const currentLocale = (locale || 'ru') as 'en' | 'ru';
     const { categories, fetchCategories } = useCategoryStore();
     const category = categories.find(c => c.slug === categorySlug);
 
@@ -31,8 +81,17 @@ export default function CategoryPageContent({ categorySlug }: CategoryPageConten
     const [subcategories, setSubcategories] = useState<SubCategory[]>([]);
     const [subcatsLoading, setSubcatsLoading] = useState(true);
 
-    // Filter products for this category
-    const products = allProducts.filter(p => p.category === categorySlug);
+    // Filter products for this category, exclude HIDDEN
+    const products = allProducts.filter(p => p.category === categorySlug && (p.status || 'AVAILABLE') !== 'HIDDEN');
+
+    // Sort products by status priority: AVAILABLE > OUT_OF_STOCK > COMING_SOON
+    const sortByStatus = (items: Product[]) => {
+        return [...items].sort((a, b) => {
+            const priorityA = STATUS_PRIORITY[(a.status || 'AVAILABLE') as ProductStatus];
+            const priorityB = STATUS_PRIORITY[(b.status || 'AVAILABLE') as ProductStatus];
+            return priorityA - priorityB;
+        });
+    };
 
     // Initial fetch of products (if needed) and subcategories
     useEffect(() => {
@@ -56,11 +115,40 @@ export default function CategoryPageContent({ categorySlug }: CategoryPageConten
     // Restore scroll position - ready when products are loaded AND store is hydrated
     const shouldBeVisible = useScrollRestore(!isProductsLoading && hasHydrated);
 
+    // Memoize random images for each subcategory block
+    const subcategoryThumbnails = useMemo(() => {
+        const thumbnails: Record<string, string> = {};
+        subcategories.forEach(sub => {
+            const blockProducts = products.filter(p => p.subcategory === sub.slug);
+            if (blockProducts.length > 0) {
+                const randomIndex = Math.floor(Math.random() * blockProducts.length);
+                const product = blockProducts[randomIndex];
+                if (product.images && product.images.length > 0) {
+                    thumbnails[sub.slug] = getImageUrl(product.images[0]);
+                }
+            }
+        });
+        return thumbnails;
+    }, [subcategories, products]);
+
+    const scrollToBlock = (slug: string) => {
+        const element = document.getElementById(`block-${slug}`);
+        if (element) {
+            const headerOffset = 100;
+            const elementPosition = element.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.scrollY - headerOffset;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+        }
+    };
+
+    /* ─── Not found state ─── */
     if (!category) {
-        // ... (existing 404 block)
         return (
             <main className="min-h-screen">
-                {/* ... existing 404 content */}
                 <Header />
                 <div className="flex-1 flex items-center justify-center py-5">
                     <div className="text-center">
@@ -81,36 +169,10 @@ export default function CategoryPageContent({ categorySlug }: CategoryPageConten
         );
     }
 
-    // Memoize random images for each subcategory block
-    const subcategoryThumbnails = useMemo(() => {
-        const thumbnails: Record<string, string> = {};
-        subcategories.forEach(sub => {
-            const blockProducts = products.filter(p => p.subcategory === sub.slug);
-            if (blockProducts.length > 0) {
-                // Pick random product
-                const randomIndex = Math.floor(Math.random() * blockProducts.length);
-                const product = blockProducts[randomIndex];
-                if (product.images && product.images.length > 0) {
-                    thumbnails[sub.slug] = getImageUrl(product.images[0]);
-                }
-            }
-        });
-        return thumbnails;
-    }, [subcategories, products]);
-
-    const scrollToBlock = (slug: string) => {
-        const element = document.getElementById(`block-${slug}`);
-        if (element) {
-            const headerOffset = 100; // Account for sticky header if exists
-            const elementPosition = element.getBoundingClientRect().top;
-            const offsetPosition = elementPosition + window.scrollY - headerOffset;
-
-            window.scrollTo({
-                top: offsetPosition,
-                behavior: 'smooth'
-            });
-        }
-    };
+    /* ─── Subcategories with products ─── */
+    const visibleSubcategories = subcategories.filter(sub =>
+        products.some(p => p.subcategory === sub.slug)
+    );
 
     return (
         <main
@@ -118,132 +180,162 @@ export default function CategoryPageContent({ categorySlug }: CategoryPageConten
         >
             <Header />
 
-            {/* Hero Banner */}
-            <section className="py-8 sm:py-12 px-4 sm:px-6 text-center relative overflow-hidden flex-shrink-0">
-                <div className="relative z-10">
-                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-ornamental text-slate-dark mb-4 drop-shadow-sm">
-                        {category.title[locale]}
-                    </h2>
-                    <p className="text-base sm:text-lg text-slate max-w-2xl mx-auto font-elegant px-2">
-                        {category.description[locale]}
-                    </p>
-                </div>
-            </section>
+            {/* ═══════════════════════════════════════════════════
+                PAGE CONTAINER
+                ═══════════════════════════════════════════════════ */}
+            <div className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6">
 
-            {/* Catalog Content */}
-            <section className="relative flex-1 w-full">
-                <div className="pb-12 px-4 sm:px-6 max-w-6xl mx-auto relative z-10">
-                    {/* Breadcrumb */}
-                    <nav className="mb-8 text-sm text-slate-light">
-                        <Link href="/" className="hover:text-primary transition-colors">{t('nav.home')}</Link>
-                        {' / '}
-                        <Link href="/catalog" className="hover:text-primary transition-colors">{t('nav.catalog')}</Link>
-                        {' / '}
-                        <span className="text-primary font-medium">{category.title[locale]}</span>
+                {/* ─── HEADER: BREADCRUMBS + DESCRIPTION ─── */}
+                <section className="pt-5 pb-3">
+                    {/* Breadcrumbs — left-aligned, primary navigation cue */}
+                    <nav className="mb-3 flex items-center gap-2 text-xs tracking-wide uppercase text-slate-light">
+                        <Link href="/" className="hover:text-primary transition-colors duration-200">
+                            {t('nav.home')}
+                        </Link>
+                        <span className="opacity-40 text-[10px]" aria-hidden="true">›</span>
+                        <Link href="/catalog" className="hover:text-primary transition-colors duration-200">
+                            {t('nav.catalog')}
+                        </Link>
+                        <span className="opacity-40 text-[10px]" aria-hidden="true">›</span>
+                        <span className="text-primary font-medium">
+                            {category.title?.[locale] || category.title?.ru || ''}
+                        </span>
                     </nav>
 
-                    {/* Anchor Navigation Row */}
-                    {!isProductsLoading && subcategories.length > 0 && (
-                        <div className="flex gap-4 mb-12 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide snap-x">
-                            {subcategories.map(sub => {
-                                const thumb = subcategoryThumbnails[sub.slug];
-                                const hasProducts = products.some(p => p.subcategory === sub.slug);
-                                if (!hasProducts) return null;
-                                
-                                return (
-                                    <button
-                                        key={`nav-${sub.slug}`}
-                                        onClick={() => scrollToBlock(sub.slug)}
-                                        className="flex flex-col items-center flex-shrink-0 w-32 sm:w-40 group text-center cursor-pointer transition-transform hover:-translate-y-1 snap-start focus:outline-none"
-                                    >
-                                        <div className="w-full aspect-square rounded-2xl overflow-hidden mb-3 border border-slate-200 shadow-sm relative bg-slate-50 group-hover:border-primary/50 group-hover:shadow-md transition-all">
-                                            {thumb ? (
-                                                <img src={thumb} alt={sub.title[locale]} className="w-full h-full object-cover" loading="lazy" />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                    </svg>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <span className="text-sm font-medium text-slate-dark group-hover:text-primary transition-colors line-clamp-2 px-1">
-                                            {sub.title[locale]}
-                                        </span>
-                                        <div className="mt-1.5 text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                                            {locale === 'ru' ? 'Перейти →' : 'Go →'}
-                                        </div>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    )}
+                </section>
 
-                    {/* Catalog Blocks */}
+
+                {/* ─── ANCHOR NAVIGATION — Overlay Cards ─── */}
+                {!isProductsLoading && visibleSubcategories.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-8">
+                        {visibleSubcategories.map(sub => {
+                            const thumb = subcategoryThumbnails[sub.slug];
+                            const title = sub.title?.[locale] || sub.title?.ru || '';
+
+                            return (
+                                <button
+                                    key={`nav-${sub.slug}`}
+                                    onClick={() => scrollToBlock(sub.slug)}
+                                    className="group relative aspect-[4/3] rounded-xl overflow-hidden shadow-md hover:shadow-xl border border-white/20 hover:border-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 transition-all duration-500 cursor-pointer"
+                                    aria-label={title}
+                                >
+                                    {/* Image — zooms on hover */}
+                                    {thumb ? (
+                                        <img
+                                            src={thumb}
+                                            alt={title}
+                                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                            loading="lazy"
+                                        />
+                                    ) : (
+                                        <div className="absolute inset-0 bg-slate-200 flex items-center justify-center text-slate-400">
+                                            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                    )}
+
+                                    {/* Uniform dark scrim — guarantees legibility */}
+                                    <div className="absolute inset-0 bg-black/50 group-hover:bg-black/65 transition-colors duration-500" />
+
+                                    {/* Title — absolutely centered */}
+                                    <div className="absolute inset-0 flex items-center justify-center px-4">
+                                        <span className="text-white text-sm sm:text-base lg:text-lg font-semibold uppercase tracking-widest leading-tight text-center drop-shadow-sm">
+                                            {title}
+                                        </span>
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
+
+
+                {/* ─── CONTENT SECTIONS ─── */}
+                <div className="pb-24">
                     {isProductsLoading ? (
                         <div className="flex justify-center items-center py-20">
-                            <div className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
+                            <div className="w-8 h-8 border-3 border-slate-200 border-t-primary rounded-full animate-spin" />
                         </div>
                     ) : products.length > 0 ? (
-                        <div className="space-y-16 sm:space-y-24">
-                            {subcategories.map(sub => {
-                                const blockProducts = products.filter(p => p.subcategory === sub.slug);
+                        <div className="flex flex-col">
+                            {visibleSubcategories.map((sub, idx) => {
+                                const blockProducts = sortByStatus(products.filter(p => p.subcategory === sub.slug));
                                 if (blockProducts.length === 0) return null;
 
                                 return (
-                                    <section key={sub.slug} id={`block-${sub.slug}`} className="scroll-mt-24">
-                                        <div className="mb-6 sm:mb-8 text-center sm:text-left">
-                                            <h3 className="text-2xl sm:text-3xl font-ornamental text-slate-dark mb-2">
-                                                {sub.title[locale]}
-                                            </h3>
-                                            {sub.description && sub.description[locale] && (
-                                                <p className="text-slate text-sm sm:text-base max-w-3xl font-elegant mx-auto sm:mx-0">
-                                                    {sub.description[locale]}
-                                                </p>
-                                            )}
-                                        </div>
-                                        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
-                                            {blockProducts.map((product) => (
-                                                <ProductCard key={product.id} product={product} />
-                                            ))}
-                                        </div>
-                                    </section>
+                                    <div key={sub.slug}>
+                                        {idx > 0 && (
+                                            <div className="py-5">
+                                                <SectionDivider />
+                                            </div>
+                                        )}
+
+                                        <section id={`block-${sub.slug}`} className="scroll-mt-24">
+                                            {/* Section Header — large & centered */}
+                                            <div className="mb-4">
+                                                <h2 className="text-2xl sm:text-3xl font-ornamental text-slate-dark text-center mb-3">
+                                                    {sub.title?.[currentLocale] || sub.title?.ru || ''}
+                                                </h2>
+
+                                                {sub.description && (sub.description[currentLocale] || sub.description.ru || sub.description.en) && (
+                                                    <div className="text-sm text-slate-dark font-medium leading-tight mt-1.5 text-left catalog-prose">
+                                                        <Markdown components={markdownComponents}>
+                                                            {sub.description[currentLocale] || sub.description.ru || sub.description.en || ''}
+                                                        </Markdown>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Product Grid */}
+                                            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                                                {blockProducts.map((product) => (
+                                                    <ProductCard key={product.id} product={product} />
+                                                ))}
+                                            </div>
+                                        </section>
+                                    </div>
                                 );
                             })}
 
-                            {/* Default Block (Products without subcategory) */}
+                            {/* Default "Other" Block */}
                             {(() => {
-                                const defaultProducts = products.filter(p => !p.subcategory || !subcategories.some(sub => sub.slug === p.subcategory));
+                                const defaultProducts = sortByStatus(products.filter(p => !p.subcategory || !subcategories.some(sub => sub.slug === p.subcategory)));
                                 if (defaultProducts.length === 0) return null;
 
                                 return (
-                                    <section id="block-other" className="scroll-mt-24 pt-4 border-t border-slate-100">
-                                        <div className="mb-6 sm:mb-8 text-center sm:text-left">
-                                            <h3 className="text-2xl sm:text-3xl font-ornamental text-slate-dark mb-2">
+                                    <div>
+                                        {visibleSubcategories.length > 0 && (
+                                            <div className="py-5">
+                                                <SectionDivider />
+                                            </div>
+                                        )}
+
+                                        <section id="block-other" className="scroll-mt-24">
+                                            <h2 className="text-2xl sm:text-3xl font-ornamental text-slate-dark text-center mb-4">
                                                 {locale === 'ru' ? 'Другое' : 'Other'}
-                                            </h3>
-                                        </div>
-                                        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
-                                            {defaultProducts.map((product) => (
-                                                <ProductCard key={product.id} product={product} />
-                                            ))}
-                                        </div>
-                                    </section>
+                                            </h2>
+
+                                            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                                                {defaultProducts.map((product) => (
+                                                    <ProductCard key={product.id} product={product} />
+                                                ))}
+                                            </div>
+                                        </section>
+                                    </div>
                                 );
                             })()}
                         </div>
                     ) : (
-                        <div className="text-center py-20">
-                            <div className="text-6xl mb-4 opacity-50 grayscale">{category.icon}</div>
-                            <p className="text-xl text-slate-dark mb-4 font-elegant">
-                                {locale === 'ru'
-                                    ? 'Товары не найдены'
-                                    : 'No products found'}
+                        <div className="text-center py-24">
+                            <div className="text-5xl mb-6 opacity-20 grayscale">{category.icon}</div>
+                            <p className="text-lg text-slate font-light">
+                                {locale === 'ru' ? 'Товары скоро появятся' : 'Products coming soon'}
                             </p>
                         </div>
                     )}
                 </div>
-            </section>
+            </div>
 
             <Footer />
         </main>

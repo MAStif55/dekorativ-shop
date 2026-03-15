@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Category } from '@/types/category';
 import { getCategories } from '@/lib/firestore-utils';
+import { CACHE_CONFIG } from '@/config/cache';
 
 interface CategoryState {
     categories: Category[];
@@ -13,8 +14,7 @@ interface CategoryState {
     fetchCategories: (force?: boolean) => Promise<void>;
 }
 
-// 5 minutes cache duration
-const CACHE_DURATION = 5 * 60 * 1000;
+
 
 export const useCategoryStore = create<CategoryState>()(
     persist(
@@ -34,7 +34,7 @@ export const useCategoryStore = create<CategoryState>()(
                 if (isLoading) return;
 
                 // Return immediately if valid cache exists and not forced
-                if (!force && categories.length > 0 && (now - lastFetched < CACHE_DURATION)) {
+                if (!force && categories.length > 0 && (now - lastFetched < CACHE_CONFIG.CATEGORY_CACHE_DURATION)) {
                     return;
                 }
 

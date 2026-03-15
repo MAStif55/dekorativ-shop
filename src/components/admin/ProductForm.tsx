@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Product, VariationOverrides, ProductImage } from '@/types/product';
+import { Product, ProductStatus, VariationOverrides, ProductImage } from '@/types/product';
 import { createProduct, updateProduct } from '@/lib/firestore-utils';
 import { getCategoryVariations } from '@/lib/variations-service';
 import { Loader2, Save, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
@@ -19,6 +19,7 @@ import { VariationGroup } from '@/types/product';
 import { SubCategory } from '@/types/category';
 import { getSubcategories } from '@/lib/firestore-utils';
 import { useCategoryStore } from '@/store/category-store';
+import { useProductStore } from '@/store/product-store';
 
 interface ProductFormProps {
     initialData?: Product | null;
@@ -50,6 +51,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
             images: [],
             category: '',
             variations: [],
+            status: 'AVAILABLE' as ProductStatus,
         }
     );
 
@@ -112,10 +114,15 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
 
         try {
             if (isEditMode && initialData?.id) {
+                console.log("Updating product status to:", formData.status);
                 await updateProduct(initialData.id, formData);
             } else {
                 await createProduct(formData as Product);
             }
+
+            // Force refresh the global product store to avoid stale cache on frontend
+            await useProductStore.getState().fetchProducts(true);
+
             router.push('/admin/products');
             router.refresh();
         } catch (error: any) {
@@ -223,6 +230,24 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                             </select>
                         </div>
                     )}
+
+                    {/* Product Status */}
+                    <div>
+                        <label className="block text-sm font-semibold text-gray-900 mb-1">
+                            {locale === 'ru' ? 'Статус товара' : 'Product Status'}
+                        </label>
+                        <select
+                            name="status"
+                            value={formData.status || 'AVAILABLE'}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-gray-900"
+                        >
+                            <option value="AVAILABLE">{locale === 'ru' ? '✅ В наличии' : '✅ Available'}</option>
+                            <option value="OUT_OF_STOCK">{locale === 'ru' ? '⏸️ Нет в наличии' : '⏸️ Out of Stock'}</option>
+                            <option value="COMING_SOON">{locale === 'ru' ? '🔜 Скоро в продаже' : '🔜 Coming Soon'}</option>
+                            <option value="HIDDEN">{locale === 'ru' ? '👁️‍🗨️ Скрыт' : '👁️‍🗨️ Hidden'}</option>
+                        </select>
+                    </div>
                 </div>
 
                 {/* English Content (Optional) */}
@@ -257,12 +282,11 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-900 mb-1">Short Description (EN)</label>
-                                <AutoResizeTextarea
-                                    name="shortDescription.en"
+                                <MarkdownEditor
                                     value={formData.shortDescription?.en || ''}
-                                    onChange={handleChange}
+                                    onChange={(val) => handleValueChange('shortDescription.en', val)}
                                     placeholder="Brief description for product cards"
-                                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-gray-900 resize-none overflow-hidden bg-white"
+                                    className="min-h-[150px]"
                                 />
                             </div>
                             <div>
@@ -295,12 +319,11 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                         </div>
                         <div>
                             <label className="block text-sm font-semibold text-gray-900 mb-1">Краткое описание (RU)</label>
-                            <AutoResizeTextarea
-                                name="shortDescription.ru"
+                            <MarkdownEditor
                                 value={formData.shortDescription?.ru || ''}
-                                onChange={handleChange}
+                                onChange={(val) => handleValueChange('shortDescription.ru', val)}
                                 placeholder="Краткое описание для карточек товаров"
-                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-gray-900 resize-none overflow-hidden bg-white"
+                                className="min-h-[150px]"
                             />
                         </div>
                         <div>

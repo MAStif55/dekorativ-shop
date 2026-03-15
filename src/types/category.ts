@@ -16,10 +16,12 @@ export interface SubCategory {
 }
 
 export interface Category {
+    id?: string;
     slug: CategorySlug;
     title: { en: string; ru: string };
     description: { en: string; ru: string };
     icon?: string;
+    order?: number;
     // subcategories are now fetched dynamically
 }
 

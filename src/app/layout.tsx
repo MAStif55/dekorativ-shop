@@ -44,7 +44,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="en" className={`${lora.variable} ${inter.variable}`}>
+        <html lang="ru" className={`${lora.variable} ${inter.variable}`}>
             <body className={inter.className}>
                 <LanguageProvider>
                     <LiveVideoProvider>

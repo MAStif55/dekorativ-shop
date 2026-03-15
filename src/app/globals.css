@@ -165,7 +165,6 @@ h6 {
     -khtml-user-drag: none;
     -moz-user-drag: none;
     -o-user-drag: none;
-    user-drag: none;
     pointer-events: none;
 }
 
@@ -195,4 +194,57 @@ h6 {
     bottom: 0;
     background: transparent;
     pointer-events: auto;
+}
+
+/* ============================================================================
+   CATALOG PAGE — MARKDOWN PROSE STYLES
+   ============================================================================ */
+
+.catalog-prose {
+    line-height: 1.25;
+    font-weight: 500;
+}
+
+.catalog-prose p {
+    margin-bottom: 0.5rem;
+}
+
+.catalog-prose p:last-child {
+    margin-bottom: 0;
+}
+
+.catalog-prose img {
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    margin: 2.5rem auto;
+    max-width: 85%;
+    display: block;
+}
+
+.catalog-prose blockquote {
+    border-left: 3px solid #C5A059;
+    padding-left: 1.25rem;
+    color: #64748b;
+    font-style: italic;
+    margin: 1.5rem 0;
+}
+
+.catalog-prose a {
+    color: #00BCD4;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.catalog-prose a:hover {
+    color: #4DD0E1;
+}
+
+.catalog-prose ul,
+.catalog-prose ol {
+    padding-left: 1.5rem;
+    margin: 1rem 0;
+}
+
+.catalog-prose li {
+    margin-bottom: 0.1rem;
 }

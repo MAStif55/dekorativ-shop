@@ -9,6 +9,7 @@ import { useCartStore } from '@/store/cart-store';
 import { useCartUIStore } from '@/store/cart-ui-store';
 import { Menu, X, ShoppingBag, Home, Grid3X3, Type, Info, ChevronDown, Keyboard } from 'lucide-react';
 import { useCategoryStore } from '@/store/category-store';
+import { useScrollLock } from '@/hooks/useScrollLock';
 
 interface HeaderProps {
     variant?: 'transparent' | 'solid';
@@ -36,14 +37,7 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
         setCatalogOpen(false);
     }, [pathname]);
 
-    useEffect(() => {
-        if (mobileMenuOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
-        return () => { document.body.style.overflow = ''; };
-    }, [mobileMenuOpen]);
+    useScrollLock(mobileMenuOpen);
 
     const isActive = (path: string) => {
         if (path === '/catalog') return pathname.startsWith('/catalog');
@@ -51,10 +45,12 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
     };
 
     const currentLocale = (locale || 'ru') as 'en' | 'ru';
-    const catalogCategories = categories.map(cat => ({
-        href: `/catalog/${cat.slug}`,
-        label: cat.title[currentLocale],
-    }));
+    const catalogCategories = categories
+        .filter(cat => cat && cat.slug && cat.title)
+        .map(cat => ({
+            href: `/catalog/${cat.slug}`,
+            label: cat.title[currentLocale] || cat.title['ru'] || cat.title['en'] || '',
+        }));
 
     const navLinks = [
         { href: '/', label: t('nav.home'), icon: Home },
@@ -89,7 +85,7 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
             <header className={variant === 'transparent' ? 'py-6' : 'py-4'}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 flex justify-between items-center">
                     {/* Logo */}
-                    <Link href="/" className="flex items-center gap-3 group">
+                    <Link href="/" className="flex items-center gap-3 group flex-shrink-0">
                         <Image
                             src="/logo-geometric.png"
                             alt="Dekorativ Logo"
@@ -109,7 +105,7 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <nav className="hidden md:flex items-center gap-8">
+                    <nav className="hidden md:flex items-center gap-4 lg:gap-8">
                         {/* Dropdown Catalog */}
                         <div
                             className="relative"

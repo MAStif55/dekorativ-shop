@@ -33,7 +33,6 @@ export const ordersCol = collection(db, 'orders');
 export const optionsCol = collection(db, 'options');
 export const categoriesCol = collection(db, 'categories');
 export const subcategoriesCol = collection(db, 'subcategories');
-export const galleryCol = collection(db, 'gallery'); // Changed from gallery_images and made non-exported
 export const contentCol = collection(db, 'content');
 export const settingsCol = collection(db, 'settings');
 export const portfolioCategoriesCol = collection(db, 'portfolioCategories');
@@ -123,6 +122,17 @@ export async function deleteDocument(
     await deleteDoc(doc(db, collectionName, id));
 }
 
+/**
+ * Bulk update order for multiple documents
+ */
+export async function bulkUpdateOrder(
+    collectionName: string,
+    updates: { id: string; order: number }[]
+): Promise<void> {
+    const promises = updates.map(u => updateDocument(collectionName, u.id, { order: u.order } as any));
+    await Promise.all(promises);
+}
+
 // ============================================================================
 // PRODUCT-SPECIFIC HELPERS (Customize for your product type)
 // ============================================================================
@@ -144,8 +154,15 @@ export async function getAllProducts<T>(): Promise<T[]> {
 }
 
 export async function getNewestProducts<T>(count: number = 4): Promise<T[]> {
-    const products = await getAllProducts<T>();
-    return products.slice(0, count);
+    const q = query(productsCol, orderBy('createdAt', 'desc'), firestoreLimit(count));
+    try {
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
+    } catch {
+        // Fallback if index doesn't exist
+        const products = await getAllProducts<T>();
+        return products.slice(0, count);
+    }
 }
 
 /**
@@ -366,38 +383,6 @@ export async function deleteSubcategory(id: string): Promise<void> {
     return deleteDocument('subcategories', id);
 }
 
-// ============================================================================
-// GALLERY HELPERS
-// ============================================================================
-
-export async function addGalleryImage<T extends DocumentData>(data: T): Promise<string> {
-    return createDocument(galleryCol, data);
-}
-
-export async function deleteGalleryImage(id: string): Promise<void> {
-    return deleteDocument('gallery_images', id);
-}
-
-export async function getGalleryImages<T>(categorySlug?: string): Promise<T[]> {
-    let q;
-    if (categorySlug && categorySlug !== 'all') {
-        q = query(galleryCol, where('category', '==', categorySlug), orderBy('createdAt', 'desc'));
-    } else {
-        q = query(galleryCol, orderBy('createdAt', 'desc'));
-    }
-
-    try {
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
-    } catch {
-        // Fallback if index misses
-        const snapshot = await getDocs(galleryCol);
-        const images = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
-        // @ts-ignore
-        const filtered = categorySlug && categorySlug !== 'all' ? images.filter(img => img.category === categorySlug) : images;
-        return filtered.sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
-    }
-}
 
 // ==========================================
 // PORTFOLIO (Dynamic Gallery)

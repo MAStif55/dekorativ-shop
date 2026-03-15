@@ -67,7 +67,14 @@
         "addToCart": "В корзину",
         "outOfStock": "Нет в наличии",
         "price": "Цена",
-        "description": "Описание"
+        "description": "Описание",
+        "details": "Подробнее",
+        "status_available": "В наличии",
+        "status_out_of_stock": "Нет в наличии",
+        "status_coming_soon": "Скоро в продаже",
+        "status_hidden": "Скрыт",
+        "temporarily_unavailable": "Временно недоступен",
+        "coming_soon": "Скоро в продаже"
     },
     "admin": {
         "title": "Панель управления",

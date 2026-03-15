@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { PROMO_CONFIG } from '@/config/promotions';
 
 /**
  * Cart Store with Zustand
@@ -119,17 +120,17 @@ export const useCartStore = create<CartState>()(
 
             getFreeShippingThreshold: () => {
                 const subtotal = get().getTotalPrice();
-                return Math.max(0, 3000 - subtotal);
+                return Math.max(0, PROMO_CONFIG.FREE_SHIPPING_THRESHOLD - subtotal);
             },
 
             isFreeShippingEligible: () => {
-                return get().getTotalPrice() >= 3000;
+                return get().getTotalPrice() >= PROMO_CONFIG.FREE_SHIPPING_THRESHOLD;
             },
 
             getGiftThreshold: () => {
                 const totalItems = get().getTotalItems();
-                const remainder = totalItems % 11;
-                return remainder === 0 && totalItems > 0 ? 0 : 11 - remainder;
+                const remainder = totalItems % PROMO_CONFIG.GIFT_EVERY_N_ITEMS;
+                return remainder === 0 && totalItems > 0 ? 0 : PROMO_CONFIG.GIFT_EVERY_N_ITEMS - remainder;
             },
 
             getDiscount: () => {
@@ -137,7 +138,7 @@ export const useCartStore = create<CartState>()(
                 const totalItems = get().getTotalItems();
 
                 // Gift Logic: 1 free for every 11 items
-                const freeItemCount = Math.floor(totalItems / 11);
+                const freeItemCount = Math.floor(totalItems / PROMO_CONFIG.GIFT_EVERY_N_ITEMS);
 
                 if (freeItemCount === 0) return 0;
 
@@ -175,7 +176,7 @@ export const useCartStore = create<CartState>()(
             },
 
             getShippingCost: () => {
-                return get().isFreeShippingEligible() ? 0 : 350;
+                return get().isFreeShippingEligible() ? 0 : PROMO_CONFIG.SHIPPING_COST;
             },
 
             getFinalPrice: () => {

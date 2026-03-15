@@ -6,6 +6,21 @@
  */
 
 /**
+ * Product Status - controls visibility, badges, and sort order
+ */
+export type ProductStatus = 'AVAILABLE' | 'OUT_OF_STOCK' | 'COMING_SOON' | 'HIDDEN';
+
+/**
+ * Sort priority for product statuses (lower = higher priority)
+ */
+export const STATUS_PRIORITY: Record<ProductStatus, number> = {
+    AVAILABLE: 0,
+    OUT_OF_STOCK: 1,
+    COMING_SOON: 2,
+    HIDDEN: 3,
+};
+
+/**
  * Variation Option - single selectable option within a group
  */
 export interface VariationOption {
@@ -81,6 +96,7 @@ export interface Product {
     variations?: VariationGroup[]; // Custom variations (when not using defaults)
     variationOverrides?: VariationOverrides; // Category default controls
     videoPreviewUrl?: string; // URL for the looping 'Live Photo' style video preview
+    status?: ProductStatus; // Product visibility status (defaults to AVAILABLE)
     createdAt?: number; // timestamp
     order?: number; // for manual sorting
 }

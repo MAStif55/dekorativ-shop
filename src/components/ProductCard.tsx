@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
-import { Product, getImageUrl, getImageAlt } from '@/types/product';
+import { Product, ProductStatus, getImageUrl, getImageAlt } from '@/types/product';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useLiveVideoContext } from '@/contexts/LiveVideoContext';
 import { ShoppingCart, Play } from 'lucide-react';
@@ -11,7 +11,6 @@ import { formatPrice } from '@/utils/currency';
 import { useCartStore } from '@/store/cart-store';
 import { useToastStore } from '@/store/toast-store';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 
 interface ProductCardProps {
@@ -77,14 +76,6 @@ export default function ProductCard({ product }: ProductCardProps) {
         });
     };
 
-    const router = useRouter();
-
-    const handleDetailsClick = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        router.push(`/product/${productSlug}`);
-    };
-
     // Fallback to product ID if slug is missing
     const productSlug = product.slug || product.id;
 
@@ -107,6 +98,19 @@ export default function ProductCard({ product }: ProductCardProps) {
                     onContextMenu={(e) => e.preventDefault()}
                 >
 
+                    {/* Status Badge Overlay */}
+                    {(product.status === 'OUT_OF_STOCK' || product.status === 'COMING_SOON') && (
+                        <div className={`absolute top-3 left-3 z-20 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider backdrop-blur-md shadow-lg border ${
+                            product.status === 'OUT_OF_STOCK'
+                                ? 'bg-amber-900/60 text-amber-100 border-amber-400/30'
+                                : 'bg-teal-900/60 text-teal-100 border-teal-400/30'
+                        }`}>
+                            {product.status === 'OUT_OF_STOCK'
+                                ? (locale === 'ru' ? 'Временно недоступен' : 'Temporarily unavailable')
+                                : (locale === 'ru' ? 'Скоро в продаже' : 'Coming soon')
+                            }
+                        </div>
+                    )}
 
                     {/* Video Element */}
                     {hasVideo && (
@@ -117,7 +121,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                             playsInline
                             muted
                             loop
-                            preload="metadata"
+                            preload="none"
                         />
                     )}
 
@@ -145,9 +149,13 @@ export default function ProductCard({ product }: ProductCardProps) {
                     </h3>
 
                     <div className="text-sm text-slate-light mb-4 flex-1 font-medium text-center">
-                        <div className="[&>p]:mb-2 last:[&>p]:mb-0">
-                            <ReactMarkdown>
-                                {product.shortDescription?.[locale] || product.description[locale].replace(/<[^>]*>/g, '')}
+                        <div className="prose prose-slate prose-sm [&>p]:mb-2 last:[&>p]:mb-0">
+                            <ReactMarkdown
+                                components={{
+                                    p: ({ ...props }) => <p className="leading-snug" {...props} />,
+                                }}
+                            >
+                                {product.shortDescription?.[locale] || (product.description[locale] ? product.description[locale].replace(/<[^>]*>/g, '').slice(0, 100) + '...' : '')}
                             </ReactMarkdown>
                         </div>
                     </div>
@@ -156,12 +164,11 @@ export default function ProductCard({ product }: ProductCardProps) {
                         <span className="text-xl font-bold text-primary">
                             {formatPrice(product.basePrice)}
                         </span>
-                        <Button
-                            onClick={handleDetailsClick}
-                            title={t('product.details')}
+                        <span
+                            className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary-dark transition-colors"
                         >
                             {locale === 'ru' ? 'Подробнее' : 'Details'}
-                        </Button>
+                        </span>
                     </div>
                 </div>
             </Link>

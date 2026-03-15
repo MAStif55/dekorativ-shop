@@ -39,7 +39,7 @@ const dictionaries: Record<Locale, Dictionary> = {
 
 // Default locale used for SSR - this MUST match what server renders
 const DEFAULT_LOCALE: Locale = 'ru';
-const LOCALE_STORAGE_KEY = 'somanatha-locale';
+const LOCALE_STORAGE_KEY = 'dekorativ-locale';
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 

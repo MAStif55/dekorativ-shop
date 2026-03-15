@@ -1,6 +1,6 @@
 'use client';
 
-import { Product, getImageUrl } from '@/types/product';
+import { Product, ProductStatus, getImageUrl } from '@/types/product';
 import Link from 'next/link';
 import { Copy, ExternalLink, Trash2, Check } from 'lucide-react';
 import { formatCurrency } from '@/utils/currency';
@@ -61,7 +61,13 @@ export function AdminProductCard({
             {/* Content Area */}
             <div className="flex flex-col flex-1 p-4">
                 <div className="mb-2">
-                    <h3 className="font-heading font-bold text-lg text-gray-900 line-clamp-1" title={product.title[locale]}>
+                    <h3 className="font-heading font-bold text-lg text-gray-900 line-clamp-1 flex items-center gap-2" title={product.title[locale]}>
+                        <span className={`inline-block w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                            !product.status || product.status === 'AVAILABLE' ? 'bg-green-500' :
+                            product.status === 'OUT_OF_STOCK' ? 'bg-amber-500' :
+                            product.status === 'COMING_SOON' ? 'bg-blue-500' :
+                            'bg-gray-400'
+                        }`} title={product.status || 'AVAILABLE'} />
                         {product.title[locale]}
                     </h3>
                     <p className="text-sm text-gray-600 font-medium line-clamp-2 min-h-[2.5em]">

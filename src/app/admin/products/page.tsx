@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getAllProducts, deleteProduct, createProduct } from '@/lib/firestore-utils';
+import { getAllProducts, deleteProduct, createProduct, updateProduct, bulkUpdateOrder } from '@/lib/firestore-utils';
 import { Product, getImageUrl } from '@/types/product';
-import { Plus, Trash2, RefreshCw, Search } from 'lucide-react';
+import { Plus, Trash2, RefreshCw, Search, GripVertical } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from '@/contexts/LanguageContext';
 import ConfirmModal from '@/components/admin/ConfirmModal';
@@ -11,6 +11,86 @@ import Breadcrumbs from '@/components/admin/Breadcrumbs';
 import { AdminProductCard } from '@/components/admin/AdminProductCard';
 import { AddProductCard } from '@/components/admin/AddProductCard';
 import { formatPrice } from '@/utils/currency';
+
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+function SortableProductItem({ 
+    product, 
+    index, 
+    locale, 
+    onDelete 
+}: { 
+    product: Product; 
+    index: number; 
+    locale: string;
+    onDelete: (id: string, e: any) => void;
+}) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id: product.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 50 : 'auto',
+        opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+        <div 
+            ref={setNodeRef} 
+            style={style}
+            className="flex items-center gap-4 bg-white p-3 rounded-lg border shadow-sm group hover:border-primary/30 transition-colors"
+        >
+            <div 
+                {...attributes} 
+                {...listeners} 
+                className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 p-2"
+            >
+                <GripVertical size={20} />
+            </div>
+            <img
+                src={product.images?.[0] ? getImageUrl(product.images[0]) : ''}
+                alt={product.title.en}
+                className="w-12 h-12 object-cover rounded shadow-sm"
+            />
+            <div className="flex-1 min-w-0">
+                <h3 className="font-medium text-gray-900 truncate">{locale === 'ru' ? product.title.ru : product.title.en}</h3>
+                <p className="text-xs text-gray-500">{formatPrice(product.basePrice)}</p>
+            </div>
+            <div className="flex items-center gap-4">
+                <span className="text-xs font-mono text-gray-400">#{index + 1}</span>
+                <button
+                    onClick={(e) => onDelete(product.id, e)}
+                    className="text-gray-400 hover:text-red-500 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                    <Trash2 size={16} />
+                </button>
+            </div>
+        </div>
+    );
+}
 
 import { Category } from '@/types/category';
 import { getCategories } from '@/lib/firestore-utils';
@@ -26,6 +106,17 @@ export default function AdminProductsPage() {
     const [itemToDelete, setItemToDelete] = useState<string | null>(null);
     const [bulkDeleteModalOpen, setBulkDeleteModalOpen] = useState(false);
     const { t, locale } = useTranslation();
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
 
     const fetchProducts = async () => {
         setLoading(true);
@@ -140,9 +231,12 @@ export default function AdminProductsPage() {
                 if (a.order !== undefined && b.order !== undefined) return a.order - b.order;
                 return (b.createdAt || 0) - (a.createdAt || 0);
             });
-            setProducts(sorted);
+            // Only set if actually different to avoid infinite loop
+            if (JSON.stringify(sorted) !== JSON.stringify(products)) {
+                setProducts(sorted);
+            }
         }
-    }, []);
+    }, [products]);
 
     const toggleReorderMode = () => {
         if (isReordering) {
@@ -158,45 +252,27 @@ export default function AdminProductsPage() {
         }
     };
 
-    const moveProduct = (index: number, direction: 'up' | 'down') => {
-        const newItems = [...reorderedProducts];
-        if (direction === 'up' && index > 0) {
-            [newItems[index], newItems[index - 1]] = [newItems[index - 1], newItems[index]];
-        } else if (direction === 'down' && index < newItems.length - 1) {
-            [newItems[index], newItems[index + 1]] = [newItems[index + 1], newItems[index]];
+    async function handleDragEnd(event: DragEndEvent) {
+        const { active, over } = event;
+
+        if (over && active.id !== over.id) {
+            const oldIndex = reorderedProducts.findIndex((p) => p.id === active.id);
+            const newIndex = reorderedProducts.findIndex((p) => p.id === over.id);
+
+            const newOrder = arrayMove(reorderedProducts, oldIndex, newIndex);
+            setReorderedProducts(newOrder);
         }
-        setReorderedProducts(newItems);
-    };
+    }
 
     const saveOrder = async () => {
         setSavingOrder(true);
         try {
-            // Update all products with their new order index
             const updates = reorderedProducts.map((p, index) => ({
                 id: p.id,
                 order: index
             }));
 
-            // We need a batch update or parallel requests. 
-            // Since we don't have batch exposed, we use generic updateProduct
-            // But we should import updateProduct from utils.
-            // Assumption: updateProduct is exported from firestore-utils
-
-            // To be safe, let's verify if updateProduct is available in imports
-            // It is NOT in the import list above. I need to add it.
-            // For now, I'll assume I can import it.
-
-            // Actually, I can use createProduct to overwrite or I should add updateProduct to imports.
-            // I will add dynamic import or just fail if not there? 
-            // Better to add `updateProduct` to imports in a separate Edit.
-            // I'll proceed assuming I'll fix the import.
-
-            // Use createProduct (which does setDoc with merge:true usually? No, creates new?)
-            // I will use `updateProduct` from firestore-utils in the next step.
-
-            await Promise.all(updates.map(u =>
-                import('@/lib/firestore-utils').then(m => m.updateProduct(u.id, { order: u.order }))
-            ));
+            await bulkUpdateOrder('products', updates);
 
             setProducts(prev => {
                 const map = new Map(prev.map(p => [p.id, p]));
@@ -334,42 +410,38 @@ export default function AdminProductsPage() {
                 </div>
             ) : isReordering ? (
                 /* Reorder List View */
-                <div className="space-y-2 pb-10 max-w-2xl mx-auto">
-                    <p className="text-center text-sm text-gray-500 mb-4 bg-blue-50 p-2 rounded border border-blue-100">
+                <div className="space-y-4 pb-10 max-w-2xl mx-auto">
+                    <p className="text-center text-sm text-gray-500 mb-4 bg-blue-50 p-3 rounded-lg border border-blue-100 shadow-sm leading-relaxed">
                         {locale === 'ru'
-                            ? 'Используйте стрелки для изменения порядка отображения товаров в каталоге.'
-                            : 'Use arrows to reorder how products appear in the catalog.'}
+                            ? 'Перетащите товары за иконку слева, чтобы изменить их порядок в каталоге.'
+                            : 'Drag products by the handle on the left to reorder them in the catalog.'}
                     </p>
-                    {reorderedProducts.map((product, index) => (
-                        <div key={product.id} className="flex items-center gap-4 bg-white p-3 rounded-lg border shadow-sm">
-                            <div className="flex flex-col gap-1">
-                                <button
-                                    onClick={() => moveProduct(index, 'up')}
-                                    disabled={index === 0}
-                                    className="p-1 hover:bg-gray-100 rounded disabled:opacity-30"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6" /></svg>
-                                </button>
-                                <button
-                                    onClick={() => moveProduct(index, 'down')}
-                                    disabled={index === reorderedProducts.length - 1}
-                                    className="p-1 hover:bg-gray-100 rounded disabled:opacity-30"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
-                                </button>
+                    <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
+                    >
+                        <SortableContext
+                            items={reorderedProducts.map(p => p.id)}
+                            strategy={verticalListSortingStrategy}
+                        >
+                            <div className="space-y-2">
+                                {reorderedProducts.map((product, index) => (
+                                    <SortableProductItem 
+                                        key={product.id} 
+                                        product={product} 
+                                        index={index} 
+                                        locale={locale as string}
+                                        onDelete={(id, e) => {
+                                            itemToDelete && setItemToDelete(id);
+                                            setItemToDelete(id);
+                                            setDeleteModalOpen(true);
+                                        }}
+                                    />
+                                ))}
                             </div>
-                            <img
-                                src={product.images?.[0] ? getImageUrl(product.images[0]) : ''}
-                                alt={product.title.en}
-                                className="w-12 h-12 object-cover rounded"
-                            />
-                            <div className="flex-1">
-                                <h3 className="font-medium text-gray-900 line-clamp-1">{locale === 'ru' ? product.title.ru : product.title.en}</h3>
-                                <p className="text-xs text-gray-500">{formatPrice(product.basePrice)}</p>
-                            </div>
-                            <span className="text-xs font-mono text-gray-400">#{index + 1}</span>
-                        </div>
-                    ))}
+                        </SortableContext>
+                    </DndContext>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-10">

@@ -3,10 +3,12 @@
 import { useState, useCallback, useEffect } from 'react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
-import { Loader2, Upload, X, ImageIcon, Download, ChevronDown, ChevronUp } from 'lucide-react';
+import { Loader2, Upload, X, ImageIcon, Download, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import imageCompression from 'browser-image-compression';
 import { ProductImage } from '@/types/product';
 import ImageCropper from './ImageCropper';
+import { IMAGE_CONFIG } from '@/config/image';
 
 /**
  * Image Upload Component with SEO Metadata
@@ -70,52 +72,23 @@ export default function ImageUpload({
     });
 
     /**
-     * Optimizes an image file by resizing and converting to WebP format.
+     * Optimizes an image file using browser-image-compression
      */
     const optimizeImage = async (file: File): Promise<Blob> => {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-
-            img.onload = () => {
-                let { width, height } = img;
-
-                if (width > maxWidth) {
-                    height = (height * maxWidth) / width;
-                    width = maxWidth;
-                }
-                if (height > maxHeight) {
-                    width = (width * maxHeight) / height;
-                    height = maxHeight;
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-
-                if (!ctx) {
-                    reject(new Error('Could not get canvas context'));
-                    return;
-                }
-
-                ctx.drawImage(img, 0, 0, width, height);
-
-                canvas.toBlob(
-                    (blob) => {
-                        if (blob) {
-                            resolve(blob);
-                        } else {
-                            reject(new Error('Failed to convert canvas to blob'));
-                        }
-                    },
-                    'image/webp',
-                    quality
-                );
-            };
-
-            img.onerror = () => reject(new Error('Failed to load image'));
-            img.src = URL.createObjectURL(file);
-        });
+        const options = {
+            maxSizeMB: IMAGE_CONFIG.maxSizeMB,
+            maxWidthOrHeight: IMAGE_CONFIG.maxWidthOrHeight,
+            useWebWorker: IMAGE_CONFIG.useWebWorker,
+            fileType: 'image/webp',
+            initialQuality: quality,
+        };
+        try {
+            const compressedFile = await imageCompression(file, options);
+            return compressedFile;
+        } catch (error) {
+            console.error("Compression failed, using original file", error);
+            return file;
+        }
     };
 
     const handleUpload = async (file: File) => {

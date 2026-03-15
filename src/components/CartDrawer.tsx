@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { X, ShoppingBag, Trash2, Plus, Minus } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCartStore } from '@/store/cart-store';
 import { useCartUIStore } from '@/store/cart-ui-store';
 import { formatPrice } from '@/utils/currency';
+import { PROMO_CONFIG } from '@/config/promotions';
+import { useScrollLock } from '@/hooks/useScrollLock';
 
 export default function CartDrawer() {
     const { locale, t } = useLanguage();
@@ -33,16 +36,7 @@ export default function CartDrawer() {
     }, []);
 
     // Prevent body scroll when drawer is open
-    useEffect(() => {
-        if (isDrawerOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
-        return () => {
-            document.body.style.overflow = '';
-        };
-    }, [isDrawerOpen]);
+    useScrollLock(isDrawerOpen);
 
     // Close on escape key
     useEffect(() => {
@@ -63,14 +57,14 @@ export default function CartDrawer() {
     // Free Shipping Logic
     const freeShippingRemaining = getFreeShippingThreshold();
     const isFreeShipping = isFreeShippingEligible();
-    const freeShippingProgress = Math.min(100, (subtotal / 3000) * 100);
+    const freeShippingProgress = Math.min(100, (subtotal / PROMO_CONFIG.FREE_SHIPPING_THRESHOLD) * 100);
 
     // Gift Logic
     const giftRemaining = getGiftThreshold();
     const totalItems = getTotalItems();
     // Same logic as CartPage
-    const isGiftSuccess = totalItems > 0 && totalItems % 11 === 0;
-    const giftProgress = isGiftSuccess ? 100 : ((totalItems % 11) / 11) * 100;
+    const isGiftSuccess = totalItems > 0 && totalItems % PROMO_CONFIG.GIFT_EVERY_N_ITEMS === 0;
+    const giftProgress = isGiftSuccess ? 100 : ((totalItems % PROMO_CONFIG.GIFT_EVERY_N_ITEMS) / PROMO_CONFIG.GIFT_EVERY_N_ITEMS) * 100;
 
     return (
         <>
@@ -170,10 +164,12 @@ export default function CartDrawer() {
                                     {/* Image */}
                                     <div className="w-16 h-16 rounded-lg overflow-hidden bg-[#2A2527] flex-shrink-0 border border-[#C9A227]/20">
                                         {item.productImage ? (
-                                            <img
+                                            <Image
                                                 src={item.productImage}
                                                 alt={typeof item.productTitle === 'object' ? item.productTitle[locale] : item.productTitle}
-                                                className="w-full h-full object-cover"
+                                                fill
+                                                className="object-cover"
+                                                sizes="64px"
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-2xl text-[#C9A227]/30">

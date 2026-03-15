@@ -3,6 +3,7 @@ import imageCompression from 'browser-image-compression';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
 import { app } from '@/lib/firebase';
+import { IMAGE_CONFIG } from '@/config/image';
 
 const storage = getStorage(app);
 
@@ -10,12 +11,12 @@ export function useImageProcessor() {
     const [isProcessing, setIsProcessing] = useState(false);
     const [progress, setProgress] = useState(0);
 
-    const compressImage = async (file: File, maxSizeMB: number = 0.5): Promise<File> => {
+    const compressImage = async (file: File): Promise<File> => {
         try {
             const options = {
-                maxSizeMB,
-                maxWidthOrHeight: 1920,
-                useWebWorker: false, // Web Workers can silently fail and hang in Next.js static exports
+                maxSizeMB: IMAGE_CONFIG.maxSizeMB,
+                maxWidthOrHeight: IMAGE_CONFIG.maxWidthOrHeight,
+                useWebWorker: IMAGE_CONFIG.useWebWorker,
                 onProgress: (p: number) => setProgress(p),
             };
 

@@ -67,7 +67,14 @@
         "addToCart": "Add to Cart",
         "outOfStock": "Out of Stock",
         "price": "Price",
-        "description": "Description"
+        "description": "Description",
+        "details": "Details",
+        "status_available": "Available",
+        "status_out_of_stock": "Out of Stock",
+        "status_coming_soon": "Coming Soon",
+        "status_hidden": "Hidden",
+        "temporarily_unavailable": "Temporarily unavailable",
+        "coming_soon": "Coming soon"
     },
     "admin": {
         "title": "Admin Panel",

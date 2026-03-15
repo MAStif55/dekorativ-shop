@@ -194,22 +194,27 @@ export default function VideoUpload({
                 '-t', duration.toString(),
             ];
 
-            // Add crop filter if applicable
+            // Build video filter chain: optional crop + 720p cap
+            const filters: string[] = [];
+
             if (croppedAreaPixels) {
                 const { width, height, x, y } = croppedAreaPixels;
-                // Since react-easy-crop coordinates can be floats, ensure they are integers
                 const w = Math.round(width);
                 const h = Math.round(height);
                 const cx = Math.max(0, Math.round(x));
                 const cy = Math.max(0, Math.round(y));
-
-                ffmpegArgs.push('-vf', `crop=${w}:${h}:${cx}:${cy}`);
+                filters.push(`crop=${w}:${h}:${cx}:${cy}`);
             }
 
-            // High compression settings & mute
+            // Cap resolution at 720p (scale down only, preserve aspect ratio)
+            filters.push(`scale='min(1280,iw)':'min(720,ih)':force_original_aspect_ratio=decrease`);
+
+            ffmpegArgs.push('-vf', filters.join(','));
+
+            // Optimized compression settings & mute
             ffmpegArgs.push(
                 '-c:v', 'libx264',
-                '-preset', 'ultrafast',
+                '-preset', 'fast',
                 '-crf', '28',
                 '-an',
                 '-movflags', '+faststart',
@@ -236,6 +241,17 @@ export default function VideoUpload({
 
             const finalUrl = await getDownloadURL(storageRef);
 
+            // Delete previous video from Storage if replacing
+            if (previewUrl) {
+                try {
+                    const prevRef = ref(storage, previewUrl);
+                    await deleteObject(prevRef);
+                } catch (e) {
+                    // Previous file may already be deleted or URL may be external
+                    console.warn('Could not delete previous video:', e);
+                }
+            }
+
             // Update UI/Form
             setPreviewUrl(finalUrl);
             onChange(finalUrl);
@@ -256,6 +272,15 @@ export default function VideoUpload({
     };
 
     const clearVideo = async () => {
+        // Delete video from Firebase Storage
+        if (previewUrl) {
+            try {
+                const prevRef = ref(storage, previewUrl);
+                await deleteObject(prevRef);
+            } catch (e) {
+                console.warn('Could not delete video from storage:', e);
+            }
+        }
         if (originalVideoUrl) {
             URL.revokeObjectURL(originalVideoUrl);
         }

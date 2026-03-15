@@ -464,3 +464,71 @@ exports.submitFeedback = functions.https.onRequest((req, res) => {
         }
     });
 });
+
+/**
+ * triggerDeploy - Triggers a GitHub Actions deployment via repository_dispatch.
+ * Requires authenticated Firebase user (admin).
+ * Uses GITHUB_PAT and GITHUB_REPO env vars.
+ */
+exports.triggerDeploy = functions.https.onRequest((req, res) => {
+    cors(req, res, async () => {
+        if (req.method !== 'POST') {
+            return res.status(405).json({ error: 'Method Not Allowed' });
+        }
+
+        try {
+            // Verify Firebase Auth token
+            const authHeader = req.headers.authorization;
+            if (!authHeader || !authHeader.startsWith('Bearer ')) {
+                return res.status(401).json({ success: false, error: 'Unauthorized' });
+            }
+
+            const idToken = authHeader.split('Bearer ')[1];
+            await admin.auth().verifyIdToken(idToken);
+
+            // Trigger GitHub Actions
+            const githubPat = process.env.GITHUB_PAT;
+            const githubRepo = process.env.GITHUB_REPO || 'MAStif55/dekorativ-shop';
+
+            if (!githubPat) {
+                return res.status(500).json({ success: false, error: 'GITHUB_PAT not configured' });
+            }
+
+            const response = await fetch(
+                `https://api.github.com/repos/${githubRepo}/dispatches`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/vnd.github+json',
+                        'Authorization': `Bearer ${githubPat}`,
+                        'X-GitHub-Api-Version': '2022-11-28',
+                    },
+                    body: JSON.stringify({
+                        event_type: 'deploy',
+                        client_payload: {
+                            triggered_by: 'admin_panel',
+                            timestamp: new Date().toISOString(),
+                        },
+                    }),
+                }
+            );
+
+            if (response.status === 204) {
+                return res.status(200).json({ success: true, message: 'Deployment triggered' });
+            } else {
+                const errorBody = await response.text();
+                console.error('GitHub API error:', response.status, errorBody);
+                return res.status(response.status).json({
+                    success: false,
+                    error: `GitHub API error: ${response.status}`,
+                });
+            }
+        } catch (error) {
+            console.error('triggerDeploy error:', error);
+            if (error.code === 'auth/id-token-expired' || error.code === 'auth/argument-error') {
+                return res.status(401).json({ success: false, error: 'Invalid or expired token' });
+            }
+            res.status(500).json({ success: false, error: 'Internal Server Error' });
+        }
+    });
+});

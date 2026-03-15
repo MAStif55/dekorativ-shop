@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from '@/contexts/LanguageContext';
 import Link from 'next/link';
 import { Package, ShoppingCart, Users, TrendingUp, Settings, Sliders, Image as ImageIcon } from 'lucide-react';
+import DeployButton from '@/components/admin/DeployButton';
 import { useEffect, useState } from 'react';
 import { getAllOrders } from '@/lib/firestore-utils';
 import { Order } from '@/types/order';
@@ -78,6 +79,7 @@ export default function AdminDashboard() {
                             <ImageIcon className="w-5 h-5" />
                             {locale === 'ru' ? 'Загрузить в галерею' : 'Upload to Gallery'}
                         </Link>
+                        <DeployButton />
                     </div>
                 </div>
             </div>

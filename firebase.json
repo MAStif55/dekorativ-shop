@@ -10,15 +10,33 @@
         ]
     },
     "hosting": {
-        "source": ".",
+        "public": "out",
         "ignore": [
             "firebase.json",
             "**/.*",
             "**/node_modules/**"
         ],
-        "frameworksBackend": {
-            "region": "us-central1"
-        }
+        "headers": [
+            {
+                "source": "**/*.@(jpg|jpeg|gif|png|webp|svg|css|js|woff2)",
+                "headers": [
+                    {
+                        "key": "Cache-Control",
+                        "value": "public, max-age=31536000, immutable"
+                    }
+                ]
+            }
+        ],
+        "rewrites": [
+            {
+                "source": "/product/**",
+                "destination": "/product-details/index.html"
+            },
+            {
+                "source": "**",
+                "destination": "/index.html"
+            }
+        ]
     },
     "firestore": {
         "rules": "firestore.rules",

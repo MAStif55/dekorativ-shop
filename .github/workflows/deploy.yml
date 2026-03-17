@@ -37,13 +37,7 @@ jobs:
           TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
           EOF
 
-      - name: Build Next.js
-        run: npm run build
-
-      - name: Install Cloud Functions dependencies
-        run: cd functions && npm ci
-
-      - name: Deploy to Firebase
+      - name: Deploy to Firebase Hosting (SSR)
         uses: FirebaseExtended/action-hosting-deploy@v0
         id: firebase-hosting
         env:
@@ -54,7 +48,13 @@ jobs:
           channelId: live
           projectId: dekorativ-5c737
 
+      - name: Install Cloud Functions dependencies
+        run: cd functions && npm ci
+
       - name: Deploy Cloud Functions
-        run: npx firebase-tools deploy --only functions --project dekorativ-5c737
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > /tmp/sa.json
+          GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json \
+          npx firebase-tools deploy --only functions --project dekorativ-5c737
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          GOOGLE_CLOUD_PROJECT: dekorativ-5c737

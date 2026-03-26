@@ -51,7 +51,9 @@ export interface VariationOverrides {
  * Product Image with SEO metadata
  */
 export interface ProductImage {
-    url: string;
+    url: string;           // Full-resolution (1200px) — always present
+    cardUrl?: string;      // Medium variant (600px) for product cards
+    thumbUrl?: string;     // Small variant (300px) for thumbnails, cart, etc.
     alt: { en: string; ru: string };
     keywords?: string[];
 }
@@ -76,6 +78,24 @@ export function getImageUrl(image: string | ProductImage): string {
 }
 
 /**
+ * Get medium-resolution image URL for product cards (600px)
+ * Falls back to full-res if card variant unavailable
+ */
+export function getCardImageUrl(image: string | ProductImage): string {
+    if (typeof image === 'string') return image;
+    return image.cardUrl || image.url;
+}
+
+/**
+ * Get small image URL for thumbnails and cart (300px)
+ * Falls back through cardUrl → url
+ */
+export function getThumbImageUrl(image: string | ProductImage): string {
+    if (typeof image === 'string') return image;
+    return image.thumbUrl || image.cardUrl || image.url;
+}
+
+/**
  * Helper to get image alt text (handles both string and ProductImage)
  */
 export function getImageAlt(image: string | ProductImage, locale: 'en' | 'ru', fallback: string = ''): string {
@@ -95,7 +115,8 @@ export interface Product {
     subcategory?: string;
     variations?: VariationGroup[]; // Custom variations (when not using defaults)
     variationOverrides?: VariationOverrides; // Category default controls
-    videoPreviewUrl?: string; // URL for the looping 'Live Photo' style video preview
+    videoPreviewUrl?: string; // URL for the looping 'Live Photo' style video preview (480p)
+    videoUrl?: string;        // URL for the high-quality video on product detail page (720p)
     status?: ProductStatus; // Product visibility status (defaults to AVAILABLE)
     createdAt?: number; // timestamp
     order?: number; // for manual sorting

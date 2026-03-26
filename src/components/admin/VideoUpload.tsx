@@ -13,7 +13,7 @@ import 'rc-slider/assets/index.css';
 
 interface VideoUploadProps {
     value?: string;
-    onChange: (url: string) => void;
+    onChange: (result: { videoUrl: string; videoPreviewUrl: string }) => void;
     storagePath?: string;
 }
 
@@ -183,63 +183,77 @@ export default function VideoUpload({
             // Generate valid input extension
             const ext = selectedFile.name.split('.').pop()?.toLowerCase() || 'mp4';
             const inputName = `input.${ext}`;
-            const outputName = 'output.mp4';
 
             // Write file to in-memory filesystem
             await ffmpeg.writeFile(inputName, await fetchFile(selectedFile));
 
-            const ffmpegArgs = [
-                '-ss', startTime.toString(),
-                '-i', inputName,
-                '-t', duration.toString(),
-            ];
-
-            // Build video filter chain: optional crop + 720p cap
-            const filters: string[] = [];
-
+            // Build base filter chain
+            const baseFilters: string[] = [];
             if (croppedAreaPixels) {
                 const { width, height, x, y } = croppedAreaPixels;
                 const w = Math.round(width);
                 const h = Math.round(height);
                 const cx = Math.max(0, Math.round(x));
                 const cy = Math.max(0, Math.round(y));
-                filters.push(`crop=${w}:${h}:${cx}:${cy}`);
+                baseFilters.push(`crop=${w}:${h}:${cx}:${cy}`);
             }
 
-            // Cap resolution at 720p (scale down only, preserve aspect ratio)
-            filters.push(`scale='min(1280,iw)':'min(720,ih)':force_original_aspect_ratio=decrease`);
-
-            ffmpegArgs.push('-vf', filters.join(','));
-
-            // Optimized compression settings & mute
-            ffmpegArgs.push(
-                '-c:v', 'libx264',
-                '-preset', 'fast',
-                '-crf', '28',
-                '-an',
-                '-movflags', '+faststart',
-                outputName
-            );
-
-            await ffmpeg.exec(ffmpegArgs);
-
-            const data = await ffmpeg.readFile(outputName);
-            const blob = new Blob([data as any], { type: 'video/mp4' });
-
-            // Clean up memory
-            await ffmpeg.deleteFile(inputName);
-            await ffmpeg.deleteFile(outputName);
-
-            // Upload directly to Firebase
-            const filename = `processed_${Date.now()}.mp4`;
-            const storageRef = ref(storage, `${storagePath}/${filename}`);
-
-            await uploadBytes(storageRef, blob, {
+            const videoMetadata = {
                 contentType: 'video/mp4',
-                cacheControl: 'public, max-age=31536000'
-            });
+                cacheControl: 'public, max-age=31536000, immutable',
+            };
 
-            const finalUrl = await getDownloadURL(storageRef);
+            // --- Variant 1: Preview (480p, CRF 30, for card hover) ---
+            const previewFilters = [...baseFilters, `scale='min(854,iw)':'min(480,ih)':force_original_aspect_ratio=decrease`];
+            const previewArgs = [
+                '-ss', startTime.toString(),
+                '-i', inputName,
+                '-t', duration.toString(),
+                '-vf', previewFilters.join(','),
+                '-c:v', 'libx264', '-crf', '30', '-preset', 'fast',
+                '-an', '-movflags', '+faststart',
+                '-y', 'preview.mp4'
+            ];
+            await ffmpeg.exec(previewArgs);
+
+            // --- Variant 2: Full (720p, CRF 24, for PDP) ---
+            const fullFilters = [...baseFilters, `scale='min(1280,iw)':'min(720,ih)':force_original_aspect_ratio=decrease`];
+            const fullArgs = [
+                '-ss', startTime.toString(),
+                '-i', inputName,
+                '-t', duration.toString(),
+                '-vf', fullFilters.join(','),
+                '-c:v', 'libx264', '-crf', '24', '-preset', 'fast',
+                '-an', '-movflags', '+faststart',
+                '-y', 'full.mp4'
+            ];
+            await ffmpeg.exec(fullArgs);
+
+            // Read both outputs
+            const previewData = await ffmpeg.readFile('preview.mp4');
+            const fullData = await ffmpeg.readFile('full.mp4');
+            const previewBlob = new Blob([previewData as any], { type: 'video/mp4' });
+            const fullBlob = new Blob([fullData as any], { type: 'video/mp4' });
+
+            // Clean up in-memory files
+            await ffmpeg.deleteFile(inputName);
+            await ffmpeg.deleteFile('preview.mp4');
+            await ffmpeg.deleteFile('full.mp4');
+
+            // Upload both variants
+            const timestamp = Date.now();
+            const previewRef = ref(storage, `${storagePath}/${timestamp}_preview.mp4`);
+            const fullRef = ref(storage, `${storagePath}/${timestamp}_full.mp4`);
+
+            await Promise.all([
+                uploadBytes(previewRef, previewBlob, videoMetadata),
+                uploadBytes(fullRef, fullBlob, videoMetadata),
+            ]);
+
+            const [videoPreviewUrl, videoUrl] = await Promise.all([
+                getDownloadURL(previewRef),
+                getDownloadURL(fullRef),
+            ]);
 
             // Delete previous video from Storage if replacing
             if (previewUrl) {
@@ -247,14 +261,13 @@ export default function VideoUpload({
                     const prevRef = ref(storage, previewUrl);
                     await deleteObject(prevRef);
                 } catch (e) {
-                    // Previous file may already be deleted or URL may be external
                     console.warn('Could not delete previous video:', e);
                 }
             }
 
-            // Update UI/Form
-            setPreviewUrl(finalUrl);
-            onChange(finalUrl);
+            // Update UI/Form with both URLs
+            setPreviewUrl(videoPreviewUrl);
+            onChange({ videoUrl, videoPreviewUrl });
 
             // Reset Editor
             URL.revokeObjectURL(originalVideoUrl);
@@ -287,7 +300,7 @@ export default function VideoUpload({
         setOriginalVideoUrl(null);
         setSelectedFile(null);
         setPreviewUrl('');
-        onChange('');
+        onChange({ videoUrl: '', videoPreviewUrl: '' });
         setStartTime(0);
         setEndTime(10);
         setZoom(1);

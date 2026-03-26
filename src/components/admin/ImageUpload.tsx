@@ -5,10 +5,8 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
 import { Loader2, Upload, X, ImageIcon, Download, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import imageCompression from 'browser-image-compression';
 import { ProductImage } from '@/types/product';
 import ImageCropper from './ImageCropper';
-import { IMAGE_CONFIG } from '@/config/image';
 
 /**
  * Image Upload Component with SEO Metadata
@@ -26,18 +24,12 @@ interface ImageUploadProps {
     value: (string | ProductImage)[];
     onChange: (images: ProductImage[]) => void;
     storagePath?: string;
-    maxWidth?: number;
-    maxHeight?: number;
-    quality?: number;
 }
 
 export default function ImageUpload({
     value,
     onChange,
     storagePath = 'uploads',
-    maxWidth = 1200,
-    maxHeight = 1200,
-    quality = 0.85
 }: ImageUploadProps) {
     const { locale } = useLanguage();
     const [uploading, setUploading] = useState(false);
@@ -59,12 +51,13 @@ export default function ImageUpload({
     }, [value.length, prevLength]);
 
     // Robust normalization to handle various input shapes
+    // CRITICAL: spread entire object first to preserve cardUrl, thumbUrl
     const normalizedImages: ProductImage[] = value.map(img => {
         if (typeof img === 'string') {
             return { url: img, alt: { en: '', ru: '' }, keywords: [] };
         }
-        // Defensive copy ensuring all fields exist
         return {
+            ...img,
             url: img.url || '',
             alt: img.alt || { en: '', ru: '' },
             keywords: img.keywords || []
@@ -72,23 +65,49 @@ export default function ImageUpload({
     });
 
     /**
-     * Optimizes an image file using browser-image-compression
+     * Image variant definitions for multi-resolution upload
      */
-    const optimizeImage = async (file: File): Promise<Blob> => {
-        const options = {
-            maxSizeMB: IMAGE_CONFIG.maxSizeMB,
-            maxWidthOrHeight: IMAGE_CONFIG.maxWidthOrHeight,
-            useWebWorker: IMAGE_CONFIG.useWebWorker,
-            fileType: 'image/webp',
-            initialQuality: quality,
-        };
-        try {
-            const compressedFile = await imageCompression(file, options);
-            return compressedFile;
-        } catch (error) {
-            console.error("Compression failed, using original file", error);
-            return file;
-        }
+    const VARIANTS = [
+        { suffix: '',       maxDim: 1200, quality: 0.85 },  // full
+        { suffix: '_card',  maxDim: 600,  quality: 0.82 },  // card
+        { suffix: '_thumb', maxDim: 300,  quality: 0.75 },  // thumb
+    ] as const;
+
+    /**
+     * Generates a resized WebP blob using canvas
+     */
+    const generateVariant = (file: File, maxDim: number, quality: number): Promise<Blob> => {
+        return new Promise((resolve, reject) => {
+            const img = new window.Image();
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            img.onload = () => {
+                let { width, height } = img;
+                if (width > maxDim || height > maxDim) {
+                    if (width >= height) {
+                        height = (height * maxDim) / width;
+                        width = maxDim;
+                    } else {
+                        width = (width * maxDim) / height;
+                        height = maxDim;
+                    }
+                }
+                canvas.width = width;
+                canvas.height = height;
+                ctx!.drawImage(img, 0, 0, width, height);
+                canvas.toBlob(
+                    blob => blob ? resolve(blob) : reject(new Error('Blob generation failed')),
+                    'image/webp', quality
+                );
+            };
+            img.onerror = () => reject(new Error('Image load failed'));
+            img.src = URL.createObjectURL(file);
+        });
+    };
+
+    const uploadMetadata = {
+        contentType: 'image/webp',
+        cacheControl: 'public, max-age=31536000, immutable',
     };
 
     const handleUpload = async (file: File) => {
@@ -99,22 +118,35 @@ export default function ImageUpload({
 
         setUploading(true);
         try {
-            const optimizedBlob = await optimizeImage(file);
-            const filename = `${Date.now()}_${file.name.replace(/\.[^/.]+$/, '')}.webp`;
-            const storageRef = ref(storage, `${storagePath}/${filename}`);
+            const baseName = `${Date.now()}_${file.name.replace(/\.[^/.]+$/, '')}`;
 
-            await uploadBytes(storageRef, optimizedBlob, { contentType: 'image/webp' });
-            const url = await getDownloadURL(storageRef);
+            // Generate all 3 variants in parallel
+            const blobs = await Promise.all(
+                VARIANTS.map(v => generateVariant(file, v.maxDim, v.quality))
+            );
 
-            // Create new ProductImage with empty metadata
+            // Upload all 3 variants in parallel
+            const urls = await Promise.all(
+                VARIANTS.map((v, i) => {
+                    const filename = `${baseName}${v.suffix}.webp`;
+                    const storageRef = ref(storage, `${storagePath}/${filename}`);
+                    return uploadBytes(storageRef, blobs[i], uploadMetadata)
+                        .then(() => getDownloadURL(storageRef));
+                })
+            );
+
+            const [fullUrl, cardUrl, thumbUrl] = urls;
+
+            // Create new ProductImage with all variant URLs
             const newImage: ProductImage = {
-                url,
+                url: fullUrl,
+                cardUrl,
+                thumbUrl,
                 alt: { en: '', ru: '' },
                 keywords: []
             };
 
             onChange([...normalizedImages, newImage]);
-            // setExpandedIndex handled by useEffect
         } catch (error: any) {
             console.error("Upload failed", error);
             let errorMessage = locale === 'ru' ? "Ошибка загрузки!" : "Upload failed!";
@@ -376,7 +408,7 @@ export default function ImageUpload({
                                 ? (locale === 'ru' ? 'Отпустите для загрузки' : 'Drop to upload')
                                 : (locale === 'ru' ? 'Нажмите или перетащите изображение' : 'Click or drag image')}
                         </span>
-                        <span className="text-xs text-gray-400 mt-1">WebP, {locale === 'ru' ? 'до' : 'up to'} {maxWidth}px</span>
+                        <span className="text-xs text-gray-400 mt-1">WebP · 3 {locale === 'ru' ? 'варианта' : 'variants'}</span>
                     </>
                 )}
                 <input

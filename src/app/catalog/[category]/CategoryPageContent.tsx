@@ -8,7 +8,7 @@ import { useCategoryStore } from '@/store/category-store';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getProductsByCategory, getSubcategories } from '@/lib/firestore-utils';
-import { Product, ProductStatus, STATUS_PRIORITY, getImageUrl } from '@/types/product';
+import { Product, ProductStatus, STATUS_PRIORITY, getCardImageUrl } from '@/types/product';
 import ProductCard from '@/components/ProductCard';
 import { useScrollRestore } from '@/hooks/useScrollRestore';
 import { useProductStore } from '@/store/product-store';
@@ -124,7 +124,7 @@ export default function CategoryPageContent({ categorySlug }: CategoryPageConten
                 const randomIndex = Math.floor(Math.random() * blockProducts.length);
                 const product = blockProducts[randomIndex];
                 if (product.images && product.images.length > 0) {
-                    thumbnails[sub.slug] = getImageUrl(product.images[0]);
+                    thumbnails[sub.slug] = getCardImageUrl(product.images[0]);
                 }
             }
         });

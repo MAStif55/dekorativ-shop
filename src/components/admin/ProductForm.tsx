@@ -479,9 +479,9 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                     </label>
                     <VideoUpload
                         value={formData.videoPreviewUrl || ''}
-                        onChange={(url) => {
+                        onChange={({ videoUrl, videoPreviewUrl }) => {
                             setIsDirty(true);
-                            setFormData(prev => ({ ...prev, videoPreviewUrl: url }));
+                            setFormData(prev => ({ ...prev, videoUrl, videoPreviewUrl }));
                         }}
                     />
                 </div>

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
-import { Product, ProductStatus, getImageUrl, getImageAlt } from '@/types/product';
+import { Product, ProductStatus, getImageUrl, getImageAlt, getCardImageUrl, getThumbImageUrl } from '@/types/product';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useLiveVideoContext } from '@/contexts/LiveVideoContext';
 import { ShoppingCart, Play } from 'lucide-react';
@@ -60,7 +60,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         addItem({
             productId: product.id,
             productTitle: product.title,
-            productImage: product.images?.[0] ? getImageUrl(product.images[0]) : '',
+            productImage: product.images?.[0] ? getThumbImageUrl(product.images[0]) : '',
             price: product.basePrice,
             quantity: 1,
             configuration: {}
@@ -127,7 +127,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
                     {product.images && product.images.length > 0 ? (
                         <Image
-                            src={getImageUrl(product.images[0])}
+                            src={getCardImageUrl(product.images[0])}
                             alt={getImageAlt(product.images[0], locale as 'en' | 'ru', product.title[locale])}
                             fill
                             draggable={false}

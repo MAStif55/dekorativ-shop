@@ -11,12 +11,76 @@ const db = admin.firestore();
 // HELPERS
 // ============================================================================
 
+// Promo config — mirrors client-side config/promotions.ts
+const PROMO_CONFIG = {
+    FREE_SHIPPING_THRESHOLD: 3000,
+    SHIPPING_COST: 350,
+    GIFT_EVERY_N_ITEMS: 11,
+};
+
+/**
+ * Server-side gift discount recalculation.
+ * Mirrors the logic in cart-store.ts getDiscount().
+ * Every Nth item is free — the cheapest items are discounted.
+ */
+function calculateGiftDiscount(cartItems) {
+    const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    const freeCount = Math.floor(totalItems / PROMO_CONFIG.GIFT_EVERY_N_ITEMS);
+    if (freeCount === 0) return 0;
+
+    // Flatten all items into individual price units
+    const units = [];
+    cartItems.forEach(item => {
+        for (let i = 0; i < item.quantity; i++) {
+            units.push(item.price);
+        }
+    });
+
+    // Sort ascending — cheapest items are free
+    units.sort((a, b) => a - b);
+
+    let discount = 0;
+    for (let i = 0; i < freeCount && i < units.length; i++) {
+        discount += units[i];
+    }
+    return discount;
+}
+
 function validateOrder(data) {
+    // Name: min 2, max 100
     if (!data.customerName || data.customerName.length < 2) return 'Invalid name';
+    if (data.customerName.length > 100) return 'Name too long';
+    // Email: must contain @, max 254 (RFC 5321)
     if (!data.email || !data.email.includes('@')) return 'Invalid email';
+    if (data.email.length > 254) return 'Email too long';
+    // Phone: required, max 30
     if (!data.phone) return 'Invalid phone';
+    if (data.phone.length > 30) return 'Phone too long';
+    // Address: min 10, max 500
     if (!data.address || data.address.length < 10) return 'Invalid address';
+    if (data.address.length > 500) return 'Address too long';
+    // Telegram: optional, max 100
+    if (data.telegram && data.telegram.length > 100) return 'Telegram too long';
+    // Notes: optional, max 1000
+    if (data.notes && data.notes.length > 1000) return 'Notes too long';
+    // Payment method
     if (!['card', 'bank_transfer'].includes(data.paymentMethod)) return 'Invalid payment method';
+    // ContactPreferences validation (if present)
+    if (data.contactPreferences) {
+        const validMethods = ['telegram', 'max', 'phone_call', 'sms', 'email'];
+        if (!Array.isArray(data.contactPreferences.methods) || data.contactPreferences.methods.length === 0) {
+            return 'At least one contact method required';
+        }
+        for (const m of data.contactPreferences.methods) {
+            if (!validMethods.includes(m)) return 'Invalid contact method: ' + m;
+        }
+        if (data.contactPreferences.methods.includes('telegram') && !data.contactPreferences.telegramHandle) {
+            return 'Telegram handle required when Telegram is selected';
+        }
+        if (data.contactPreferences.methods.includes('max') && !data.contactPreferences.maxId) {
+            return 'MAX ID required when MAX is selected';
+        }
+    }
     return null;
 }
 
@@ -35,20 +99,19 @@ async function sendTelegramNotification(orderData, orderId, isPaid) {
 
     if (!botToken || !chatId) return;
 
-    try {
-        const itemsList = orderData.items
-            .map(
-                (item) =>
-                    `  • ${escapeMarkdown(item.productTitle)} x${item.quantity} — ${item.price * item.quantity}₽`
-            )
-            .join('\n');
+    const itemsList = orderData.items
+        .map(
+            (item) =>
+                `  • ${escapeMarkdown(item.productTitle)} x${item.quantity} — ${item.price * item.quantity}₽`
+        )
+        .join('\n');
 
-        const paymentMethodLabel = orderData.paymentMethod === 'card' ? '💳 Банковская карта' : '🏦 Перевод по реквизитам';
-        const paymentStatusLabel = isPaid
-            ? '✅ Оплачен'
-            : '⏳ Ожидает подтверждения менеджером';
+    const paymentMethodLabel = orderData.paymentMethod === 'card' ? '💳 Банковская карта' : '🏦 Перевод по реквизитам';
+    const paymentStatusLabel = isPaid
+        ? '✅ Оплачен'
+        : '⏳ Ожидает подтверждения менеджером';
 
-        const message = `
+    const message = `
 🛒 *Новый заказ\\!*
 
 📋 *Заказ \\#${orderId.slice(-6).toUpperCase()}*
@@ -66,19 +129,21 @@ ${itemsList}
 💰 *Итого:* ${orderData.total}₽
 ${escapeMarkdown(paymentMethodLabel)}
 ${escapeMarkdown(paymentStatusLabel)}
-        `.trim();
+    `.trim();
 
-        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: chatId,
-                text: message,
-                parse_mode: 'MarkdownV2',
-            }),
-        });
-    } catch (e) {
-        console.error('Telegram Error:', e);
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            chat_id: chatId,
+            text: message,
+            parse_mode: 'MarkdownV2',
+        }),
+    });
+
+    if (!response.ok) {
+        const body = await response.text();
+        throw new Error(`Telegram API ${response.status}: ${body}`);
     }
 }
 
@@ -89,53 +154,49 @@ async function sendEmailNotification(orderData, orderId, isPaid) {
 
     if (!smtpHost || !smtpUser || !smtpPass) return;
 
-    try {
-        const transporter = nodemailer.createTransport({
-            host: smtpHost,
-            port: Number(process.env.SMTP_PORT) || 465,
-            secure: Number(process.env.SMTP_PORT) === 465,
-            auth: { user: smtpUser, pass: smtpPass },
-        });
+    const transporter = nodemailer.createTransport({
+        host: smtpHost,
+        port: Number(process.env.SMTP_PORT) || 465,
+        secure: Number(process.env.SMTP_PORT) === 465,
+        auth: { user: smtpUser, pass: smtpPass },
+    });
 
-        const itemsHtml = orderData.items
-            .map(
-                (item) =>
-                    `<li>${item.productTitle} x${item.quantity} — ${item.price * item.quantity}₽</li>`
-            )
-            .join('');
+    const itemsHtml = orderData.items
+        .map(
+            (item) =>
+                `<li>${item.productTitle} x${item.quantity} — ${item.price * item.quantity}₽</li>`
+        )
+        .join('');
 
-        const paymentLabel = orderData.paymentMethod === 'card'
-            ? '💳 Банковская карта'
-            : '🏦 Перевод по реквизитам';
+    const paymentLabel = orderData.paymentMethod === 'card'
+        ? '💳 Банковская карта'
+        : '🏦 Перевод по реквизитам';
 
-        const statusLabel = isPaid
-            ? '✅ Оплачен'
-            : '⏳ Ожидает подтверждения';
+    const statusLabel = isPaid
+        ? '✅ Оплачен'
+        : '⏳ Ожидает подтверждения';
 
-        const emailHtml = `
-            <h1>Новый заказ #${orderId.slice(-6).toUpperCase()}</h1>
-            <p><strong>Клиент:</strong> ${orderData.customerName}</p>
-            <p><strong>Email:</strong> ${orderData.email}</p>
-            <p><strong>Телефон:</strong> ${orderData.phone}</p>
-            <p><strong>Адрес:</strong> ${orderData.address}</p>
-            ${orderData.telegram ? `<p><strong>Telegram:</strong> ${orderData.telegram}</p>` : ''}
-            ${orderData.customerNotes ? `<p><strong>Комментарий:</strong> ${orderData.customerNotes}</p>` : ''}
-            <h3>Товары:</h3>
-            <ul>${itemsHtml}</ul>
-            <h3>Итого: ${orderData.total}₽</h3>
-            <p><strong>Способ оплаты:</strong> ${paymentLabel}</p>
-            <p><strong>Статус:</strong> ${statusLabel}</p>
-        `;
+    const emailHtml = `
+        <h1>Новый заказ #${orderId.slice(-6).toUpperCase()}</h1>
+        <p><strong>Клиент:</strong> ${orderData.customerName}</p>
+        <p><strong>Email:</strong> ${orderData.email}</p>
+        <p><strong>Телефон:</strong> ${orderData.phone}</p>
+        <p><strong>Адрес:</strong> ${orderData.address}</p>
+        ${orderData.telegram ? `<p><strong>Telegram:</strong> ${orderData.telegram}</p>` : ''}
+        ${orderData.customerNotes ? `<p><strong>Комментарий:</strong> ${orderData.customerNotes}</p>` : ''}
+        <h3>Товары:</h3>
+        <ul>${itemsHtml}</ul>
+        <h3>Итого: ${orderData.total}₽</h3>
+        <p><strong>Способ оплаты:</strong> ${paymentLabel}</p>
+        <p><strong>Статус:</strong> ${statusLabel}</p>
+    `;
 
-        await transporter.sendMail({
-            from: process.env.EMAIL_FROM || smtpUser,
-            to: process.env.EMAIL_TO || smtpUser,
-            subject: `Новый заказ #${orderId.slice(-6).toUpperCase()}`,
-            html: emailHtml,
-        });
-    } catch (e) {
-        console.error('Email Error:', e);
-    }
+    await transporter.sendMail({
+        from: process.env.EMAIL_FROM || smtpUser,
+        to: process.env.EMAIL_TO || smtpUser,
+        subject: `Новый заказ #${orderId.slice(-6).toUpperCase()}`,
+        html: emailHtml,
+    });
 }
 
 async function sendFeedbackTelegram(data) {
@@ -144,8 +205,7 @@ async function sendFeedbackTelegram(data) {
 
     if (!botToken || !chatId) return;
 
-    try {
-        const message = `
+    const message = `
 📩 *Новое сообщение с сайта\\!*
 
 📱 *Телефон:* ${escapeMarkdown(data.phone)}
@@ -153,20 +213,17 @@ ${data.telegram ? `💬 *Telegram:* ${escapeMarkdown(data.telegram)}` : ''}
 
 ✉️ *Сообщение:*
 ${escapeMarkdown(data.message)}
-        `.trim();
+    `.trim();
 
-        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: chatId,
-                text: message,
-                parse_mode: 'MarkdownV2',
-            }),
-        });
-    } catch (e) {
-        console.error('Feedback Telegram Error:', e);
-    }
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            chat_id: chatId,
+            text: message,
+            parse_mode: 'MarkdownV2',
+        }),
+    });
 }
 
 async function sendFeedbackEmail(data) {
@@ -176,30 +233,59 @@ async function sendFeedbackEmail(data) {
 
     if (!smtpHost || !smtpUser || !smtpPass) return;
 
-    try {
-        const transporter = nodemailer.createTransport({
-            host: smtpHost,
-            port: Number(process.env.SMTP_PORT) || 465,
-            secure: Number(process.env.SMTP_PORT) === 465,
-            auth: { user: smtpUser, pass: smtpPass },
-        });
+    const transporter = nodemailer.createTransport({
+        host: smtpHost,
+        port: Number(process.env.SMTP_PORT) || 465,
+        secure: Number(process.env.SMTP_PORT) === 465,
+        auth: { user: smtpUser, pass: smtpPass },
+    });
 
-        const emailHtml = `
-            <h2>Новое сообщение с сайта</h2>
-            <p><strong>Телефон:</strong> ${data.phone}</p>
-            ${data.telegram ? `<p><strong>Telegram:</strong> ${data.telegram}</p>` : ''}
-            <h3>Сообщение:</h3>
-            <p>${data.message.replace(/\n/g, '<br>')}</p>
-        `;
+    const emailHtml = `
+        <h2>Новое сообщение с сайта</h2>
+        <p><strong>Телефон:</strong> ${data.phone}</p>
+        ${data.telegram ? `<p><strong>Telegram:</strong> ${data.telegram}</p>` : ''}
+        <h3>Сообщение:</h3>
+        <p>${data.message.replace(/\n/g, '<br>')}</p>
+    `;
 
-        await transporter.sendMail({
-            from: process.env.EMAIL_FROM || smtpUser,
-            to: process.env.EMAIL_TO || smtpUser,
-            subject: `Сообщение с сайта от ${data.phone}`,
-            html: emailHtml,
-        });
-    } catch (e) {
-        console.error('Feedback Email Error:', e);
+    await transporter.sendMail({
+        from: process.env.EMAIL_FROM || smtpUser,
+        to: process.env.EMAIL_TO || smtpUser,
+        subject: `Сообщение с сайта от ${data.phone}`,
+        html: emailHtml,
+    });
+}
+
+/**
+ * Sends notifications and logs errors to the order document's notificationStatus field.
+ * Uses Promise.allSettled so one channel failure doesn't block the other.
+ * Per spec Section 7.1: errors logged to order.notificationStatus.{telegramError, emailError}
+ */
+async function sendNotificationsWithLogging(orderData, orderId, isPaid, orderRef) {
+    const results = await Promise.allSettled([
+        sendTelegramNotification(orderData, orderId, isPaid),
+        sendEmailNotification(orderData, orderId, isPaid),
+    ]);
+
+    const [telegramResult, emailResult] = results;
+    const notificationStatus = {};
+
+    if (telegramResult.status === 'rejected') {
+        console.error('Telegram notification failed:', telegramResult.reason);
+        notificationStatus.telegramError = telegramResult.reason?.message || String(telegramResult.reason);
+    }
+    if (emailResult.status === 'rejected') {
+        console.error('Email notification failed:', emailResult.reason);
+        notificationStatus.emailError = emailResult.reason?.message || String(emailResult.reason);
+    }
+
+    // Persist notification errors to the order document if any occurred
+    if (Object.keys(notificationStatus).length > 0) {
+        try {
+            await orderRef.update({ notificationStatus });
+        } catch (logErr) {
+            console.error('Failed to log notification status to order:', logErr);
+        }
     }
 }
 
@@ -275,11 +361,19 @@ exports.createOrder = functions.https.onRequest((req, res) => {
                 return res.status(400).json({ success: false, error });
             }
 
-            const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            // Recalculate total server-side (never trust client total)
+            const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+            // Server-side gift discount recalculation (Spec Gap #3)
+            const giftDiscount = calculateGiftDiscount(cartItems);
+            const total = Math.max(0, subtotal - giftDiscount);
 
             const orderItems = cartItems.map((item) => ({
                 productId: item.productId,
-                productTitle: item.productTitle.ru || item.productTitle,
+                // Fix productTitle serialization — prevent [object Object] (Spec Section 10.1)
+                productTitle: typeof item.productTitle === 'object'
+                    ? (item.productTitle.ru || item.productTitle.en || 'Untitled')
+                    : (item.productTitle || 'Untitled'),
                 configuration: item.configuration || {},
                 quantity: item.quantity,
                 price: item.price,
@@ -294,8 +388,11 @@ exports.createOrder = functions.https.onRequest((req, res) => {
                 address: customerInfo.address,
                 addressDetails: customerInfo.addressDetails || null,
                 telegram: customerInfo.telegram || null,
+                contactPreferences: customerInfo.contactPreferences || null,
                 customerNotes: customerInfo.notes || null,
                 items: orderItems,
+                subtotal,
+                giftDiscount,
                 total,
                 status: 'pending',
                 paymentMethod: paymentMethod,
@@ -344,9 +441,8 @@ exports.createOrder = functions.https.onRequest((req, res) => {
                 }
             } else {
                 // --- BANK TRANSFER: order placed, manager will approve ---
-                // Send notifications immediately so the manager knows
-                await sendTelegramNotification(orderData, orderId, false);
-                await sendEmailNotification(orderData, orderId, false);
+                // Send notifications with error logging (Promise.allSettled per spec Section 7.2)
+                await sendNotificationsWithLogging(orderData, orderId, false, docRef);
 
                 return res.status(200).json({
                     success: true,
@@ -405,9 +501,8 @@ exports.yookassaWebhook = functions.https.onRequest(async (req, res) => {
                 paidAt: admin.firestore.FieldValue.serverTimestamp(),
             });
 
-            // Send notifications after card payment confirmed
-            await sendTelegramNotification(orderData, orderId, true);
-            await sendEmailNotification(orderData, orderId, true);
+            // Send notifications with error logging (fixes Spec Gap #4 — webhook errors now logged)
+            await sendNotificationsWithLogging(orderData, orderId, true, orderRef);
 
             console.log(`Order ${orderId} payment confirmed, notifications sent`);
         } else if (event.event === 'payment.canceled') {

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
-import { Loader2, Film, X, Play, Pause, Scissors, Crop as CropIcon } from 'lucide-react';
+import { Loader2, Film, X, Play, Pause, Scissors, Crop as CropIcon, RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
@@ -50,6 +50,10 @@ export default function VideoUpload({
     const [zoom, setZoom] = useState(1);
     const [aspectRatio, setAspectRatio] = useState<number>(1); // Square by default for product cards
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+
+    // Replace State
+    const [isReplacing, setIsReplacing] = useState(false);
+    const replaceVideoInputRef = useRef<HTMLInputElement>(null);
 
     // Refs
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -339,15 +343,45 @@ export default function VideoUpload({
                             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                             {locale === 'ru' ? 'Live-видео готово (Выбрано)' : 'Live Video ready (Selected)'}
                         </div>
-                        <button
-                            type="button"
-                            onClick={clearVideo}
-                            className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded transition-colors flex items-center gap-1"
-                        >
-                            <X size={16} />
-                            {locale === 'ru' ? 'Удалить' : 'Remove'}
-                        </button>
+                        <div className="flex items-center gap-2">
+                            {/* Replace Video — opens file picker, keeps trim/crop editor */}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsReplacing(true);
+                                    replaceVideoInputRef.current?.click();
+                                }}
+                                className="px-3 py-1.5 text-sm text-amber-600 hover:bg-amber-50 rounded transition-colors flex items-center gap-1"
+                                title={locale === 'ru' ? 'Заменить видео' : 'Replace video'}
+                            >
+                                <RefreshCw size={16} />
+                                {locale === 'ru' ? 'Заменить' : 'Replace'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={clearVideo}
+                                className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded transition-colors flex items-center gap-1"
+                            >
+                                <X size={16} />
+                                {locale === 'ru' ? 'Удалить' : 'Remove'}
+                            </button>
+                        </div>
                     </div>
+
+                    {/* Hidden file input for replace flow */}
+                    <input
+                        ref={replaceVideoInputRef}
+                        type="file"
+                        accept="video/*"
+                        className="hidden"
+                        onChange={(e) => {
+                            if (e.target.files?.[0]) {
+                                handleFileSelect(e.target.files[0]);
+                            }
+                            e.target.value = '';
+                            setIsReplacing(false);
+                        }}
+                    />
                 </div>
             )}
 

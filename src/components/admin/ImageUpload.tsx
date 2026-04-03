@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
-import { Loader2, Upload, X, ImageIcon, Download, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
+import { Loader2, Upload, X, ImageIcon, Download, ChevronDown, ChevronUp, GripVertical, RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ProductImage } from '@/types/product';
 import ImageCropper from './ImageCropper';
@@ -16,6 +16,7 @@ import ImageCropper from './ImageCropper';
  * - Automatic image optimization (resize + WebP conversion)
  * - Alt text and keywords editing for SEO
  * - Preview with download and remove buttons
+ * - Replace existing image while preserving SEO metadata
  * - Firebase Storage integration
  * - Backwards compatible with string URLs
  */
@@ -38,9 +39,13 @@ export default function ImageUpload({
     // Track previous length to detect new uploads
     const [prevLength, setPrevLength] = useState(value.length);
 
-    // Cropping State
+    // Cropping State — shared for both "add new" and "replace" flows
     const [croppingFile, setCroppingFile] = useState<string | null>(null);
     const [fileName, setFileName] = useState<string>('');
+
+    // Replace State — which index is currently being replaced
+    const [replacingIndex, setReplacingIndex] = useState<number | null>(null);
+    const replaceInputRef = useRef<HTMLInputElement>(null);
 
     // Auto-expand new images
     useEffect(() => {
@@ -110,6 +115,46 @@ export default function ImageUpload({
         cacheControl: 'public, max-age=31536000, immutable',
     };
 
+    /**
+     * Attempt to delete an old Storage URL (non-fatal — may fail for external/legacy URLs)
+     */
+    const tryDeleteOldFile = async (url: string | undefined) => {
+        if (!url) return;
+        try {
+            const oldRef = ref(storage, url);
+            await deleteObject(oldRef);
+        } catch (e) {
+            console.warn('Could not delete old storage file (non-fatal):', e);
+        }
+    };
+
+    /**
+     * Upload a new image as 3 WebP variants and return their URLs
+     */
+    const uploadVariants = async (file: File): Promise<{ fullUrl: string; cardUrl: string; thumbUrl: string }> => {
+        const baseName = `${Date.now()}_${file.name.replace(/\.[^/.]+$/, '')}`;
+
+        // Generate all 3 variants in parallel
+        const blobs = await Promise.all(
+            VARIANTS.map(v => generateVariant(file, v.maxDim, v.quality))
+        );
+
+        // Upload all 3 variants in parallel
+        const urls = await Promise.all(
+            VARIANTS.map((v, i) => {
+                const filename = `${baseName}${v.suffix}.webp`;
+                const storageRef = ref(storage, `${storagePath}/${filename}`);
+                return uploadBytes(storageRef, blobs[i], uploadMetadata)
+                    .then(() => getDownloadURL(storageRef));
+            })
+        );
+
+        return { fullUrl: urls[0], cardUrl: urls[1], thumbUrl: urls[2] };
+    };
+
+    /**
+     * Handle adding a brand-new image (appends to list)
+     */
     const handleUpload = async (file: File) => {
         if (!file.type.startsWith('image/')) {
             alert(locale === 'ru' ? 'Пожалуйста, загрузите изображение' : 'Please upload an image file');
@@ -118,26 +163,8 @@ export default function ImageUpload({
 
         setUploading(true);
         try {
-            const baseName = `${Date.now()}_${file.name.replace(/\.[^/.]+$/, '')}`;
+            const { fullUrl, cardUrl, thumbUrl } = await uploadVariants(file);
 
-            // Generate all 3 variants in parallel
-            const blobs = await Promise.all(
-                VARIANTS.map(v => generateVariant(file, v.maxDim, v.quality))
-            );
-
-            // Upload all 3 variants in parallel
-            const urls = await Promise.all(
-                VARIANTS.map((v, i) => {
-                    const filename = `${baseName}${v.suffix}.webp`;
-                    const storageRef = ref(storage, `${storagePath}/${filename}`);
-                    return uploadBytes(storageRef, blobs[i], uploadMetadata)
-                        .then(() => getDownloadURL(storageRef));
-                })
-            );
-
-            const [fullUrl, cardUrl, thumbUrl] = urls;
-
-            // Create new ProductImage with all variant URLs
             const newImage: ProductImage = {
                 url: fullUrl,
                 cardUrl,
@@ -159,6 +186,58 @@ export default function ImageUpload({
         }
     };
 
+    /**
+     * Handle replacing an existing image at `replacingIndex`.
+     * Preserves all existing SEO metadata (alt, keywords).
+     */
+    const handleReplaceUpload = async (file: File) => {
+        if (replacingIndex === null) return;
+        if (!file.type.startsWith('image/')) {
+            alert(locale === 'ru' ? 'Пожалуйста, загрузите изображение' : 'Please upload an image file');
+            setReplacingIndex(null);
+            return;
+        }
+
+        setUploading(true);
+        const targetIndex = replacingIndex;
+
+        try {
+            const oldImage = normalizedImages[targetIndex];
+            const { fullUrl, cardUrl, thumbUrl } = await uploadVariants(file);
+
+            // Delete old Storage files (non-fatal)
+            await Promise.all([
+                tryDeleteOldFile(oldImage.url),
+                tryDeleteOldFile(oldImage.cardUrl),
+                tryDeleteOldFile(oldImage.thumbUrl),
+            ]);
+
+            // Atomically swap URL fields while preserving all SEO metadata
+            const newImages = [...normalizedImages];
+            newImages[targetIndex] = {
+                ...oldImage,      // preserve alt, keywords, and any future fields
+                url: fullUrl,
+                cardUrl,
+                thumbUrl,
+            };
+
+            onChange(newImages);
+        } catch (error: any) {
+            console.error("Replace upload failed", error);
+            let errorMessage = locale === 'ru' ? "Ошибка замены файла!" : "File replacement failed!";
+            if (error.code === 'storage/unauthorized') {
+                errorMessage = locale === 'ru' ? "Нет прав доступа." : "Permission denied.";
+            }
+            alert(errorMessage);
+        } finally {
+            setUploading(false);
+            setReplacingIndex(null);
+        }
+    };
+
+    /**
+     * Triggered when user picks a file via the "add new" upload zone
+     */
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const file = e.target.files[0];
@@ -169,6 +248,26 @@ export default function ImageUpload({
             });
             reader.readAsDataURL(file);
         }
+    };
+
+    /**
+     * Triggered when user picks a file via the per-image "Replace" hidden input.
+     * Opens ImageCropper in replace mode.
+     */
+    const handleReplaceFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files[0];
+            setFileName(file.name);
+            const reader = new FileReader();
+            reader.addEventListener('load', () => {
+                // croppingFile being set opens the ImageCropper modal.
+                // replacingIndex is already set — onCropComplete will route to handleReplaceUpload.
+                setCroppingFile(reader.result?.toString() || null);
+            });
+            reader.readAsDataURL(file);
+        }
+        // Reset so the same file can be selected again if needed
+        e.target.value = '';
     };
 
     const handleDrop = useCallback(async (e: React.DragEvent<HTMLLabelElement>) => {
@@ -265,22 +364,48 @@ export default function ImageUpload({
         setExpandedIndex(expandedIndex === index ? null : index);
     };
 
+    /**
+     * Trigger the replace file picker for a given image index
+     */
+    const triggerReplace = (index: number) => {
+        setReplacingIndex(index);
+        replaceInputRef.current?.click();
+    };
+
     return (
         <div className="space-y-4">
+            {/* ImageCropper — shared for both "add" and "replace" flows */}
             {croppingFile && (
                 <ImageCropper
                     imageSrc={croppingFile}
                     onCropComplete={async (croppedBlob) => {
                         const file = new File([croppedBlob], fileName, { type: 'image/webp' });
                         setCroppingFile(null);
-                        await handleUpload(file);
+                        if (replacingIndex !== null) {
+                            // Replace flow: swap URLs, preserve metadata
+                            await handleReplaceUpload(file);
+                        } else {
+                            // Add new flow: append to list
+                            await handleUpload(file);
+                        }
                     }}
                     onCancel={() => {
                         setCroppingFile(null);
                         setFileName('');
+                        setReplacingIndex(null);
                     }}
                 />
             )}
+
+            {/* Hidden file input for the Replace flow */}
+            <input
+                ref={replaceInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleReplaceFileChange}
+            />
+
             {/* Image Grid */}
             <div className="space-y-3">
                 {normalizedImages.map((image, idx) => (
@@ -304,6 +429,7 @@ export default function ImageUpload({
                             </div>
 
                             <div className="flex items-center gap-1">
+                                {/* SEO Expand */}
                                 <button
                                     type="button"
                                     onClick={() => toggleExpand(idx)}
@@ -312,6 +438,22 @@ export default function ImageUpload({
                                 >
                                     {expandedIndex === idx ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                                 </button>
+
+                                {/* Replace File */}
+                                <button
+                                    type="button"
+                                    onClick={() => triggerReplace(idx)}
+                                    disabled={uploading}
+                                    className="p-2 text-gray-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors disabled:opacity-40"
+                                    title={locale === 'ru' ? 'Заменить файл (сохранит SEO)' : 'Replace file (preserves SEO)'}
+                                >
+                                    {uploading && replacingIndex === idx
+                                        ? <Loader2 size={18} className="animate-spin text-amber-500" />
+                                        : <RefreshCw size={18} />
+                                    }
+                                </button>
+
+                                {/* Download */}
                                 <button
                                     type="button"
                                     onClick={() => downloadImage(image.url, idx)}
@@ -320,6 +462,8 @@ export default function ImageUpload({
                                 >
                                     <Download size={18} />
                                 </button>
+
+                                {/* Delete */}
                                 <button
                                     type="button"
                                     onClick={() => removeImage(idx)}
@@ -388,7 +532,7 @@ export default function ImageUpload({
                 ))}
             </div>
 
-            {/* Upload Zone */}
+            {/* Upload Zone — add new image */}
             <label
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
@@ -398,7 +542,7 @@ export default function ImageUpload({
                     : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50/50'
                     }`}
             >
-                {uploading ? (
+                {uploading && replacingIndex === null ? (
                     <Loader2 className="animate-spin text-blue-500" size={32} />
                 ) : (
                     <>

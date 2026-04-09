@@ -2,15 +2,8 @@
 
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useTranslation } from '@/contexts/LanguageContext';
-import { storage } from '@/lib/firebase';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import {
-    getFonts,
-    createFont,
-    updateFont,
-    deleteFontDoc,
-    FontModel
-} from '@/lib/firestore-utils';
+import { StorageService, FontRepository } from '@/lib/data';
+import { FontModel } from '@/types/font';
 import {
     Upload,
     Trash2,
@@ -125,7 +118,7 @@ export default function AdminFontsPage() {
     const loadData = async () => {
         setLoading(true);
         try {
-            const fetchedFonts = await getFonts();
+            const fetchedFonts = await FontRepository.getAll();
             setFonts(fetchedFonts);
 
             // Extract unique tags globally, merged with defaults
@@ -300,13 +293,9 @@ export default function AdminFontsPage() {
                     const isOtf = file.name.toLowerCase().endsWith('.otf');
                     const contentType = isOtf ? 'font/otf' : 'font/ttf';
                     const storagePath = `fonts/${category}/${file.name.replace(/\s+/g, '_')}`;
-                    const storageRef = ref(storage, storagePath);
 
                     setUploadProgress(40);
-                    await uploadBytes(storageRef, sanitizedBuffer || file, { contentType });
-
-                    setUploadProgress(70);
-                    newUrl = await getDownloadURL(storageRef);
+                    newUrl = await StorageService.upload(storagePath, sanitizedBuffer || file, { contentType });
                     newFile = file.name;
                 }
 
@@ -321,24 +310,20 @@ export default function AdminFontsPage() {
                     updates.file = newFile;
                 }
 
-                await updateFont(editingFontId, updates);
+                await FontRepository.update(editingFontId, updates);
 
             } else {
                 // CREATE MODE (file is guaranteed here)
                 const isOtf = file!.name.toLowerCase().endsWith('.otf');
                 const contentType = isOtf ? 'font/otf' : 'font/ttf';
                 const storagePath = `fonts/${category}/${file!.name.replace(/\s+/g, '_')}`;
-                const storageRef = ref(storage, storagePath);
 
                 setUploadProgress(40);
-                await uploadBytes(storageRef, sanitizedBuffer || file!, { contentType });
-
-                setUploadProgress(70);
-                const url = await getDownloadURL(storageRef);
+                const url = await StorageService.upload(storagePath, sanitizedBuffer || file!, { contentType });
 
                 // Save to Firestore
                 setUploadProgress(90);
-                await createFont({
+                await FontRepository.create({
                     name: fontName,
                     category,
                     file: file!.name,
@@ -438,13 +423,11 @@ export default function AdminFontsPage() {
                 const isOtf = currentFile.name.toLowerCase().endsWith('.otf');
                 const contentType = isOtf ? 'font/otf' : 'font/ttf';
                 const storagePath = `fonts/${category}/${currentFile.name.replace(/\s+/g, '_')}`;
-                const storageRef = ref(storage, storagePath);
 
                 setBatchProgress({ current: i + 1, total: batchFiles.length, status: `Загрузка ${currentFile.name}...` });
-                await uploadBytes(storageRef, finalBuffer, { contentType });
-                const url = await getDownloadURL(storageRef);
+                const url = await StorageService.upload(storagePath, finalBuffer, { contentType });
 
-                await createFont({
+                await FontRepository.create({
                     name: fontName,
                     category,
                     file: currentFile.name,
@@ -484,12 +467,11 @@ export default function AdminFontsPage() {
 
         try {
             // Delete from Firestore
-            if (font.id) await deleteFontDoc(font.id);
+            if (font.id) await FontRepository.delete(font.id);
 
             // Try to delete from Storage
             try {
-                const storageRef = ref(storage, `fonts/${font.category}/${font.file}`);
-                await deleteObject(storageRef);
+                await StorageService.delete(`fonts/${font.category}/${font.file}`);
             } catch (storageErr) {
                 console.warn("Could not delete from storage, might not exist:", storageErr);
             }
@@ -1039,7 +1021,7 @@ function FontTableRow({
 
         setIsUpdating(true);
         try {
-            await updateFont(font.id!, { category: newCategory });
+            await FontRepository.update(font.id!, { category: newCategory });
             onUpdate({ ...font, category: newCategory });
         } catch (err) {
             console.error("Failed to update category:", err);
@@ -1060,7 +1042,7 @@ function FontTableRow({
                 newTags = [...currentTags, tag];
             }
 
-            await updateFont(font.id!, { tags: newTags });
+            await FontRepository.update(font.id!, { tags: newTags });
             onUpdate({ ...font, tags: newTags });
         } catch (err) {
             console.error("Failed to toggle tag:", err);
@@ -1074,7 +1056,7 @@ function FontTableRow({
         const newVerified = !font.isVerified;
         setIsUpdating(true);
         try {
-            await updateFont(font.id!, { isVerified: newVerified });
+            await FontRepository.update(font.id!, { isVerified: newVerified });
             onUpdate({ ...font, isVerified: newVerified });
             // If marking as verified, auto-collapse after a brief delay
             if (newVerified) {

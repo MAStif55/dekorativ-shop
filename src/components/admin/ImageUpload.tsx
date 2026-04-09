@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { storage } from '@/lib/firebase';
+import { StorageService } from '@/lib/data';
 import { Loader2, Upload, X, ImageIcon, Download, ChevronDown, ChevronUp, GripVertical, RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ProductImage } from '@/types/product';
@@ -120,12 +119,7 @@ export default function ImageUpload({
      */
     const tryDeleteOldFile = async (url: string | undefined) => {
         if (!url) return;
-        try {
-            const oldRef = ref(storage, url);
-            await deleteObject(oldRef);
-        } catch (e) {
-            console.warn('Could not delete old storage file (non-fatal):', e);
-        }
+        await StorageService.delete(url);
     };
 
     /**
@@ -143,9 +137,8 @@ export default function ImageUpload({
         const urls = await Promise.all(
             VARIANTS.map((v, i) => {
                 const filename = `${baseName}${v.suffix}.webp`;
-                const storageRef = ref(storage, `${storagePath}/${filename}`);
-                return uploadBytes(storageRef, blobs[i], uploadMetadata)
-                    .then(() => getDownloadURL(storageRef));
+                const fullPath = `${storagePath}/${filename}`;
+                return StorageService.upload(fullPath, blobs[i], uploadMetadata);
             })
         );
 

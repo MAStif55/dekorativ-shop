@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product, ProductStatus, VariationOverrides, ProductImage } from '@/types/product';
-import { createProduct, updateProduct } from '@/lib/firestore-utils';
+import { createProduct, updateProduct, getSubcategories } from '@/lib/firestore-utils';
 import { getCategoryVariations } from '@/lib/variations-service';
 import { Loader2, Save, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import Link from 'next/link';
@@ -17,7 +17,7 @@ import VariationsEditor from './VariationsEditor';
 import { VariationGroup } from '@/types/product';
 
 import { SubCategory } from '@/types/category';
-import { getSubcategories } from '@/lib/firestore-utils';
+
 import { useCategoryStore } from '@/store/category-store';
 import { useProductStore } from '@/store/product-store';
 
@@ -67,7 +67,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                 setCategoryVariations(variations);
 
                 // Fetch subcategories
-                const subs = await getSubcategories<SubCategory>(formData.category);
+                const subs = await getSubcategories(formData.category);
                 setAvailableSubcategories(subs);
 
                 // Reset subcategory if category changes

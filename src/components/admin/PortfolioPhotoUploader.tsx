@@ -6,7 +6,7 @@ import 'react-image-crop/dist/ReactCrop.css';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { useImageProcessor } from '@/hooks/useImageProcessor';
 import { Upload, X, Check, FileImage } from 'lucide-react';
-import { createPortfolioPhoto } from '@/lib/firestore-utils';
+import { PortfolioRepository } from '@/lib/data';
 
 interface PortfolioPhotoUploaderProps {
     categoryId: string;
@@ -151,7 +151,7 @@ export default function PortfolioPhotoUploader({ categoryId, onUploadSuccess }: 
         e.preventDefault();
         setSavingDb(true);
         try {
-            await createPortfolioPhoto({
+            await PortfolioRepository.createPhoto({
                 categoryId,
                 imageUrl: uploadedUrl,
                 order: 0,

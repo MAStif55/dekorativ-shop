@@ -1,0 +1,94 @@
+name: Universal Backup & Recovery
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 0' # Weekly at 3 AM UTC on Sunday
+
+permissions:
+  contents: write
+
+env:
+  PROJECT_ID: dekorativ-5c737
+  STORAGE_BUCKET: dekorativ-5c737.firebasestorage.app
+  BACKUP_GCS_BUCKET: dekorativ-5c737-backups
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate Service Account
+        env:
+          FIREBASE_SERVICE_ACCOUNT_BASE64: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_BASE64 }}
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT_BASE64" | base64 --decode > service-account.json
+          gcloud auth activate-service-account --key-file=service-account.json
+          gcloud config set project $PROJECT_ID
+
+      - name: Create backup directory
+        run: mkdir -p backup-content/firestore backup-content/storage
+
+      # ── Firestore Backup ──────────────────────────────────────
+      - name: Create GCS bucket for exports (if needed)
+        run: |
+          gsutil ls -b gs://$BACKUP_GCS_BUCKET 2>/dev/null || \
+          gsutil mb -p $PROJECT_ID -l us-central1 gs://$BACKUP_GCS_BUCKET
+
+      - name: Export Firestore to GCS
+        run: |
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          gcloud firestore export gs://$BACKUP_GCS_BUCKET/export-$TIMESTAMP \
+            --project=$PROJECT_ID
+          gsutil -m cp -r gs://$BACKUP_GCS_BUCKET/export-$TIMESTAMP ./backup-content/firestore/
+
+      # ── Storage Backup ────────────────────────────────────────
+      - name: Sync entire Firebase Storage bucket
+        run: |
+          gsutil -m rsync -r gs://$STORAGE_BUCKET ./backup-content/storage/
+
+      # ── Archive with AES-256 ──────────────────────────────────
+      - name: Install p7zip
+        run: sudo apt-get install -y p7zip-full
+
+      - name: Create encrypted archive
+        env:
+          BACKUP_ARCHIVE_PASSWORD: ${{ secrets.BACKUP_ARCHIVE_PASSWORD }}
+        run: |
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          echo "BACKUP_FILENAME=backup-${TIMESTAMP}.zip" >> $GITHUB_ENV
+          7z a -tzip -p"${BACKUP_ARCHIVE_PASSWORD}" -mem=AES256 -mhe=on \
+            backup-${TIMESTAMP}.zip ./backup-content/
+
+      # ── Generate Recovery Guide ───────────────────────────────
+      - name: Generate RECOVERY.md
+        run: |
+          printf "# Recovery Guide\n\n" > RECOVERY.md
+          printf "## Decryption\n\n" >> RECOVERY.md
+          printf "Run the following command to decrypt the backup archive:\n\n" >> RECOVERY.md
+          printf '```bash\n7z x %s -p"YOUR_PASSWORD"\n```\n\n' "$BACKUP_FILENAME" >> RECOVERY.md
+          printf "## Firestore Restore\n\n" >> RECOVERY.md
+          printf '```bash\ngcloud firestore import gs://BUCKET/export-TIMESTAMP\n```\n\n' >> RECOVERY.md
+          printf "## Storage Restore\n\n" >> RECOVERY.md
+          printf '```bash\ngsutil -m rsync -r ./backup-content/storage/ gs://%s\n```\n' "$STORAGE_BUCKET" >> RECOVERY.md
+
+      # ── Create GitHub Release ─────────────────────────────────
+      - name: Create Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          TAG="backup-${TIMESTAMP}"
+          gh release create "$TAG" \
+            --title "Backup ${TIMESTAMP}" \
+            --notes "Automated backup of Firestore + Storage. Encrypted with AES-256." \
+            "$BACKUP_FILENAME" RECOVERY.md
+
+      # ── Cleanup ───────────────────────────────────────────────
+      - name: Cleanup sensitive files
+        if: always()
+        run: |
+          rm -f service-account.json
+          rm -rf backup-content/

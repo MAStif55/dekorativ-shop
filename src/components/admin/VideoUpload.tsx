@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { storage } from '@/lib/firebase';
+import { StorageService } from '@/lib/data';
 import { Loader2, Film, X, Play, Pause, Scissors, Crop as CropIcon, RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
@@ -246,27 +245,17 @@ export default function VideoUpload({
 
             // Upload both variants
             const timestamp = Date.now();
-            const previewRef = ref(storage, `${storagePath}/${timestamp}_preview.mp4`);
-            const fullRef = ref(storage, `${storagePath}/${timestamp}_full.mp4`);
-
-            await Promise.all([
-                uploadBytes(previewRef, previewBlob, videoMetadata),
-                uploadBytes(fullRef, fullBlob, videoMetadata),
-            ]);
+            const previewPath = `${storagePath}/${timestamp}_preview.mp4`;
+            const fullPath = `${storagePath}/${timestamp}_full.mp4`;
 
             const [videoPreviewUrl, videoUrl] = await Promise.all([
-                getDownloadURL(previewRef),
-                getDownloadURL(fullRef),
+                StorageService.upload(previewPath, previewBlob, videoMetadata),
+                StorageService.upload(fullPath, fullBlob, videoMetadata),
             ]);
 
             // Delete previous video from Storage if replacing
             if (previewUrl) {
-                try {
-                    const prevRef = ref(storage, previewUrl);
-                    await deleteObject(prevRef);
-                } catch (e) {
-                    console.warn('Could not delete previous video:', e);
-                }
+                await StorageService.delete(previewUrl);
             }
 
             // Update UI/Form with both URLs
@@ -291,12 +280,7 @@ export default function VideoUpload({
     const clearVideo = async () => {
         // Delete video from Firebase Storage
         if (previewUrl) {
-            try {
-                const prevRef = ref(storage, previewUrl);
-                await deleteObject(prevRef);
-            } catch (e) {
-                console.warn('Could not delete video from storage:', e);
-            }
+            await StorageService.delete(previewUrl);
         }
         if (originalVideoUrl) {
             URL.revokeObjectURL(originalVideoUrl);

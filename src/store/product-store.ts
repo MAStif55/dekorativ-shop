@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Product } from '@/types/product';
-import { getAllProducts } from '@/lib/firestore-utils';
+import { ProductRepository } from '@/lib/data';
 
 interface ProductState {
     products: Product[];
@@ -41,7 +41,7 @@ export const useProductStore = create<ProductState>()(
                 set({ isLoading: true, error: null });
 
                 try {
-                    const fetchedProducts = await getAllProducts<Product>();
+                    const fetchedProducts = await ProductRepository.getAll();
                     set({
                         products: fetchedProducts,
                         lastFetched: now,

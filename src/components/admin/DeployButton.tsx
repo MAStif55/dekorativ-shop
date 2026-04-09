@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Rocket, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { auth } from '@/lib/firebase';
+import { AuthService } from '@/lib/data';
 
 type DeployStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -18,14 +18,13 @@ export default function DeployButton() {
         setMessage('');
 
         try {
-            const user = auth.currentUser;
-            if (!user) {
+            const idToken = await AuthService.getIdToken();
+            if (!idToken) {
                 setStatus('error');
                 setMessage('Not authenticated');
                 return;
             }
 
-            const idToken = await user.getIdToken();
             const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
             const functionUrl = `https://us-central1-${projectId}.cloudfunctions.net/triggerDeploy`;
 

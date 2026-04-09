@@ -7,7 +7,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
-import { getNewestProducts, getNewestPortfolioPhotos } from '@/lib/firestore-utils';
+import { ProductRepository, PortfolioRepository } from '@/lib/data';
 import { Product } from '@/types/product';
 import { PortfolioPhoto } from '@/types/portfolio';
 import { ArrowRight } from 'lucide-react';
@@ -23,8 +23,8 @@ export default function HomePage() {
         const fetchData = async () => {
             try {
                 const [products, images] = await Promise.all([
-                    getNewestProducts<Product>(4),
-                    getNewestPortfolioPhotos(4)
+                    ProductRepository.getNewest(4),
+                    PortfolioRepository.getNewestPhotos(4)
                 ]);
                 setNewArrivals(products);
                 setGalleryWorks(images);

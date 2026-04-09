@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getFonts, FontModel } from '@/lib/firestore-utils';
+import { FontRepository } from '@/lib/data';
+import { FontModel } from '@/types/font';
 
 export interface FontData {
     id: string;
@@ -29,9 +30,9 @@ export function useFonts(): UseFontsResult {
         async function fetchFonts() {
             try {
                 setLoading(true);
-                const fetchedFonts = await getFonts();
+                const fetchedFonts = await FontRepository.getAll();
 
-                const formattedFonts: FontData[] = fetchedFonts.map(f => ({
+                const formattedFonts: FontData[] = fetchedFonts.map((f: FontModel) => ({
                     id: f.id as string,
                     name: f.name,
                     category: f.category,

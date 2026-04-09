@@ -151,7 +151,7 @@ export default function PageBuilderAdmin() {
         setLoadingCategories(true);
         setError(null);
         try {
-            const data = await getCategories<Category>();
+            const data = await getCategories();
             setCategories(data);
             
             // Handle cross-sync if route changes from outside, or on initial load
@@ -171,7 +171,7 @@ export default function PageBuilderAdmin() {
     async function loadSubcategories(categorySlug: string) {
         setLoadingSubs(true);
         try {
-            const data = await getSubcategories<SubCategory>(categorySlug);
+            const data = await getSubcategories(categorySlug);
             setSubcategories(data);
         } catch (err) {
             console.error("Error loading subcategories:", err);

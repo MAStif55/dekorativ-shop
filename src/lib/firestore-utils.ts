@@ -1,575 +1,188 @@
-import { db } from './firebase';
-import {
-    collection,
-    doc,
-    getDocs,
-    getDoc,
-    setDoc,
-    addDoc,
-    updateDoc,
-    deleteDoc,
-    query,
-    where,
-    orderBy,
-    limit as firestoreLimit,
-    Timestamp,
-    DocumentData,
-    QueryConstraint
-} from 'firebase/firestore';
-
 /**
- * Generic Firestore CRUD Utilities
+ * COMPATIBILITY BRIDGE — DO NOT ADD FIREBASE IMPORTS HERE
  * 
- * This module provides reusable functions for common Firestore operations.
- * Customize the collection names and types for your specific project.
+ * This file re-exports repository methods under their original function names
+ * so that call sites across the app continue to work during the migration.
+ * All actual data access is delegated to the Repository layer in @/lib/data.
+ * 
+ * ZERO Firebase SDK imports in this file — enforced by the Zero-Import Policy.
  */
 
-// ============================================================================
-// COLLECTION REFERENCES - Customize these for your project
-// ============================================================================
+import {
+    ProductRepository,
+    OrderRepository,
+    CategoryRepository,
+    PortfolioRepository,
+    FontRepository,
+} from '@/lib/data';
 
-export const productsCol = collection(db, 'products');
-export const ordersCol = collection(db, 'orders');
-export const optionsCol = collection(db, 'options');
-export const categoriesCol = collection(db, 'categories');
-export const subcategoriesCol = collection(db, 'subcategories');
-export const contentCol = collection(db, 'content');
-export const settingsCol = collection(db, 'settings');
-export const portfolioCategoriesCol = collection(db, 'portfolioCategories');
-export const portfolioPhotosCol = collection(db, 'portfolioPhotos');
-export const fontsCol = collection(db, 'fonts');
+import { Product } from '@/types/product';
+import { Order } from '@/types/order';
+import { Category, SubCategory } from '@/types/category';
+import { PortfolioCategory, PortfolioPhoto } from '@/types/portfolio';
+import { FontModel } from '@/types/font';
 
-// ============================================================================
-// GENERIC CRUD OPERATIONS
-// ============================================================================
+// ── Re-export types ────────────────────────────────────────────
+export type { FontModel } from '@/types/font';
 
-/**
- * Get all documents from a collection
- */
-export async function getAllDocuments<T>(
-    collectionRef: ReturnType<typeof collection>,
-    ...constraints: QueryConstraint[]
-): Promise<T[]> {
-    const q = constraints.length > 0
-        ? query(collectionRef, ...constraints)
-        : collectionRef;
+// ── Products ───────────────────────────────────────────────────
 
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
+export async function getAllProducts<T = Product>(): Promise<T[]> {
+    return ProductRepository.getAll() as Promise<T[]>;
 }
 
-/**
- * Get a single document by ID
- */
-export async function getDocumentById<T>(
-    collectionName: string,
-    id: string
-): Promise<T | null> {
-    const docRef = doc(db, collectionName, id);
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() } as T;
-    }
-    return null;
+export async function getProductById<T = Product>(id: string): Promise<T | null> {
+    return ProductRepository.getById(id) as Promise<T | null>;
 }
 
-/**
- * Create a new document (auto-generated ID)
- */
-export async function createDocument<T extends DocumentData>(
-    collectionRef: ReturnType<typeof collection>,
-    data: T
-): Promise<string> {
-    const dataWithTimestamp = {
-        ...data,
-        createdAt: Date.now()
-    };
-    const docRef = await addDoc(collectionRef, dataWithTimestamp);
-    return docRef.id;
+export async function getProductBySlug<T = Product>(slug: string): Promise<T | null> {
+    return ProductRepository.getBySlug(slug) as Promise<T | null>;
 }
 
-/**
- * Create or update a document with a specific ID
- */
-export async function setDocument<T extends DocumentData>(
-    collectionName: string,
-    id: string,
-    data: T
-): Promise<void> {
-    await setDoc(doc(db, collectionName, id), data);
+export async function getProductsByCategory<T = Product>(categorySlug: string): Promise<T[]> {
+    return ProductRepository.getByCategory(categorySlug) as Promise<T[]>;
 }
 
-/**
- * Update specific fields in a document
- */
-export async function updateDocument<T extends DocumentData>(
-    collectionName: string,
-    id: string,
-    data: Partial<T>
-): Promise<void> {
-    const docRef = doc(db, collectionName, id);
-    await updateDoc(docRef, data as DocumentData);
+export async function getNewestProducts<T = Product>(count?: number): Promise<T[]> {
+    return ProductRepository.getNewest(count) as Promise<T[]>;
 }
 
-/**
- * Delete a document
- */
-export async function deleteDocument(
-    collectionName: string,
-    id: string
-): Promise<void> {
-    await deleteDoc(doc(db, collectionName, id));
+export async function createProduct(data: Omit<Product, 'id' | 'createdAt'>): Promise<string> {
+    return ProductRepository.create(data);
 }
 
-/**
- * Bulk update order for multiple documents
- */
-export async function bulkUpdateOrder(
-    collectionName: string,
-    updates: { id: string; order: number }[]
-): Promise<void> {
-    const promises = updates.map(u => updateDocument(collectionName, u.id, { order: u.order } as any));
-    await Promise.all(promises);
+export async function updateProduct(id: string, data: Partial<Product>): Promise<void> {
+    return ProductRepository.update(id, data);
 }
 
-// ============================================================================
-// PRODUCT-SPECIFIC HELPERS (Customize for your product type)
-// ============================================================================
-
-/**
- * Get all products, sorted by creation date (newest first)
- */
-export async function getAllProducts<T>(): Promise<T[]> {
-    const q = query(productsCol, orderBy('createdAt', 'desc'));
-    try {
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
-    } catch {
-        // Fallback if index doesn't exist
-        const snapshot = await getDocs(productsCol);
-        const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
-        return products.sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
-    }
-}
-
-export async function getNewestProducts<T>(count: number = 4): Promise<T[]> {
-    const q = query(productsCol, orderBy('createdAt', 'desc'), firestoreLimit(count));
-    try {
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
-    } catch {
-        // Fallback if index doesn't exist
-        const products = await getAllProducts<T>();
-        return products.slice(0, count);
-    }
-}
-
-/**
- * Get products by category
- */
-export async function getProductsByCategory<T>(categorySlug: string): Promise<T[]> {
-    const q = query(
-        productsCol,
-        where('category', '==', categorySlug),
-        orderBy('createdAt', 'desc')
-    );
-
-    try {
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
-    } catch {
-        // Silently fall back to manual filtering if index doesn't exist
-        const all = await getAllProducts<T>();
-        // @ts-ignore
-        return all.filter(p => p.category === categorySlug);
-    }
-}
-
-/**
- * Get a product by Slug
- */
-export async function getProductBySlug<T>(slug: string): Promise<T | null> {
-    const q = query(productsCol, where('slug', '==', slug), firestoreLimit(1));
-    const snapshot = await getDocs(q);
-
-    if (!snapshot.empty) {
-        const doc = snapshot.docs[0];
-        return { id: doc.id, ...doc.data() } as T;
-    }
-    return null;
-}
-
-/**
- * Get a product by ID
- */
-export async function getProductById<T>(id: string): Promise<T | null> {
-    return getDocumentById<T>('products', id);
-}
-
-/**
- * Create a new product
- */
-export async function createProduct<T extends DocumentData>(product: T): Promise<string> {
-    // Auto-generate slug from Russian title if not provided
-    const productWithSlug: any = { ...product };
-    if (!productWithSlug.slug || productWithSlug.slug.trim() === '') {
-        const ruTitle = productWithSlug.title?.ru || productWithSlug.title?.en || '';
-        productWithSlug.slug = generateSlug(ruTitle);
-    }
-    return createDocument(productsCol, productWithSlug);
-}
-
-/**
- * Generate a URL-friendly slug from a string (supports Cyrillic)
- */
-function generateSlug(text: string): string {
-    // Cyrillic to Latin transliteration map
-    const cyrillicToLatin: { [key: string]: string } = {
-        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo',
-        'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
-        'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
-        'ф': 'f', 'х': 'kh', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'shch',
-        'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
-    };
-
-    return text
-        .toLowerCase()
-        .split('')
-        .map(char => cyrillicToLatin[char] || char)
-        .join('')
-        .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
-        .replace(/\s+/g, '-') // Replace spaces with hyphens
-        .replace(/-+/g, '-') // Replace multiple hyphens with single
-        .replace(/^-|-$/g, '') // Trim hyphens from ends
-        + '-' + Date.now().toString(36).slice(-4); // Add unique suffix
-}
-
-/**
- * Update a product
- */
-export async function updateProduct<T extends DocumentData>(
-    id: string,
-    data: Partial<T>
-): Promise<void> {
-    return updateDocument('products', id, data);
-}
-
-/**
- * Delete a product
- */
 export async function deleteProduct(id: string): Promise<void> {
-    return deleteDocument('products', id);
+    return ProductRepository.delete(id);
 }
 
-/**
- * Bulk update product base prices
- */
 export async function bulkUpdateProductPrices(ids: string[], price: number): Promise<void> {
-    const updates = ids.map(id => updateProduct(id, { basePrice: price }));
-    await Promise.all(updates);
+    return ProductRepository.bulkUpdatePrices(ids, price);
 }
 
-// ============================================================================
-// ORDER HELPERS
-// ============================================================================
+// ── Orders ─────────────────────────────────────────────────────
 
-/**
- * Create a new order
- */
-export async function createOrder<T extends DocumentData>(
-    order: Omit<T, 'id' | 'createdAt' | 'status'>
-): Promise<string> {
-    const docRef = await addDoc(ordersCol, {
-        ...order,
-        status: 'pending',
-        createdAt: Date.now()
-    });
-    return docRef.id;
+export async function getAllOrders<T = Order>(): Promise<T[]> {
+    return OrderRepository.getAll() as Promise<T[]>;
 }
 
-/**
- * Get all orders, sorted by creation date (newest first)
- */
-export async function getAllOrders<T>(): Promise<T[]> {
-    const q = query(ordersCol, orderBy('createdAt', 'desc'));
-    try {
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
-    } catch {
-        // Fallback
-        const snapshot = await getDocs(ordersCol);
-        const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
-        return orders.sort((a: any, b: any) => (b.createdAt || 0) - (a.createdAt || 0));
-    }
+export async function updateOrder(id: string, data: Partial<Order>): Promise<void> {
+    return OrderRepository.update(id, data);
 }
 
-/**
- * Update order status or other fields
- */
-export async function updateOrder<T extends DocumentData>(
-    id: string,
-    data: Partial<T>
-): Promise<void> {
-    const docRef = doc(db, 'orders', id);
-    await updateDoc(docRef, data as DocumentData);
+// ── Categories ─────────────────────────────────────────────────
+
+export async function getCategories<T = Category>(): Promise<T[]> {
+    return CategoryRepository.getAll() as Promise<T[]>;
 }
 
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
-
-/**
- * Wrap a promise with a timeout
- */
-export const withTimeout = <T>(
-    promise: Promise<T>,
-    ms: number,
-    opName: string
-): Promise<T> => {
-    return Promise.race([
-        promise,
-        new Promise<T>((_, reject) =>
-            setTimeout(() => reject(new Error(`Operation '${opName}' timed out after ${ms}ms`)), ms)
-        )
-    ]);
-};
-
-// ============================================================================
-// MAIN CATEGORY (PAGE) HELPERS
-// ============================================================================
-
-export async function getCategories<T>(): Promise<T[]> {
-    const q = query(categoriesCol, orderBy('order', 'asc'));
-    try {
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
-    } catch {
-        // Fallback if index doesn't exist
-        const snapshot = await getDocs(categoriesCol);
-        const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
-        return docs.sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
-    }
+export async function createMainCategory(data: Omit<Category, 'id'>): Promise<string> {
+    return CategoryRepository.create(data);
 }
 
-export async function createMainCategory<T extends DocumentData>(data: T): Promise<string> {
-    return createDocument(categoriesCol, data);
-}
-
-export async function updateMainCategory<T extends DocumentData>(id: string, data: Partial<T>): Promise<void> {
-    return updateDocument('categories', id, data);
+export async function updateMainCategory(id: string, data: Partial<Category>): Promise<void> {
+    return CategoryRepository.update(id, data);
 }
 
 export async function deleteMainCategory(id: string): Promise<void> {
-    return deleteDocument('categories', id);
+    return CategoryRepository.delete(id);
 }
 
-// ============================================================================
-// SUBCATEGORY HELPERS
-// ============================================================================
-
-export async function getSubcategories<T>(categorySlug: string): Promise<T[]> {
-    const q = query(subcategoriesCol, where('parentCategory', '==', categorySlug));
-    const snapshot = await getDocs(q);
-    const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as T));
-    return docs.sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+export async function getSubcategories(categorySlug: string): Promise<SubCategory[]> {
+    return CategoryRepository.getSubcategories(categorySlug);
 }
 
-export async function createSubcategory<T extends DocumentData>(data: T): Promise<string> {
-    return createDocument(subcategoriesCol, data);
+export async function createSubcategory(data: Omit<SubCategory, 'id'>): Promise<string> {
+    return CategoryRepository.createSubcategory(data);
 }
 
 export async function deleteSubcategory(id: string): Promise<void> {
-    return deleteDocument('subcategories', id);
+    return CategoryRepository.deleteSubcategory(id);
 }
 
+export async function updateDocument(collectionName: string, id: string, data: any): Promise<void> {
+    // Route to appropriate repository based on collection name
+    if (collectionName === 'subcategories') {
+        return CategoryRepository.updateSubcategory(id, data);
+    }
+    if (collectionName === 'categories') {
+        return CategoryRepository.update(id, data);
+    }
+    // Fallback — for any other collections, delegate to category repository's generic method
+    return CategoryRepository.update(id, data);
+}
 
-// ==========================================
-// PORTFOLIO (Dynamic Gallery)
-// ==========================================
+export async function bulkUpdateOrder(collectionName: string, updates: { id: string; order: number }[]): Promise<void> {
+    // Products use ProductRepository, everything else uses CategoryRepository
+    if (collectionName === 'products') {
+        return ProductRepository.bulkUpdateOrder(updates);
+    }
+    return CategoryRepository.bulkUpdateOrder(collectionName, updates);
+}
 
-import { PortfolioCategory, PortfolioPhoto } from '@/types/portfolio';
-
-// --- Categories ---
+// ── Portfolio ──────────────────────────────────────────────────
 
 export async function getPortfolioCategories(): Promise<PortfolioCategory[]> {
-    const q = query(portfolioCategoriesCol, orderBy('order', 'asc'));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PortfolioCategory));
+    return PortfolioRepository.getCategories();
 }
 
 export async function getPortfolioCategoriesByPage(targetPageId: string): Promise<PortfolioCategory[]> {
-    const q = query(
-        portfolioCategoriesCol,
-        where('targetPageId', '==', targetPageId),
-        where('isActive', '==', true),
-        orderBy('order', 'asc')
-    );
-    try {
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PortfolioCategory));
-    } catch {
-        // Fallback for missing composite index
-        const simpleQ = query(portfolioCategoriesCol, where('targetPageId', '==', targetPageId));
-        const snapshot = await getDocs(simpleQ);
-        const cats = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PortfolioCategory));
-        return cats
-            .filter(cat => cat.isActive)
-            .sort((a, b) => (a.order || 0) - (b.order || 0));
-    }
+    return PortfolioRepository.getCategoriesByPage(targetPageId);
 }
 
 export async function getPortfolioCategory(id: string): Promise<PortfolioCategory | null> {
-    const docRef = doc(db, 'portfolioCategories', id);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) return { id: docSnap.id, ...docSnap.data() } as PortfolioCategory;
-    return null;
+    return PortfolioRepository.getCategory(id);
 }
 
 export async function createPortfolioCategory(data: Omit<PortfolioCategory, 'id' | 'createdAt'>): Promise<string> {
-    const docRef = await addDoc(portfolioCategoriesCol, {
-        ...data,
-        createdAt: Timestamp.now().toMillis()
-    });
-    return docRef.id;
+    return PortfolioRepository.createCategory(data);
 }
 
 export async function updatePortfolioCategory(id: string, data: Partial<PortfolioCategory>): Promise<void> {
-    const docRef = doc(db, 'portfolioCategories', id);
-    await updateDoc(docRef, data);
+    return PortfolioRepository.updateCategory(id, data);
 }
 
 export async function deletePortfolioCategory(id: string): Promise<void> {
-    const docRef = doc(db, 'portfolioCategories', id);
-    await deleteDoc(docRef);
+    return PortfolioRepository.deleteCategory(id);
 }
-
-// --- Photos ---
 
 export async function getPortfolioPhotosByCategory(categoryId: string): Promise<PortfolioPhoto[]> {
-    const q = query(portfolioPhotosCol, where('categoryId', '==', categoryId), orderBy('order', 'asc'));
-    try {
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PortfolioPhoto));
-    } catch {
-        // Fallback if composite index is missing: just query by category and sort client-side
-        const simpleQ = query(portfolioPhotosCol, where('categoryId', '==', categoryId));
-        const snapshot = await getDocs(simpleQ);
-        const photos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PortfolioPhoto));
-        return photos.sort((a, b) => (a.order || 0) - (b.order || 0));
-    }
+    return PortfolioRepository.getPhotosByCategory(categoryId);
 }
 
-export async function getNewestPortfolioPhotos(limitCount: number = 4): Promise<PortfolioPhoto[]> {
-    const q = query(portfolioPhotosCol, orderBy('createdAt', 'desc'), firestoreLimit(limitCount));
-    try {
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PortfolioPhoto));
-    } catch {
-        // Fallback for missing index
-        const fallbackQ = query(portfolioPhotosCol);
-        const snapshot = await getDocs(fallbackQ);
-        const photos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PortfolioPhoto));
-        return photos.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, limitCount);
-    }
-}
-
-export async function getPortfolioPhotos(targetPageId?: string): Promise<PortfolioPhoto[]> {
-    if (!targetPageId) {
-        // Return all photos ordered by creation
-        const q = query(portfolioPhotosCol, orderBy('createdAt', 'desc'));
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PortfolioPhoto));
-    }
-
-    // 1. Find categories linked to targetPageId
-    const catQuery = query(
-        portfolioCategoriesCol,
-        where('targetPageId', '==', targetPageId),
-        where('isActive', '==', true)
-    );
-    const catSnapshot = await getDocs(catQuery);
-    const categoryIds = catSnapshot.docs.map(doc => doc.id);
-
-    if (categoryIds.length === 0) return [];
-
-    // 2. Find photos for those categories
-    const photos: PortfolioPhoto[] = [];
-
-    // Batch processing to handle > 10 categories if needed
-    for (let i = 0; i < categoryIds.length; i += 10) {
-        const batchIds = categoryIds.slice(i, i + 10);
-        const photoQuery = query(
-            portfolioPhotosCol,
-            where('categoryId', 'in', batchIds)
-        );
-        const pSnapshot = await getDocs(photoQuery);
-        photos.push(...pSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as PortfolioPhoto)));
-    }
-
-    return photos.sort((a, b) => a.order - b.order); // Sort client side for simplicity
+export async function getNewestPortfolioPhotos(count?: number): Promise<PortfolioPhoto[]> {
+    return PortfolioRepository.getNewestPhotos(count);
 }
 
 export async function createPortfolioPhoto(data: Omit<PortfolioPhoto, 'id' | 'createdAt'>): Promise<string> {
-    const docRef = await addDoc(portfolioPhotosCol, {
-        ...data,
-        createdAt: Timestamp.now().toMillis()
-    });
-    return docRef.id;
+    return PortfolioRepository.createPhoto(data);
 }
 
 export async function updatePortfolioPhoto(id: string, data: Partial<PortfolioPhoto>): Promise<void> {
-    const docRef = doc(db, 'portfolioPhotos', id);
-    await updateDoc(docRef, data);
+    return PortfolioRepository.updatePhoto(id, data);
 }
 
 export async function deletePortfolioPhoto(id: string): Promise<void> {
-    const docRef = doc(db, 'portfolioPhotos', id);
-    await deleteDoc(docRef);
+    return PortfolioRepository.deletePhoto(id);
 }
 
-// ==========================================
-// FONTS MANAGEMENT
-// ==========================================
-
-export interface FontModel {
-    id?: string;
-    name: string;
-    category: string;
-    file: string;
-    url: string;
-    tags: string[];
-    createdAt?: number;
-    isVerified?: boolean;
-}
+// ── Fonts ──────────────────────────────────────────────────────
 
 export async function getFonts(): Promise<FontModel[]> {
-    const q = query(fontsCol, orderBy('createdAt', 'desc'));
-    try {
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FontModel));
-    } catch {
-        // Fallback if index misses
-        const snapshot = await getDocs(fontsCol);
-        const fontDocs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FontModel));
-        return fontDocs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    }
+    return FontRepository.getAll();
 }
 
 export async function createFont(data: Omit<FontModel, 'id' | 'createdAt'>): Promise<string> {
-    const docRef = await addDoc(fontsCol, {
-        ...data,
-        createdAt: Timestamp.now().toMillis()
-    });
-    return docRef.id;
+    return FontRepository.create(data);
 }
 
 export async function updateFont(id: string, data: Partial<FontModel>): Promise<void> {
-    const docRef = doc(db, 'fonts', id);
-    await updateDoc(docRef, data);
+    return FontRepository.update(id, data);
 }
 
 export async function deleteFontDoc(id: string): Promise<void> {
-    const docRef = doc(db, 'fonts', id);
-    await deleteDoc(docRef);
+    return FontRepository.delete(id);
 }

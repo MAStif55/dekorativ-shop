@@ -1,9 +1,9 @@
-import { getAllOrders } from './firestore-utils';
+import { OrderRepository } from '@/lib/data';
 import { Order } from '@/types/order';
 import { Customer } from '@/types/customer';
 
 export async function getCustomers(): Promise<Customer[]> {
-    const orders = await getAllOrders<Order>();
+    const orders = await OrderRepository.getAll();
     // We will build a list of profiles.
     // For each order, we find matching profiles.
     // If multiple match, we merge them.
@@ -126,9 +126,9 @@ export async function getCustomerOrders(identifier: string): Promise<Order[]> {
 
     if (!customer) return [];
 
-    const allOrders = await getAllOrders<Order>();
+    const allOrders: Order[] = await OrderRepository.getAll();
 
-    return allOrders.filter(o => {
+    return allOrders.filter((o: Order) => {
         let match = false;
         if (customer.email && o.email && customer.email.toLowerCase() === o.email.toLowerCase()) match = true;
         if (customer.phone && o.phone && customer.phone === o.phone) match = true;

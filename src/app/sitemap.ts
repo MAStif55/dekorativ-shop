@@ -1,12 +1,12 @@
 import { MetadataRoute } from 'next';
-import { getAllProducts, getCategories } from '@/lib/firestore-utils';
+import { ProductRepository, CategoryRepository } from '@/lib/data';
 import { Product } from '@/types/product';
 import { Category } from '@/types/category';
 
 const BASE_URL = 'https://somanatha.ru';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const products = await getAllProducts<Product>();
+    const products = await ProductRepository.getAll();
 
     const productUrls = products.map((product) => ({
         url: `${BASE_URL}/product/${product.slug}`,
@@ -15,7 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.8,
     }));
 
-    const categories = await getCategories<Category>();
+    const categories = await CategoryRepository.getAll();
 
     const categoryUrls = categories.map((cat) => ({
         url: `${BASE_URL}/catalog/${cat.slug}`,

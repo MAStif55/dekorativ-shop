@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Product } from '@/types/product';
-import { getAllProducts } from '@/lib/firestore-utils';
+import { ProductRepository } from '@/lib/data';
 import ProductCard from '@/components/ProductCard';
 
 interface RelatedProductsProps {
@@ -20,7 +20,7 @@ export default function RelatedProducts({ currentProductId, category }: RelatedP
             try {
                 // In a real app, we'd query by category limit 4. 
                 // For now, fetching all and filtering client side for simplicity given small dataset.
-                const all = await getAllProducts<Product>();
+                const all = await ProductRepository.getAll();
                 const filtered = all
                     .filter(p => p.id !== currentProductId && p.category === category)
                     .slice(0, 4);

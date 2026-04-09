@@ -1,11 +1,8 @@
 import { useState, useCallback } from 'react';
 import imageCompression from 'browser-image-compression';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { StorageService } from '@/lib/data';
 import { v4 as uuidv4 } from 'uuid';
-import { app } from '@/lib/firebase';
 import { IMAGE_CONFIG } from '@/config/image';
-
-const storage = getStorage(app);
 
 export function useImageProcessor() {
     const [isProcessing, setIsProcessing] = useState(false);
@@ -38,10 +35,8 @@ export function useImageProcessor() {
             const fileExt = file.name.split('.').pop();
             const fileName = `${uuidv4()}.${fileExt}`;
             const fullPath = `${path}/${fileName}`;
-            const storageRef = ref(storage, fullPath);
 
-            await uploadBytes(storageRef, file);
-            return await getDownloadURL(storageRef);
+            return await StorageService.upload(fullPath, file);
         } catch (error) {
             console.error('Error uploading image:', error);
             throw error;

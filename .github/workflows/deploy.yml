@@ -39,8 +39,8 @@ jobs:
 
       - name: Write service account key
         env:
-          FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: echo "$FIREBASE_SA" > /tmp/firebase-sa.json
+          FIREBASE_SERVICE_ACCOUNT_BASE64: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_BASE64 }}
+        run: echo "$FIREBASE_SERVICE_ACCOUNT_BASE64" | base64 --decode > /tmp/firebase-sa.json
 
       - name: Build Next.js (static export)
         run: npm run build

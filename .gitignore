@@ -74,3 +74,4 @@ test-*.js
 
 # ── Firebase Service Account Keys ────────────
 *-firebase-adminsdk-*.json
+.temp_b64.txt

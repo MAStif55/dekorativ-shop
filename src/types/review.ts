@@ -4,5 +4,5 @@ export interface Review {
     content: string;
     rating: number;
     sourceUrl?: string;
-    createdAt: any; // Using any for Firestore timestamp compatibility, can be refined
+    createdAt: number; // Epoch milliseconds — serialized from Firebase Timestamp in repository
 }

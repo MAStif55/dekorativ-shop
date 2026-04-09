@@ -101,7 +101,7 @@ export default function CategoryPageContent({ categorySlug }: CategoryPageConten
         async function loadSubcats() {
             setSubcatsLoading(true);
             try {
-                const data = await getSubcategories<SubCategory>(categorySlug);
+                const data = await getSubcategories(categorySlug);
                 setSubcategories(data);
             } catch (error) {
                 console.error("Error loading subcategories:", error);

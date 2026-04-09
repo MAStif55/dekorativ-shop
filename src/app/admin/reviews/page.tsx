@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { db } from '@/lib/firebase';
-import { collection, query, orderBy, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
+import { ReviewRepository } from '@/lib/data';
 import { Review } from '@/types/review';
 import { Plus, Pencil, Trash2, Star, ExternalLink } from 'lucide-react';
 import ReviewForm from '@/components/admin/ReviewForm';
@@ -17,17 +16,8 @@ export default function ReviewsPage() {
     const { locale } = useTranslation();
 
     useEffect(() => {
-        const q = query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const reviewsData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })) as Review[];
+        const unsubscribe = ReviewRepository.subscribe((reviewsData) => {
             setReviews(reviewsData);
-            setLoading(false);
-        }, (err) => {
-            console.error("Error fetching reviews:", err);
-            setError("Failed to load reviews. Check console for details.");
             setLoading(false);
         });
 
@@ -38,7 +28,7 @@ export default function ReviewsPage() {
     const handleDelete = async (id: string) => {
         if (confirm('Are you sure you want to delete this review?')) {
             try {
-                await deleteDoc(doc(db, 'reviews', id));
+                await ReviewRepository.delete(id);
             } catch (error) {
                 console.error('Error deleting review:', error);
                 alert('Error deleting review');
@@ -177,7 +167,7 @@ export default function ReviewsPage() {
                 <ReviewForm
                     existingReview={editingReview}
                     onClose={() => setIsFormOpen(false)}
-                    onSuccess={() => setIsFormOpen(false)} // Refresh happens via realtime listener
+                    onSuccess={() => setIsFormOpen(false)}
                 />
             )}
         </div>

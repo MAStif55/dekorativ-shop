@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Category } from '@/types/category';
-import { CategoryRepository } from '@/lib/data';
+import { getAllCategories } from '@/actions/catalog-actions';
 import { CACHE_CONFIG } from '@/config/cache';
 
 interface CategoryState {
@@ -41,7 +41,7 @@ export const useCategoryStore = create<CategoryState>()(
                 set({ isLoading: true, error: null });
 
                 try {
-                    const fetchedCategories = await CategoryRepository.getAll();
+                    const fetchedCategories = await getAllCategories();
                     set({
                         categories: fetchedCategories,
                         lastFetched: now,

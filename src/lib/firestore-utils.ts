@@ -1,11 +1,11 @@
+'use server';
+
 /**
- * COMPATIBILITY BRIDGE — DO NOT ADD FIREBASE IMPORTS HERE
+ * COMPATIBILITY BRIDGE — SERVER ACTIONS
  * 
- * This file re-exports repository methods under their original function names
- * so that call sites across the app continue to work during the migration.
+ * This file re-exports repository methods under their original function names.
+ * The 'use server' directive ensures @/lib/data never leaks into client bundles.
  * All actual data access is delegated to the Repository layer in @/lib/data.
- * 
- * ZERO Firebase SDK imports in this file — enforced by the Zero-Import Policy.
  */
 
 import {

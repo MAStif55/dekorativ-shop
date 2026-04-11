@@ -10,7 +10,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { formatPrice } from '@/utils/currency';
 import { ShoppingCart, Check } from 'lucide-react';
-import { ProductRepository, VariationsRepository } from '@/lib/data';
+import { getProductBySlug, getProductById, getCategoryVariations } from '@/actions/catalog-actions';
 import { VariationGroup } from '@/types/product';
 import { useCartStore } from '@/store/cart-store';
 import { useToastStore } from '@/store/toast-store';
@@ -52,11 +52,11 @@ export default function ProductDetailsContent() {
             setLoading(true);
             try {
                 // First try by slug
-                let data = await ProductRepository.getBySlug(slug as string);
+                let data = await getProductBySlug(slug as string);
 
                 // If not found by slug, try by ID (fallback for products without slugs)
                 if (!data) {
-                    data = await ProductRepository.getById(slug as string);
+                    data = await getProductById(slug as string);
                 }
 
                 setProduct(data);
@@ -66,7 +66,7 @@ export default function ProductDetailsContent() {
 
                 if (data?.variationOverrides?.useDefaults !== false && data?.category) {
                     // Use category defaults, filter out disabled options
-                    const categoryVars = await VariationsRepository.getCategoryVariations(data.category);
+                    const categoryVars = await getCategoryVariations(data.category);
                     const disabledOptions = data.variationOverrides?.disabledOptions || [];
 
                     variations = categoryVars.map(group => ({

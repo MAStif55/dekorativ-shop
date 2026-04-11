@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import imageCompression from 'browser-image-compression';
-import { StorageService } from '@/lib/data';
+import { uploadFile } from '@/actions/admin-actions';
 import { v4 as uuidv4 } from 'uuid';
 import { IMAGE_CONFIG } from '@/config/image';
 
@@ -36,7 +36,9 @@ export function useImageProcessor() {
             const fileName = `${uuidv4()}.${fileExt}`;
             const fullPath = `${path}/${fileName}`;
 
-            return await StorageService.upload(fullPath, file);
+            const formData = new FormData();
+            formData.append('file', file);
+            return await uploadFile(fullPath, formData);
         } catch (error) {
             console.error('Error uploading image:', error);
             throw error;

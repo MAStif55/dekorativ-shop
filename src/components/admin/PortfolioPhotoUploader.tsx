@@ -6,7 +6,7 @@ import 'react-image-crop/dist/ReactCrop.css';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { useImageProcessor } from '@/hooks/useImageProcessor';
 import { Upload, X, Check, FileImage } from 'lucide-react';
-import { PortfolioRepository } from '@/lib/data';
+import { createPortfolioPhoto } from '@/actions/admin-actions';
 
 interface PortfolioPhotoUploaderProps {
     categoryId: string;
@@ -146,12 +146,12 @@ export default function PortfolioPhotoUploader({ categoryId, onUploadSuccess }: 
         }
     };
 
-    // 4. Save to Firestore with SEO
+    // 4. Save to database with SEO
     const handleSaveDatabaseRecord = async (e: React.FormEvent) => {
         e.preventDefault();
         setSavingDb(true);
         try {
-            await PortfolioRepository.createPhoto({
+            await createPortfolioPhoto({
                 categoryId,
                 imageUrl: uploadedUrl,
                 order: 0,

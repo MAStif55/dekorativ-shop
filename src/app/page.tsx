@@ -7,7 +7,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
-import { ProductRepository, PortfolioRepository } from '@/lib/data';
+import { getNewestProducts, getNewestPortfolioPhotos } from '@/actions/catalog-actions';
 import { Product } from '@/types/product';
 import { PortfolioPhoto } from '@/types/portfolio';
 import { ArrowRight } from 'lucide-react';
@@ -23,8 +23,8 @@ export default function HomePage() {
         const fetchData = async () => {
             try {
                 const [products, images] = await Promise.all([
-                    ProductRepository.getNewest(4),
-                    PortfolioRepository.getNewestPhotos(4)
+                    getNewestProducts(4),
+                    getNewestPortfolioPhotos(4)
                 ]);
                 setNewArrivals(products);
                 setGalleryWorks(images);

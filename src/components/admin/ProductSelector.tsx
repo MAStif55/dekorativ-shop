@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Search, Plus } from 'lucide-react';
-import { ProductRepository } from '@/lib/data';
+import { getAllProducts } from '@/actions/catalog-actions';
 import { Product, getThumbImageUrl } from '@/types/product';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -20,7 +20,7 @@ export default function ProductSelector({ onSelect, onCancel }: ProductSelectorP
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const data = await ProductRepository.getAll();
+                const data = await getAllProducts();
                 setProducts(data);
             } catch (error) {
                 console.error("Failed to fetch products", error);

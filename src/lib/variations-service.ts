@@ -1,6 +1,7 @@
+'use server';
+
 /**
- * COMPATIBILITY BRIDGE — DO NOT ADD FIREBASE IMPORTS HERE
- * 
+ * COMPATIBILITY BRIDGE — SERVER ACTIONS
  * Delegates to VariationsRepository from the Data Access Layer.
  */
 

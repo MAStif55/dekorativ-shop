@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ReviewRepository } from '@/lib/data';
+import { updateReview, createReview } from '@/actions/admin-actions';
 import { Review } from '@/types/review';
 import { X, Star } from 'lucide-react';
 
@@ -29,9 +29,9 @@ export default function ReviewForm({ existingReview, onClose, onSuccess }: Revie
 
         try {
             if (existingReview) {
-                await ReviewRepository.update(existingReview.id, formData);
+                await updateReview(existingReview.id, formData);
             } else {
-                await ReviewRepository.create(formData as Omit<Review, 'id' | 'createdAt'>);
+                await createReview(formData as Omit<Review, 'id' | 'createdAt'>);
             }
             onSuccess();
             onClose();

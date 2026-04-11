@@ -5,6 +5,7 @@ import { useState } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Send, MessageCircle, Info } from 'lucide-react';
+import { API } from '@/lib/config';
 
 export default function AboutPage() {
     const { locale } = useLanguage();
@@ -22,7 +23,7 @@ export default function AboutPage() {
         setIsSubmitting(true);
         setSubmitError(false);
         try {
-            const res = await fetch('https://us-central1-dekorativ-5c737.cloudfunctions.net/submitFeedback', {
+            const res = await fetch(API.SUBMIT_FEEDBACK, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

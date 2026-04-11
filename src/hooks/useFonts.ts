@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FontRepository } from '@/lib/data';
+import { getAllFonts } from '@/actions/catalog-actions';
 import { FontModel } from '@/types/font';
 
 export interface FontData {
@@ -7,7 +7,7 @@ export interface FontData {
     name: string;
     category: string;
     file: string;
-    url: string;     // Firebase Storage URL
+    url: string;
     tags?: string[];
 }
 
@@ -30,7 +30,7 @@ export function useFonts(): UseFontsResult {
         async function fetchFonts() {
             try {
                 setLoading(true);
-                const fetchedFonts = await FontRepository.getAll();
+                const fetchedFonts = await getAllFonts();
 
                 const formattedFonts: FontData[] = fetchedFonts.map((f: FontModel) => ({
                     id: f.id as string,

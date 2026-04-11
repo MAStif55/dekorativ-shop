@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { StorageService } from '@/lib/data';
+import { uploadFileBuffer, deleteFile } from '@/actions/admin-actions';
 import { Loader2, Film, X, Play, Pause, Scissors, Crop as CropIcon, RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
@@ -248,14 +248,17 @@ export default function VideoUpload({
             const previewPath = `${storagePath}/${timestamp}_preview.mp4`;
             const fullPath = `${storagePath}/${timestamp}_full.mp4`;
 
+            const previewArrayBuffer = await previewBlob.arrayBuffer();
+            const fullArrayBuffer = await fullBlob.arrayBuffer();
+
             const [videoPreviewUrl, videoUrl] = await Promise.all([
-                StorageService.upload(previewPath, previewBlob, videoMetadata),
-                StorageService.upload(fullPath, fullBlob, videoMetadata),
+                uploadFileBuffer(previewPath, Array.from(new Uint8Array(previewArrayBuffer)), 'video/mp4'),
+                uploadFileBuffer(fullPath, Array.from(new Uint8Array(fullArrayBuffer)), 'video/mp4'),
             ]);
 
             // Delete previous video from Storage if replacing
             if (previewUrl) {
-                await StorageService.delete(previewUrl);
+                await deleteFile(previewUrl);
             }
 
             // Update UI/Form with both URLs
@@ -280,7 +283,7 @@ export default function VideoUpload({
     const clearVideo = async () => {
         // Delete video from Firebase Storage
         if (previewUrl) {
-            await StorageService.delete(previewUrl);
+            await deleteFile(previewUrl);
         }
         if (originalVideoUrl) {
             URL.revokeObjectURL(originalVideoUrl);

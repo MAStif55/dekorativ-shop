@@ -40,6 +40,7 @@ export interface Order {
     customerNotes?: string; // Customer entered notes
     attachments?: string[]; // URLs of uploaded images
     createdAt: number; // Timestamp
+    notificationStatus?: Record<string, any>; // Status of order notifications that were sent out
 }
 
 export type OrderStatus = Order['status'];

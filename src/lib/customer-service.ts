@@ -1,3 +1,5 @@
+'use server';
+
 import { OrderRepository } from '@/lib/data';
 import { Order } from '@/types/order';
 import { Customer } from '@/types/customer';

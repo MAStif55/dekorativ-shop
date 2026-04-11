@@ -1,0 +1,66 @@
+{
+  "exportedAt": "2026-04-11T11:12:42.519Z",
+  "projectId": "dekorativ-5c737",
+  "collections": {
+    "products": {
+      "file": "products.ndjson",
+      "count": 3,
+      "skipped": 0,
+      "sizeBytes": 4365
+    },
+    "orders": {
+      "file": "orders.ndjson",
+      "count": 0,
+      "skipped": 0,
+      "sizeBytes": 0
+    },
+    "reviews": {
+      "file": "reviews.ndjson",
+      "count": 0,
+      "skipped": 0,
+      "sizeBytes": 0
+    },
+    "categories": {
+      "file": "categories.ndjson",
+      "count": 7,
+      "skipped": 0,
+      "sizeBytes": 2615
+    },
+    "subcategories": {
+      "file": "subcategories.ndjson",
+      "count": 2,
+      "skipped": 0,
+      "sizeBytes": 4400
+    },
+    "options": {
+      "file": "variations.ndjson",
+      "count": 0,
+      "skipped": 0,
+      "sizeBytes": 0
+    },
+    "settings": {
+      "file": "settings.ndjson",
+      "count": 0,
+      "skipped": 0,
+      "sizeBytes": 0
+    },
+    "fonts": {
+      "file": "fonts.ndjson",
+      "count": 297,
+      "skipped": 0,
+      "sizeBytes": 162948
+    },
+    "portfolioCategories": {
+      "file": "portfolio_categories.ndjson",
+      "count": 2,
+      "skipped": 0,
+      "sizeBytes": 591
+    },
+    "portfolioPhotos": {
+      "file": "portfolio_photos.ndjson",
+      "count": 71,
+      "skipped": 0,
+      "sizeBytes": 74307
+    }
+  }
+}

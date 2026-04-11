@@ -5,8 +5,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Mail, MessageCircle, MapPin, Send, CheckCircle, AlertCircle } from 'lucide-react';
-
-const FEEDBACK_URL = 'https://us-central1-dekorativ-5c737.cloudfunctions.net/submitFeedback';
+import { API } from '@/lib/config';
 
 export default function ContactPage() {
     const { locale } = useLanguage();
@@ -22,7 +21,7 @@ export default function ContactPage() {
         setStatus('idle');
 
         try {
-            const res = await fetch(FEEDBACK_URL, {
+            const res = await fetch(API.SUBMIT_FEEDBACK, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ phone, telegram: telegram || null, message }),

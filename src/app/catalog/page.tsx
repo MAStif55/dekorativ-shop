@@ -7,7 +7,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
-import { ProductRepository } from '@/lib/data';
 import { Product } from '@/types/product';
 import { useProductStore } from '@/store/product-store';
 import { useScrollRestore } from '@/hooks/useScrollRestore';

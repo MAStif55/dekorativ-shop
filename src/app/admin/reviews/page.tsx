@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ReviewRepository } from '@/lib/data';
+import { getLatestReviews } from '@/actions/catalog-actions';
+import { deleteReview } from '@/actions/admin-actions';
 import { Review } from '@/types/review';
 import { Plus, Pencil, Trash2, Star, ExternalLink } from 'lucide-react';
 import ReviewForm from '@/components/admin/ReviewForm';
@@ -15,20 +16,28 @@ export default function ReviewsPage() {
     const [error, setError] = useState<string | null>(null);
     const { locale } = useTranslation();
 
-    useEffect(() => {
-        const unsubscribe = ReviewRepository.subscribe((reviewsData) => {
+    const loadReviews = async () => {
+        try {
+            const reviewsData = await getLatestReviews(100);
             setReviews(reviewsData);
+        } catch (err) {
+            console.error('Error loading reviews:', err);
+            setError('Failed to load reviews');
+        } finally {
             setLoading(false);
-        });
+        }
+    };
 
-        return () => unsubscribe();
+    useEffect(() => {
+        loadReviews();
     }, []);
 
 
     const handleDelete = async (id: string) => {
         if (confirm('Are you sure you want to delete this review?')) {
             try {
-                await ReviewRepository.delete(id);
+                await deleteReview(id);
+                loadReviews();
             } catch (error) {
                 console.error('Error deleting review:', error);
                 alert('Error deleting review');

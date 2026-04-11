@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { StorageService } from '@/lib/data';
+import { uploadFileBuffer, deleteFile } from '@/actions/admin-actions';
 import { Loader2, Upload, X, ImageIcon, Download, ChevronDown, ChevronUp, GripVertical, RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ProductImage } from '@/types/product';
@@ -119,7 +119,7 @@ export default function ImageUpload({
      */
     const tryDeleteOldFile = async (url: string | undefined) => {
         if (!url) return;
-        await StorageService.delete(url);
+        await deleteFile(url);
     };
 
     /**
@@ -135,10 +135,11 @@ export default function ImageUpload({
 
         // Upload all 3 variants in parallel
         const urls = await Promise.all(
-            VARIANTS.map((v, i) => {
+            VARIANTS.map(async (v, i) => {
                 const filename = `${baseName}${v.suffix}.webp`;
                 const fullPath = `${storagePath}/${filename}`;
-                return StorageService.upload(fullPath, blobs[i], uploadMetadata);
+                const arrayBuffer = await blobs[i].arrayBuffer();
+                return uploadFileBuffer(fullPath, Array.from(new Uint8Array(arrayBuffer)), 'image/webp');
             })
         );
 

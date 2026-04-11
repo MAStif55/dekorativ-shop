@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { StorageService } from '@/lib/data';
+import { uploadFileBuffer } from '@/actions/admin-actions';
 
 export default function FontUploaderPage() {
     const [status, setStatus] = useState('Idle');
@@ -32,7 +32,8 @@ export default function FontUploaderPage() {
 
                 // Upload to Firebase Storage
                 const storagePath = `fonts/${font.category}/${font.file}`;
-                const url = await StorageService.upload(storagePath, blob, { contentType });
+                const arrayBuffer = await blob.arrayBuffer();
+                const url = await uploadFileBuffer(storagePath, Array.from(new Uint8Array(arrayBuffer)), contentType);
 
                 uploadedFonts.push({
                     id: font.id,
@@ -50,7 +51,8 @@ export default function FontUploaderPage() {
             // Upload metadata JSON
             const metadataStr = JSON.stringify({ fonts: uploadedFonts, categories: data.categories }, null, 2);
             const metadataBlob = new Blob([metadataStr], { type: 'application/json' });
-            await StorageService.upload('fonts/fonts-metadata.json', metadataBlob, { contentType: 'application/json' });
+            const metaBuffer = await metadataBlob.arrayBuffer();
+            await uploadFileBuffer('fonts/fonts-metadata.json', Array.from(new Uint8Array(metaBuffer)), 'application/json');
 
             setStatus('Complete! All fonts and metadata have been successfully uploaded to Firebase Storage.');
         } catch (e: any) {

@@ -9,8 +9,7 @@ import { useCartStore } from '@/store/cart-store';
 import { getLocalizedSchema, CheckoutFormData } from '@/lib/checkout-schema';
 import { AddressAutocomplete } from './AddressAutocomplete';
 import { formatPrice } from '@/utils/currency';
-
-const CLOUD_FUNCTION_URL = 'https://us-central1-dekorativ-5c737.cloudfunctions.net/createOrder';
+import { API } from '@/lib/config';
 
 export default function CheckoutForm() {
     const { locale, t } = useLanguage();
@@ -51,7 +50,7 @@ export default function CheckoutForm() {
         setSubmitError(null);
 
         try {
-            const response = await fetch(CLOUD_FUNCTION_URL, {
+            const response = await fetch(API.CREATE_ORDER, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

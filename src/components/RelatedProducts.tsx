@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Product } from '@/types/product';
-import { ProductRepository } from '@/lib/data';
+import { getAllProducts } from '@/actions/catalog-actions';
 import ProductCard from '@/components/ProductCard';
 
 interface RelatedProductsProps {
@@ -18,9 +18,7 @@ export default function RelatedProducts({ currentProductId, category }: RelatedP
     useEffect(() => {
         const fetchRelated = async () => {
             try {
-                // In a real app, we'd query by category limit 4. 
-                // For now, fetching all and filtering client side for simplicity given small dataset.
-                const all = await ProductRepository.getAll();
+                const all = await getAllProducts();
                 const filtered = all
                     .filter(p => p.id !== currentProductId && p.category === category)
                     .slice(0, 4);

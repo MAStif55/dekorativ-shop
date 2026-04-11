@@ -1,6 +1,6 @@
 // Types are defined locally below
 
-const CLOUD_FUNCTION_URL = 'https://us-central1-dekorativ-5c737.cloudfunctions.net/createOrder';
+import { API } from '@/lib/config';
 // Re-export types that might be used elsewhere
 export interface OrderItem {
     productId: string;
@@ -59,7 +59,7 @@ export async function createOrder(
     locale: string = 'ru'
 ): Promise<CreateOrderResult> {
     try {
-        const response = await fetch(CLOUD_FUNCTION_URL, {
+        const response = await fetch(API.CREATE_ORDER, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

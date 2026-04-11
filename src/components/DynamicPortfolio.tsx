@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PortfolioCategory, PortfolioPhoto } from '@/types/portfolio';
-import { PortfolioRepository } from '@/lib/data';
+import { getPortfolioCategoriesByPage, getPortfolioPhotosByCategory } from '@/actions/catalog-actions';
 import { X } from 'lucide-react';
 
 interface DynamicPortfolioProps {
@@ -27,11 +27,11 @@ export default function DynamicPortfolio({ pageId, title, subtitle }: DynamicPor
         const fetchPortfolio = async () => {
             try {
                 // Fetch categories mapped to this page
-                const cats = await PortfolioRepository.getCategoriesByPage(pageId);
+                const cats = await getPortfolioCategoriesByPage(pageId);
 
                 // Fetch photos for each category
                 const completeCats = await Promise.all(cats.map(async (cat) => {
-                    const photos = await PortfolioRepository.getPhotosByCategory(cat.id);
+                    const photos = await getPortfolioPhotosByCategory(cat.id);
                     return { ...cat, photos };
                 }));
 

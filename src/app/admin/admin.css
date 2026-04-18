@@ -1,0 +1,28 @@
+/* ============================================================================
+   ADMIN PANEL — ISOLATED STYLES
+   This file is only loaded on /admin/* routes via admin/layout.tsx.
+   It does NOT affect the public storefront.
+   ============================================================================ */
+
+/* ============================================================================
+   ADMIN PANEL FORM STYLING
+   ============================================================================ */
+
+/* Ensure all form elements in admin section have readable dark text */
+.bg-gray-100 input,
+.bg-gray-100 textarea,
+.bg-gray-100 select,
+.bg-white input,
+.bg-white textarea,
+.bg-white select {
+    color: #1f2937 !important;
+    /* text-gray-800 */
+}
+
+.bg-gray-100 input::placeholder,
+.bg-gray-100 textarea::placeholder,
+.bg-white input::placeholder,
+.bg-white textarea::placeholder {
+    color: #9ca3af !important;
+    /* text-gray-400 */
+}

@@ -32,25 +32,16 @@ export function useFonts(): UseFontsResult {
                 setLoading(true);
                 const fetchedFonts = await getAllFonts();
 
-                const formattedFonts: FontData[] = fetchedFonts.map((f: FontModel) => {
-                    let finalUrl = f.url;
-
-                    // Automatically migrate legacy Firebase URLs to the new Yandex Cloud bucket format
-                    // Without requiring a full database migration of existing records.
-                    if (finalUrl && finalUrl.includes('firebasestorage.googleapis.com')) {
-                        const safeFileName = f.file.replace(/\s+/g, '_');
-                        finalUrl = `https://storage.yandexcloud.net/dekorativ-media/fonts/${f.category}/${encodeURI(safeFileName)}`;
-                    }
-
-                    return {
-                        id: f.id as string,
-                        name: f.name,
-                        category: f.category,
-                        file: f.file,
-                        url: finalUrl,
-                        tags: f.tags || []
-                    };
-                });
+                const formattedFonts: FontData[] = fetchedFonts.map((f: FontModel) => ({
+                    id: f.id as string,
+                    name: f.name,
+                    category: f.category,
+                    file: f.file,
+                    // Font files are stored in public/fonts/ and served as static assets by Next.js.
+                    // Always use the local path — the DB url field may contain stale Firebase links.
+                    url: `/fonts/${encodeURIComponent(f.category)}/${encodeURIComponent(f.file)}`,
+                    tags: f.tags || []
+                }));
 
                 setFonts(formattedFonts);
 

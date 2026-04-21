@@ -37,9 +37,9 @@ export function useFonts(): UseFontsResult {
                     name: f.name,
                     category: f.category,
                     file: f.file,
-                    // Font files are stored in public/fonts/ and served as static assets by Next.js.
-                    // Always use the local path — the DB url field may contain stale Firebase links.
-                    url: `/fonts/${encodeURIComponent(f.category)}/${encodeURIComponent(f.file)}`,
+                    // Font files are aggregated in public/fonts/all/ to prevent category mismatch 404s.
+                    // (e.g. physical file is in 'thematic' but DB category is 'Декоративные')
+                    url: `/fonts/all/${encodeURIComponent(f.file)}`,
                     tags: f.tags || []
                 }));
 

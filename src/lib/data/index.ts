@@ -35,6 +35,7 @@ import { MongoSettingsRepository } from './yandex/MongoSettingsRepository';
 import { MongoFontRepository } from './yandex/MongoFontRepository';
 import { MongoVariationsRepository } from './yandex/MongoVariationsRepository';
 import { S3StorageService } from './yandex/S3StorageService';
+import { LocalStorageService } from './yandex/LocalStorageService';
 import { MongoAuthService } from './yandex/MongoAuthService';
 
 // Re-export interfaces for type-only imports
@@ -62,6 +63,10 @@ const provider = process.env.NEXT_PUBLIC_DATA_PROVIDER || 'firebase';
 function createRepositories() {
     if (provider === 'yandex') {
         console.log('[DataLayer] Using Yandex (MongoDB + S3) provider');
+        const hasS3Credentials = !!process.env.YC_S3_ACCESS_KEY_ID && !!process.env.YC_S3_SECRET_ACCESS_KEY;
+        const storageService = hasS3Credentials ? new S3StorageService() : new LocalStorageService();
+        if (!hasS3Credentials) console.log('[DataLayer] Falling back to LocalStorageService because YC_S3 credentials are not configured');
+
         return {
             ProductRepository: new MongoProductRepository(),
             OrderRepository: new MongoOrderRepository(),
@@ -71,7 +76,7 @@ function createRepositories() {
             SettingsRepository: new MongoSettingsRepository(),
             FontRepository: new MongoFontRepository(),
             VariationsRepository: new MongoVariationsRepository(),
-            StorageService: new S3StorageService(),
+            StorageService: storageService,
             AuthService: new MongoAuthService(),
         };
     }

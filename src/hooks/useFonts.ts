@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getAllFonts } from '@/actions/catalog-actions';
 import { FontModel } from '@/types/font';
+import woffManifest from '../../public/fonts/woff2-manifest.json';
 
 export interface FontData {
     id: string;
@@ -32,16 +33,21 @@ export function useFonts(): UseFontsResult {
                 setLoading(true);
                 const fetchedFonts = await getAllFonts();
 
-                const formattedFonts: FontData[] = fetchedFonts.map((f: FontModel) => ({
-                    id: f.id as string,
-                    name: f.name,
-                    category: f.category,
-                    file: f.file,
-                    // Font files are aggregated in public/fonts/all/ to prevent category mismatch 404s.
-                    // (e.g. physical file is in 'thematic' but DB category is 'Декоративные')
-                    url: `/fonts/all/${encodeURIComponent(f.file)}`,
-                    tags: f.tags || []
-                }));
+                const formattedFonts: FontData[] = fetchedFonts.map((f: FontModel) => {
+                    const baseName = f.file.replace(/\.(ttf|otf)$/i, '');
+                    const hasWoff2 = woffManifest.woff2_files.includes(baseName);
+                    const finalFile = hasWoff2 ? `${baseName}.woff2` : f.file;
+
+                    return {
+                        id: f.id as string,
+                        name: f.name,
+                        category: f.category,
+                        file: f.file,
+                        // Font files are aggregated in public/fonts/all/ to prevent category mismatch 404s.
+                        url: `/fonts/all/${encodeURIComponent(finalFile)}`,
+                        tags: f.tags || []
+                    };
+                });
 
                 setFonts(formattedFonts);
 

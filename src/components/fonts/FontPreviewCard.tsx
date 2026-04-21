@@ -88,7 +88,7 @@ export default function FontPreviewCard({ font, previewText, fontSize, textAlign
                 loadFont();
                 observer.disconnect(); // Stop observing once loaded
             }
-        }, { rootMargin: '200px' }); // Start loading before it fully enters the viewport
+        }, { rootMargin: '800px' }); // Load fonts much earlier before they enter the viewport
 
         observer.observe(cardRef.current);
 

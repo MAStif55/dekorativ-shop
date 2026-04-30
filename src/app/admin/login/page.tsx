@@ -37,7 +37,7 @@ export default function AdminLoginPage() {
                     <h1 className="text-2xl font-bold text-gray-800">
                         {locale === 'ru' ? 'Вход в Админку' : 'Admin Login'}
                     </h1>
-                    <p className="text-gray-500 mt-2">Somanatha Shop</p>
+                    <p className="text-gray-500 mt-2">Dekorativ</p>
                 </div>
 
                 {error && (
@@ -55,7 +55,7 @@ export default function AdminLoginPage() {
                             onChange={(e) => setEmail(e.target.value)}
                             required
                             className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
-                            placeholder="admin@somanatha.com"
+                            placeholder="admin@dekorativ55.ru"
                         />
                     </div>
                     <div>

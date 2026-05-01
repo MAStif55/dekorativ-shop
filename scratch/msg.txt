@@ -1,1 +1,1 @@
-Remove icon and line clamp from category cards
+Migrate 69 new products from legacy site

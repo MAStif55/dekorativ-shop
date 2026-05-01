@@ -1,0 +1,1 @@
+Replace catalog product grid with category cards

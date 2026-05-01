@@ -196,7 +196,7 @@ export default function OfferPage() {
                             <section className="mb-8">
                                 <h3 className="text-lg font-bold text-[#2D1B1F] mb-4">1. GENERAL PROVISIONS</h3>
                                 <p>
-                                    1.1. An Individual Entrepreneur applying the special tax regime "Tax on Professional Income" (hereinafter referred to as the "Seller") publishes this public offer for the sale of goods by remote means through the online store located at: <a href="https://dekorativ-5c737.web.app" className="text-secondary/80">dekorativ-5c737.web.app</a> (hereinafter referred to as the "Online Store").
+                                    1.1. An Individual Entrepreneur applying the special tax regime "Tax on Professional Income" (hereinafter referred to as the "Seller") publishes this public offer for the sale of goods by remote means through the online store located at: <a href="https://dekorativ55.ru" className="text-secondary/80">dekorativ55.ru</a> (hereinafter referred to as the "Online Store").
                                 </p>
                                 <p>
                                     1.2. This agreement is an official proposal (public offer) of the Seller, addressed to any individual (hereinafter referred to as the "Buyer"), and contains all essential terms of the retail purchase and sale agreement for goods by remote means.

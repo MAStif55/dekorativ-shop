@@ -17,11 +17,13 @@ import { PortfolioCategory, PortfolioPhoto } from '@/types/portfolio';
 // ==========================================
 
 export async function getNewestProducts(count: number = 4) {
-    return await ProductRepository.getNewest(count);
+    const products = await ProductRepository.getNewest(count);
+    return products.filter(p => p.status !== 'HIDDEN');
 }
 
 export async function getProductsByCategory(categorySlug: string) {
-    return await ProductRepository.getByCategory(categorySlug);
+    const products = await ProductRepository.getByCategory(categorySlug);
+    return products.filter(p => p.status !== 'HIDDEN');
 }
 
 export async function getProductBySlug(slug: string) {
@@ -29,7 +31,8 @@ export async function getProductBySlug(slug: string) {
 }
 
 export async function getAllProducts() {
-    return await ProductRepository.getAll();
+    const products = await ProductRepository.getAll();
+    return products.filter(p => p.status !== 'HIDDEN');
 }
 
 export async function getProductById(id: string) {

@@ -1,5 +1,7 @@
 'use server';
 
+import { requireAuth } from './auth-actions';
+
 import {
     ProductRepository,
     CategoryRepository,
@@ -24,22 +26,27 @@ import { FontModel } from '@/types/font';
 // ==========================================
 
 export async function createProduct(data: Partial<Product>) {
+    await requireAuth();
     return await ProductRepository.create(data as any);
 }
 
 export async function updateProduct(id: string, data: Partial<Product>) {
+    await requireAuth();
     return await ProductRepository.update(id, data);
 }
 
 export async function deleteProduct(id: string) {
+    await requireAuth();
     return await ProductRepository.delete(id);
 }
 
 export async function bulkUpdatePrices(ids: string[], price: number) {
+    await requireAuth();
     return await ProductRepository.bulkUpdatePrices(ids, price);
 }
 
 export async function bulkUpdateProductOrder(updates: { id: string; order: number }[]) {
+    await requireAuth();
     return await ProductRepository.bulkUpdateOrder(updates);
 }
 
@@ -48,30 +55,37 @@ export async function bulkUpdateProductOrder(updates: { id: string; order: numbe
 // ==========================================
 
 export async function createCategory(data: any) {
+    await requireAuth();
     return await CategoryRepository.create(data);
 }
 
 export async function updateCategory(id: string, data: any) {
+    await requireAuth();
     return await CategoryRepository.update(id, data);
 }
 
 export async function deleteCategory(id: string) {
+    await requireAuth();
     return await CategoryRepository.delete(id);
 }
 
 export async function createSubcategory(data: Omit<SubCategory, 'id'>) {
+    await requireAuth();
     return await CategoryRepository.createSubcategory(data);
 }
 
 export async function updateSubcategory(id: string, data: Partial<SubCategory>) {
+    await requireAuth();
     return await CategoryRepository.updateSubcategory(id, data);
 }
 
 export async function deleteSubcategory(id: string) {
+    await requireAuth();
     return await CategoryRepository.deleteSubcategory(id);
 }
 
 export async function bulkUpdateCategoryOrder(collectionName: string, updates: { id: string; order: number }[]) {
+    await requireAuth();
     return await CategoryRepository.bulkUpdateOrder(collectionName, updates);
 }
 
@@ -80,14 +94,17 @@ export async function bulkUpdateCategoryOrder(collectionName: string, updates: {
 // ==========================================
 
 export async function getAllOrders() {
+    await requireAuth();
     return await OrderRepository.getAll();
 }
 
 export async function getOrderById(id: string) {
+    await requireAuth();
     return await OrderRepository.getById(id);
 }
 
 export async function updateOrder(id: string, data: Partial<Order>) {
+    await requireAuth();
     return await OrderRepository.update(id, data);
 }
 
@@ -96,14 +113,17 @@ export async function updateOrder(id: string, data: Partial<Order>) {
 // ==========================================
 
 export async function createReview(data: Omit<Review, 'id' | 'createdAt'>) {
+    await requireAuth();
     return await ReviewRepository.create(data);
 }
 
 export async function updateReview(id: string, data: Partial<Review>) {
+    await requireAuth();
     return await ReviewRepository.update(id, data);
 }
 
 export async function deleteReview(id: string) {
+    await requireAuth();
     return await ReviewRepository.delete(id);
 }
 
@@ -112,6 +132,7 @@ export async function deleteReview(id: string) {
 // ==========================================
 
 export async function updateSettings(data: Partial<StoreSettings>) {
+    await requireAuth();
     return await SettingsRepository.update(data);
 }
 
@@ -120,26 +141,32 @@ export async function updateSettings(data: Partial<StoreSettings>) {
 // ==========================================
 
 export async function createPortfolioCategory(data: Omit<PortfolioCategory, 'id' | 'createdAt'>) {
+    await requireAuth();
     return await PortfolioRepository.createCategory(data);
 }
 
 export async function updatePortfolioCategory(id: string, data: Partial<PortfolioCategory>) {
+    await requireAuth();
     return await PortfolioRepository.updateCategory(id, data);
 }
 
 export async function deletePortfolioCategory(id: string) {
+    await requireAuth();
     return await PortfolioRepository.deleteCategory(id);
 }
 
 export async function createPortfolioPhoto(data: Omit<PortfolioPhoto, 'id' | 'createdAt'>) {
+    await requireAuth();
     return await PortfolioRepository.createPhoto(data);
 }
 
 export async function updatePortfolioPhoto(id: string, data: Partial<PortfolioPhoto>) {
+    await requireAuth();
     return await PortfolioRepository.updatePhoto(id, data);
 }
 
 export async function deletePortfolioPhoto(id: string) {
+    await requireAuth();
     return await PortfolioRepository.deletePhoto(id);
 }
 
@@ -148,14 +175,17 @@ export async function deletePortfolioPhoto(id: string) {
 // ==========================================
 
 export async function createFont(data: Omit<FontModel, 'id' | 'createdAt'>) {
+    await requireAuth();
     return await FontRepository.create(data);
 }
 
 export async function updateFont(id: string, data: Partial<FontModel>) {
+    await requireAuth();
     return await FontRepository.update(id, data);
 }
 
 export async function deleteFont(id: string) {
+    await requireAuth();
     return await FontRepository.delete(id);
 }
 
@@ -164,6 +194,7 @@ export async function deleteFont(id: string) {
 // ==========================================
 
 export async function saveCategoryVariations(categorySlug: string, variations: VariationGroup[]) {
+    await requireAuth();
     return await VariationsRepository.saveCategoryVariations(categorySlug, variations);
 }
 
@@ -226,5 +257,6 @@ export async function uploadFileBuffer(uploadPath: string, buffer: number[], con
 }
 
 export async function deleteFile(urlOrPath: string) {
+    await requireAuth();
     return await StorageService.delete(urlOrPath);
 }

@@ -22,7 +22,7 @@ import Markdown from 'react-markdown';
 import { useCategoryStore } from '@/store/category-store';
 import { Button } from '@/components/ui/Button';
 
-export default function ProductDetailsContent() {
+export default function ProductDetailsContent({ initialProduct }: { initialProduct?: Product | null }) {
     const params = useParams();
     // Helper to safely get slug whether it's a string or array
     const slugRaw = params?.slug;
@@ -33,11 +33,10 @@ export default function ProductDetailsContent() {
     const addToCart = useCartStore((state) => state.addItem);
     const { addToast } = useToastStore();
     const { categories: allCategories, fetchCategories } = useCategoryStore();
-    const [product, setProduct] = useState<Product | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [product, setProduct] = useState<Product | null>(initialProduct || null);
+    const [loading, setLoading] = useState(!initialProduct);
     const [selectedImage, setSelectedImage] = useState(0);
     const [selectedVariations, setSelectedVariations] = useState<Record<string, string>>({});
-    const [variationDetails, setVariationDetails] = useState<SelectedVariation[]>([]);
     const [effectiveVariations, setEffectiveVariations] = useState<VariationGroup[]>([]);
     const [addedToCart, setAddedToCart] = useState(false);
 
@@ -49,17 +48,20 @@ export default function ProductDetailsContent() {
         if (!slug) return;
 
         async function loadProduct() {
-            setLoading(true);
+            setLoading(!initialProduct);
             try {
-                // First try by slug
-                let data = await getProductBySlug(slug as string);
-
-                // If not found by slug, try by ID (fallback for products without slugs)
+                let data = initialProduct;
                 if (!data) {
-                    data = await getProductById(slug as string);
+                    // First try by slug
+                    data = await getProductBySlug(slug as string);
+
+                    // If not found by slug, try by ID (fallback for products without slugs)
+                    if (!data) {
+                        data = await getProductById(slug as string);
+                    }
                 }
 
-                setProduct(data);
+                setProduct(data || null);
 
                 // Determine effective variations (category defaults vs custom)
                 let variations: VariationGroup[] = [];
@@ -83,24 +85,14 @@ export default function ProductDetailsContent() {
                 // Initialize default selections (first option of each group)
                 if (variations.length > 0) {
                     const defaultSelections: Record<string, string> = {};
-                    const defaultDetails: SelectedVariation[] = [];
 
                     variations.forEach(group => {
                         if (group.options.length > 0) {
-                            const firstOption = group.options[0];
-                            defaultSelections[group.id] = firstOption.id;
-                            defaultDetails.push({
-                                groupId: group.id,
-                                groupName: group.name[locale] || group.name.ru,
-                                optionId: firstOption.id,
-                                optionLabel: firstOption.label[locale] || firstOption.label.ru,
-                                priceModifier: firstOption.priceModifier,
-                            });
+                            defaultSelections[group.id] = group.options[0].id;
                         }
                     });
 
                     setSelectedVariations(defaultSelections);
-                    setVariationDetails(defaultDetails);
                 }
             } catch (error) {
                 console.error("Error loading product:", error);
@@ -109,7 +101,7 @@ export default function ProductDetailsContent() {
             }
         }
         loadProduct();
-    }, [slug, locale]);
+    }, [slug, initialProduct]);
 
     if (loading) {
         return (
@@ -176,7 +168,11 @@ export default function ProductDetailsContent() {
     }
 
     // Calculate total price including variations
-    const totalPriceModifier = variationDetails.reduce((sum, v) => sum + v.priceModifier, 0);
+    const totalPriceModifier = effectiveVariations.reduce((sum, group) => {
+        const optionId = selectedVariations[group.id];
+        const option = group.options.find(o => o.id === optionId);
+        return sum + (option?.priceModifier || 0);
+    }, 0);
     const totalPrice = (product?.basePrice || 0) + totalPriceModifier;
 
     const handleAddToCart = () => {
@@ -184,8 +180,16 @@ export default function ProductDetailsContent() {
 
         // Build configuration from selected variations
         const configuration: Record<string, string> = {};
-        variationDetails.forEach(v => {
-            configuration[v.groupName] = v.optionLabel;
+        effectiveVariations.forEach(group => {
+            const selectedOptionId = selectedVariations[group.id];
+            if (selectedOptionId) {
+                const option = group.options.find(o => o.id === selectedOptionId);
+                if (option) {
+                    const groupName = group.name[locale] || group.name.ru;
+                    const optionLabel = option.label[locale] || option.label.ru;
+                    configuration[groupName] = optionLabel;
+                }
+            }
         });
 
         addToCart({
@@ -309,10 +313,24 @@ export default function ProductDetailsContent() {
                                         {formatPrice(totalPrice)}
                                     </span>
                                 </div>
-                                <span className="mb-2 px-3 py-1 bg-green-50 text-green-700 border border-green-200 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1">
-                                    <Check size={12} strokeWidth={3} />
-                                    {locale === 'ru' ? 'В наличии' : 'In Stock'}
-                                </span>
+                                {product.status === 'OUT_OF_STOCK' ? (
+                                    <span className="mb-2 px-3 py-1 bg-red-50 text-red-700 border border-red-200 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1">
+                                        {locale === 'ru' ? 'Нет в наличии' : 'Out of Stock'}
+                                    </span>
+                                ) : product.status === 'COMING_SOON' ? (
+                                    <span className="mb-2 px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1">
+                                        {locale === 'ru' ? 'Скоро в продаже' : 'Coming Soon'}
+                                    </span>
+                                ) : product.status === 'HIDDEN' ? (
+                                    <span className="mb-2 px-3 py-1 bg-gray-50 text-gray-700 border border-gray-200 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1">
+                                        {locale === 'ru' ? 'Скрыт' : 'Hidden'}
+                                    </span>
+                                ) : (
+                                    <span className="mb-2 px-3 py-1 bg-green-50 text-green-700 border border-green-200 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1">
+                                        <Check size={12} strokeWidth={3} />
+                                        {locale === 'ru' ? 'В наличии' : 'In Stock'}
+                                    </span>
+                                )}
                             </div>
 
                             {/* Variations Selector */}
@@ -320,9 +338,8 @@ export default function ProductDetailsContent() {
                                 <VariationSelector
                                     variations={effectiveVariations}
                                     selectedVariations={selectedVariations}
-                                    onSelectionChange={(newSelection, details) => {
+                                    onSelectionChange={(newSelection) => {
                                         setSelectedVariations(newSelection);
-                                        setVariationDetails(details);
                                     }}
                                     locale={locale as 'en' | 'ru'}
                                 />
@@ -331,9 +348,9 @@ export default function ProductDetailsContent() {
                             <div className="space-y-4 mt-8 w-full max-w-sm">
                                 <Button
                                     onClick={handleAddToCart}
-                                    disabled={addedToCart}
+                                    disabled={addedToCart || product.status === 'OUT_OF_STOCK' || product.status === 'COMING_SOON' || product.status === 'HIDDEN'}
                                     variant="primary"
-                                    className="w-full text-sm py-4 shadow-sm"
+                                    className="w-full text-sm py-4 shadow-sm disabled:opacity-50"
                                 >
                                     <span className="flex items-center justify-center gap-2">
                                         {addedToCart ? (

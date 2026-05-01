@@ -99,11 +99,9 @@ export default async function ProductPage({ params }: { params: { slug: string }
                 />
             )}
             {/* 
-              We pass params to the client component. 
-              Ideally we should pass the initial data too to avoid double fetch,
-              but sticking to original plan of just adding SEO wrapper. 
+              Pass the initial data to avoid double fetch.
             */}
-            <ProductDetailsContent />
+            <ProductDetailsContent initialProduct={product} />
         </>
     );
 }

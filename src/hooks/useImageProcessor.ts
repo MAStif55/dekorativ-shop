@@ -8,7 +8,7 @@ export function useImageProcessor() {
     const [isProcessing, setIsProcessing] = useState(false);
     const [progress, setProgress] = useState(0);
 
-    const compressImage = async (file: File): Promise<File> => {
+    const compressImage = useCallback(async (file: File): Promise<File> => {
         try {
             const options = {
                 maxSizeMB: IMAGE_CONFIG.maxSizeMB,
@@ -28,9 +28,9 @@ export function useImageProcessor() {
             console.error('Error compressing image:', error);
             throw error;
         }
-    };
+    }, []);
 
-    const uploadImage = async (file: File, path: string): Promise<string> => {
+    const uploadImage = useCallback(async (file: File, path: string): Promise<string> => {
         try {
             const fileExt = file.name.split('.').pop();
             const fileName = `${uuidv4()}.${fileExt}`;
@@ -43,7 +43,7 @@ export function useImageProcessor() {
             console.error('Error uploading image:', error);
             throw error;
         }
-    };
+    }, []);
 
     const processAndUpload = useCallback(async (file: File, path: string = 'portfolio'): Promise<string> => {
         setIsProcessing(true);
@@ -58,7 +58,7 @@ export function useImageProcessor() {
             setIsProcessing(false);
             setProgress(0);
         }
-    }, []);
+    }, [compressImage, uploadImage]);
 
     return {
         processAndUpload,

@@ -7,13 +7,19 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
-import { Product } from '@/types/product';
+import CategoryCard from '@/components/CategoryCard';
+import { Product, getCardImageUrl } from '@/types/product';
 import { useProductStore } from '@/store/product-store';
+import { useCategoryStore } from '@/store/category-store';
 import { useScrollRestore } from '@/hooks/useScrollRestore';
 
 export default function CatalogPage() {
     const { locale, t } = useLanguage();
-    const { products, isLoading, hasHydrated, fetchProducts } = useProductStore();
+    const { products, isLoading: isLoadingProducts, hasHydrated: hasHydratedProducts, fetchProducts } = useProductStore();
+    const { categories, isLoading: isLoadingCategories, hasHydrated: hasHydratedCategories, fetchCategories } = useCategoryStore();
+
+    const isLoading = isLoadingProducts || isLoadingCategories;
+    const hasHydrated = hasHydratedProducts && hasHydratedCategories;
 
     // Restore scroll position - only if NOT loading AND hydrated
     // This ensures we don't try to scroll on an empty (pre-hydrated) page
@@ -21,7 +27,8 @@ export default function CatalogPage() {
 
     useEffect(() => {
         fetchProducts();
-    }, [fetchProducts]);
+        fetchCategories();
+    }, [fetchProducts, fetchCategories]);
 
 
 
@@ -51,11 +58,21 @@ export default function CatalogPage() {
                         <div className="flex justify-center items-center py-10">
                             <div className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
                         </div>
-                    ) : products.length > 0 ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
-                            {products.map((product) => (
-                                <ProductCard key={product.id} product={product} />
-                            ))}
+                    ) : categories.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+                            {categories.map((category) => {
+                                const categoryProducts = products.filter(p => p.category === category.slug && p.status !== 'HIDDEN');
+                                const coverProduct = categoryProducts.length > 0 ? categoryProducts[0] : null;
+                                const coverImageUrl = coverProduct?.images?.[0] ? getCardImageUrl(coverProduct.images[0]) : undefined;
+
+                                return (
+                                    <CategoryCard 
+                                        key={category.slug} 
+                                        category={category} 
+                                        coverImageUrl={coverImageUrl} 
+                                    />
+                                );
+                            })}
                         </div>
                     ) : (
                         <div className="text-center py-12">

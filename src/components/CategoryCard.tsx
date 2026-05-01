@@ -47,8 +47,7 @@ export default function CategoryCard({ category, coverImageUrl }: CategoryCardPr
                 {/* Content */}
                 <div className="p-5 sm:p-6 flex flex-col flex-1 bg-white relative z-10 text-center">
                     <div className="flex items-center justify-center mb-3">
-                        <span className="text-2xl mr-2">{category.icon}</span>
-                        <h3 className="text-xl sm:text-2xl font-medium text-slate-dark group-hover:text-primary transition-colors font-heading line-clamp-2">
+                        <h3 className="text-xl sm:text-2xl font-medium text-slate-dark group-hover:text-primary transition-colors font-heading">
                             {category.title[locale]}
                         </h3>
                     </div>

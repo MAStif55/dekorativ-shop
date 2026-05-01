@@ -1,1 +1,1 @@
-Pick a random product image for category card covers
+Remove icon and line clamp from category cards

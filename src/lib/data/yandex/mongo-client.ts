@@ -7,8 +7,8 @@ import { MongoClient, Db } from 'mongodb';
 // Includes connection health monitoring and automatic reconnection.
 // ============================================================================
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://somanatha_app:SomanathaAppPass2026@127.0.0.1:27017/somanatha_data';
-const DB_NAME = process.env.MONGODB_DB_NAME || 'somanatha_data';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/dekorativ_data';
+const DB_NAME = process.env.MONGODB_DB_NAME || 'dekorativ_data';
 
 // Use globalThis to survive HMR in development
 const globalForMongo = globalThis as unknown as {

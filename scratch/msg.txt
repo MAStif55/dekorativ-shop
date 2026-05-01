@@ -1,1 +1,1 @@
-Fix MongoDB fallback database name to dekorativ_data
+Pick a random product image for category card covers

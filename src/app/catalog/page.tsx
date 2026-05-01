@@ -62,7 +62,9 @@ export default function CatalogPage() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                             {categories.map((category) => {
                                 const categoryProducts = products.filter(p => p.category === category.slug && p.status !== 'HIDDEN');
-                                const coverProduct = categoryProducts.length > 0 ? categoryProducts[0] : null;
+                                // Pick a random product from the category to use as the cover image
+                                const randomIndex = Math.floor(Math.random() * categoryProducts.length);
+                                const coverProduct = categoryProducts.length > 0 ? categoryProducts[randomIndex] : null;
                                 const coverImageUrl = coverProduct?.images?.[0] ? getCardImageUrl(coverProduct.images[0]) : undefined;
 
                                 return (

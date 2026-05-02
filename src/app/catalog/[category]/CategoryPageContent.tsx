@@ -82,7 +82,17 @@ export default function CategoryPageContent({ categorySlug }: CategoryPageConten
     const [subcatsLoading, setSubcatsLoading] = useState(true);
 
     // Filter products for this category, exclude HIDDEN
-    const products = allProducts.filter(p => p.category === categorySlug && (p.status || 'AVAILABLE') !== 'HIDDEN');
+    const rawProducts = allProducts.filter(p => p.category === categorySlug && (p.status || 'AVAILABLE') !== 'HIDDEN');
+    
+    // Deduplicate to prevent identical migration duplicates from appearing
+    const uniqueProductsMap = new Map<string, Product>();
+    rawProducts.forEach(p => {
+        const key = p.slug || p.title?.ru || p.title?.en || p.id;
+        if (!uniqueProductsMap.has(key)) {
+            uniqueProductsMap.set(key, p);
+        }
+    });
+    const products = Array.from(uniqueProductsMap.values());
 
     // Sort products by status priority: AVAILABLE > OUT_OF_STOCK > COMING_SOON
     const sortByStatus = (items: Product[]) => {
@@ -288,7 +298,7 @@ export default function CategoryPageContent({ categorySlug }: CategoryPageConten
                                             </div>
 
                                             {/* Product Grid */}
-                                            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                                                 {blockProducts.map((product) => (
                                                     <ProductCard key={product.id} product={product} />
                                                 ))}
@@ -316,7 +326,7 @@ export default function CategoryPageContent({ categorySlug }: CategoryPageConten
                                                 {locale === 'ru' ? 'Другое' : 'Other'}
                                             </h2>
 
-                                            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                                                 {defaultProducts.map((product) => (
                                                     <ProductCard key={product.id} product={product} />
                                                 ))}

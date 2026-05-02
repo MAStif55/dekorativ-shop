@@ -1,1 +1,1 @@
-Migrate 69 new products from legacy site
+Add cleanup route to remove string IDs from MongoDB

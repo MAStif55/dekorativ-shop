@@ -1,1 +1,1 @@
-Update dedupe script to remove duplicates by slug
+Add debug-list route to verify database counts

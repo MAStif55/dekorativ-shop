@@ -1,1 +1,1 @@
-Add cleanup route to remove string IDs from MongoDB
+Add dedupe route to remove duplicate products with string IDs

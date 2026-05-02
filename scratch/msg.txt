@@ -1,1 +1,1 @@
-Add debug dupes route
+Update dedupe script to remove duplicates by slug

@@ -4,6 +4,27 @@
    DEKORATIV - NEAT & MINIMALIST DESIGN TOKENS
    ============================================================================ */
 
+@theme {
+  --color-ivory: #FFFFF0;
+  
+  --color-primary-light: #F5E6CC;
+  --color-primary: #C5A059;
+  --color-primary-dark: #A08044;
+  
+  --color-turquoise-light: #E0F7FA;
+  --color-turquoise: #4DD0E1;
+  --color-turquoise-dark: #00BCD4;
+  
+  --color-slate-light: #94A3B8;
+  --color-slate: #334155;
+  --color-slate-dark: #2C3338;
+  
+  --font-heading: var(--font-lora), serif;
+  --font-body: var(--font-inter), sans-serif;
+  --font-ornamental: var(--font-lora), serif;
+  --font-elegant: var(--font-lora), serif;
+}
+
 :root {
     --color-ivory: #FFFFF0;
     --color-turquoise-light: #E0F7FA;

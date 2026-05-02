@@ -144,28 +144,33 @@ export default function ProductCard({ product }: ProductCardProps) {
 
                 {/* Content */}
                 <div className="p-5 flex flex-col flex-1 bg-white relative z-10">
-                    <h3 className="text-xl sm:text-2xl font-medium text-slate-dark mb-2 group-hover:text-primary transition-all font-heading text-center line-clamp-2 min-h-[3.5rem] flex items-center justify-center">
+                    <h3 className="text-xl sm:text-2xl font-medium text-slate-dark mb-3 group-hover:text-primary transition-colors font-heading text-center flex items-center justify-center">
                         {product.title[locale]}
                     </h3>
 
-                    <div className="text-sm text-slate-light mb-4 flex-1 font-medium text-center">
-                        <div className="prose prose-slate prose-sm [&>p]:mb-2 last:[&>p]:mb-0">
+                    <div className="text-sm text-slate mb-5 flex-1 font-medium text-center">
+                        <div className="prose prose-slate prose-sm max-w-none [&>p]:mb-2 last:[&>p]:mb-0">
                             <ReactMarkdown
                                 components={{
-                                    p: ({ ...props }) => <p className="leading-snug" {...props} />,
+                                    p: ({ ...props }) => <p className="leading-relaxed" {...props} />,
                                 }}
                             >
-                                {product.shortDescription?.[locale] || (product.description[locale] ? product.description[locale].replace(/<[^>]*>/g, '').slice(0, 100) + '...' : '')}
+                                {product.shortDescription?.[locale] || (product.description?.[locale] ? product.description[locale].replace(/<[^>]*>/g, '') : '')}
                             </ReactMarkdown>
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
-                        <span className="text-xl font-bold text-primary">
-                            {formatPrice(product.basePrice)}
-                        </span>
+                    <div className="flex items-center justify-between mt-auto pt-5 border-t border-slate-100">
+                        <div className="flex flex-col text-left">
+                            <span className="text-[10px] text-slate-light uppercase tracking-widest font-bold mb-0.5">
+                                {locale === 'ru' ? 'Цена' : 'Price'}
+                            </span>
+                            <span className="text-xl font-bold text-slate-dark">
+                                {formatPrice(product.basePrice)}
+                            </span>
+                        </div>
                         <span
-                            className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary-dark transition-colors"
+                            className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary-dark transition-all duration-300 shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5"
                         >
                             {locale === 'ru' ? 'Подробнее' : 'Details'}
                         </span>

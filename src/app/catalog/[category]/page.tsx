@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
             canonical: `/catalog/${category}`,
         },
         openGraph: {
-            title: `${cat.title?.ru || ''} | Somanatha`,
+            title: `${cat.title?.ru || ''} | Dekorativ`,
             description: cat.description?.en || '',
         },
     };

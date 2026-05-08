@@ -38,7 +38,7 @@ export default function OfferPage() {
                                     1.2. Покупатель — полностью дееспособное физическое лицо, размещающее Заказы на сайте Интернет-магазина, либо указанное в качестве получателя Товара, приобретающее Товар для личных, семейных, домашних и иных нужд, не связанных с осуществлением предпринимательской деятельности.
                                 </p>
                                 <p>
-                                    1.3. Интернет-магазин — интернет-сайт, расположенный в сети Интернет по адресу: <a href="https://dekorativ.ru" className="text-secondary/80">dekorativ.ru</a>, посредством которого Продавец осуществляет торговлю.
+                                    1.3. Интернет-магазин — интернет-сайт, расположенный в сети Интернет по адресу: <a href="https://dekorativ55.ru" className="text-secondary/80">dekorativ55.ru</a>, посредством которого Продавец осуществляет торговлю.
                                 </p>
                                 <p>
                                     1.4. Товар — перечень материальных объектов, размещенный в Интернет-магазине и доступный для Заказа.
@@ -175,7 +175,7 @@ export default function OfferPage() {
                                         <strong>ИНН:</strong> 550617866892
                                     </p>
                                     <p>
-                                        <strong>Сайт:</strong> <a href="https://dekorativ.ru" className="text-secondary/80">dekorativ.ru</a>
+                                        <strong>Сайт:</strong> <a href="https://dekorativ55.ru" className="text-secondary/80">dekorativ55.ru</a>
                                     </p>
                                 </div>
                             </div>

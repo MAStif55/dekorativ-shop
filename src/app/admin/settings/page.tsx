@@ -54,7 +54,7 @@ export default function AdminSettingsPage() {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `somanatha-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.download = `dekorativ-backup-${new Date().toISOString().split('T')[0]}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);

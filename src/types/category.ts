@@ -1,7 +1,7 @@
 /**
  * Category Types and Configuration
  * 
- * Defines the product categories for Somanatha Shop (Vedic Store).
+ * Defines the product categories for Dekorativ Shop.
  */
 
 export type CategorySlug = string;

@@ -3,7 +3,7 @@ import { ProductRepository, CategoryRepository } from '@/lib/data';
 import { Product } from '@/types/product';
 import { Category } from '@/types/category';
 
-const BASE_URL = 'https://somanatha.ru';
+const BASE_URL = 'https://dekorativ55.ru';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const products = await ProductRepository.getAll();

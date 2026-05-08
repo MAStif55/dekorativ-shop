@@ -20,7 +20,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-    metadataBase: new URL('https://dekorativ.ru'),
+    metadataBase: new URL('https://dekorativ55.ru'),
     title: {
         default: 'Dekorativ | Декоратив — Интернет-магазин',
         template: '%s | Dekorativ',

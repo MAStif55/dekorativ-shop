@@ -16,7 +16,7 @@ export default function robots(): MetadataRoute.Robots {
                 '/offer/',
             ],
         },
-        sitemap: 'https://somanatha.ru/sitemap.xml',
+        sitemap: 'https://dekorativ55.ru/sitemap.xml',
     };
 }
 

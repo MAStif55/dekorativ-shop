@@ -17,17 +17,19 @@ import { PortfolioCategory, PortfolioPhoto } from '@/types/portfolio';
 // ==========================================
 
 export async function getNewestProducts(count: number = 4) {
-    // Fetch a larger batch to account for duplicates and hidden status
-    const products = await ProductRepository.getNewest(count * 4);
+    // Use getAll to avoid issues with identical createdAt timestamps from migration
+    // (getNewest sorts by createdAt DESC with a hard limit, so migration duplicates
+    // with the same timestamp dominate the results)
+    const all = await ProductRepository.getAll();
 
     const uniqueProducts: Product[] = [];
     const seenTitles = new Set<string>();
 
-    for (const p of products) {
+    for (const p of all) {
         if (p.status === 'HIDDEN') continue;
 
         const titleRu = p.title?.ru?.trim().toLowerCase();
-        // Only deduplicate when there's an actual non-empty title
+        // Use ID as fallback key when title is empty, to avoid false deduplication
         const titleKey = titleRu ? titleRu : `__id__${p.id}`;
 
         if (!seenTitles.has(titleKey)) {

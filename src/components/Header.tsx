@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCartStore } from '@/store/cart-store';
 import { useCartUIStore } from '@/store/cart-ui-store';
-import { Menu, X, ShoppingBag, Home, Grid3X3, Type, Info, ChevronDown, Keyboard } from 'lucide-react';
+import { Menu, X, ShoppingBag, Home, Grid3X3, Type, Info, ChevronDown, Keyboard, Tag } from 'lucide-react';
 import { useCategoryStore } from '@/store/category-store';
 import { useScrollLock } from '@/hooks/useScrollLock';
 
@@ -56,6 +56,7 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
         { href: '/', label: t('nav.home'), icon: Home },
         { href: '/gallery', label: locale === 'ru' ? 'Галерея' : 'Gallery', icon: Grid3X3 },
         { href: '/keyboard-engraving', label: locale === 'ru' ? 'Гравировка клавиатур' : 'Keyboard Engraving', icon: Keyboard },
+        { href: '/tablichki', label: locale === 'ru' ? 'Таблички' : 'Plates', icon: Tag },
         { href: '/fonts', label: locale === 'ru' ? 'Выбор шрифта' : 'Fonts', icon: Type },
         { href: '/about', label: locale === 'ru' ? 'О нас / Контакты' : 'About / Contact', icon: Info },
     ];

@@ -396,6 +396,7 @@ export default function TablichkiPage() {
                                             <span>{locale === 'ru' ? 'Обработка лаком' : 'Lacquer'}</span>
                                             <span className="font-medium">{lacquerCost.toFixed(2)} ₽</span>
                                         </div>
+                                    )}
                                     {discountPercent > 0 && (
                                         <div className="flex justify-between text-turquoise-dark font-bold">
                                             <span>{locale === 'ru' ? `Скидка за размер (${discountPercent}%)` : `Size discount (${discountPercent}%)`}</span>

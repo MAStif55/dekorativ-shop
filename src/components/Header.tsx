@@ -35,7 +35,6 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
     useEffect(() => {
         setMobileMenuOpen(false);
         setCatalogOpen(false);
-        setServicesOpen(false);
     }, [pathname]);
 
     useScrollLock(mobileMenuOpen);

@@ -26,7 +26,8 @@ export async function getNewestProducts(count: number = 4) {
     const seenTitles = new Set<string>();
 
     for (const p of all) {
-        if (p.status === 'HIDDEN') continue;
+        // Only show AVAILABLE products in the Popular section
+        if (p.status !== 'AVAILABLE') continue;
 
         const titleRu = p.title?.ru?.trim().toLowerCase();
         // Use ID as fallback key when title is empty, to avoid false deduplication
@@ -52,7 +53,7 @@ export async function getProductsByCategory(categorySlug: string) {
     for (const p of products) {
         if (p.status === 'HIDDEN') continue;
         
-        const titleKey = p.title.ru.trim().toLowerCase();
+        const titleKey = p.title?.ru?.trim().toLowerCase() || `__id__${p.id}`;
         if (!seenTitles.has(titleKey)) {
             seenTitles.add(titleKey);
             uniqueProducts.push(p);

@@ -242,26 +242,30 @@ export default function TablichkiPage() {
             </section>
 
             {/* ───── Font selection link ───── */}
-            <section className="pb-4 pt-6 px-6 text-center">
-                <Link
-                    href="/fonts"
-                    className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-white/90 border border-slate-100 shadow-sm hover:border-primary hover:shadow-md transition-all"
-                >
-                    <Paintbrush className="w-6 h-6 text-primary" />
-                    <div className="text-left">
-                        <span className="block font-semibold text-slate-dark">
-                            {locale === 'ru' ? 'Подберите шрифт для гравировки' : 'Pick a font for your engraving'}
-                        </span>
-                        <span className="text-sm text-slate/60">
-                            {locale === 'ru' ? 'Посмотрите варианты и выберите тот, который Вам понравится' : 'Browse options and choose the one you like'}
-                        </span>
-                    </div>
-                </Link>
+            <section className="pb-4 pt-6 px-6">
+                <div className="max-w-5xl mx-auto">
+                    <Link
+                        href="/fonts"
+                        className="flex items-center gap-4 px-8 py-5 rounded-2xl bg-turquoise/10 border-2 border-turquoise/30 hover:border-turquoise hover:bg-turquoise/15 transition-all group"
+                    >
+                        <div className="w-12 h-12 rounded-xl bg-turquoise/20 flex items-center justify-center flex-shrink-0 group-hover:bg-turquoise/30 transition-colors">
+                            <Paintbrush className="w-6 h-6 text-turquoise-dark" />
+                        </div>
+                        <div>
+                            <span className="block font-bold text-slate-dark text-lg">
+                                {locale === 'ru' ? 'Подберите шрифт для гравировки' : 'Pick a font for your engraving'}
+                            </span>
+                            <span className="text-sm text-slate/60">
+                                {locale === 'ru' ? 'Посмотрите варианты и выберите тот, который Вам понравится' : 'Browse options and choose the one you like'}
+                            </span>
+                        </div>
+                    </Link>
+                </div>
             </section>
 
             {/* ───── Calculator ───── */}
             <section className="py-12 px-4 sm:px-6">
-                <div className="max-w-3xl mx-auto">
+                <div className="max-w-5xl mx-auto">
                     <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-100 p-8 sm:p-10">
                         <div className="flex items-center gap-3 mb-8">
                             <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">

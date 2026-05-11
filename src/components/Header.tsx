@@ -56,7 +56,6 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
 
     const serviceLinks = [
         { href: '/keyboard-engraving', label: locale === 'ru' ? 'Гравировка клавиатур' : 'Keyboard Engraving', icon: Keyboard },
-        { href: '/tablichki', label: locale === 'ru' ? 'Таблички с гравировкой' : 'Engraved Plates', icon: Tag },
     ];
 
     const navLinks = [
@@ -135,6 +134,13 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                                             {cat.label}
                                         </Link>
                                     ))}
+                                    <div className="border-t border-slate-100 my-1" />
+                                    <Link
+                                        href="/tablichki"
+                                        className="block px-4 py-2.5 text-sm text-slate hover:bg-turquoise-light hover:text-turquoise-dark font-medium transition-colors"
+                                    >
+                                        {locale === 'ru' ? 'Таблички с гравировкой' : 'Engraved Plates'}
+                                    </Link>
                                 </div>
                             </div>
                         </div>
@@ -262,6 +268,14 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                                     {cat.label}
                                 </Link>
                             ))}
+                            <div className="border-t border-slate-100 my-1" />
+                            <Link
+                                href="/tablichki"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="block px-6 py-3 text-sm font-medium text-slate hover:text-turquoise-dark"
+                            >
+                                {locale === 'ru' ? 'Таблички с гравировкой' : 'Engraved Plates'}
+                            </Link>
                         </div>
                     </div>
 

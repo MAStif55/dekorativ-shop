@@ -19,23 +19,25 @@ import { PortfolioCategory, PortfolioPhoto } from '@/types/portfolio';
 export async function getNewestProducts(count: number = 4) {
     // Fetch a larger batch to account for duplicates and hidden status
     const products = await ProductRepository.getNewest(count * 4);
-    
+
     const uniqueProducts: Product[] = [];
     const seenTitles = new Set<string>();
 
     for (const p of products) {
         if (p.status === 'HIDDEN') continue;
-        
-        // Use normalized Russian title as uniqueness key
-        const titleKey = p.title.ru.trim().toLowerCase();
+
+        const titleRu = p.title?.ru?.trim().toLowerCase();
+        // Only deduplicate when there's an actual non-empty title
+        const titleKey = titleRu ? titleRu : `__id__${p.id}`;
+
         if (!seenTitles.has(titleKey)) {
             seenTitles.add(titleKey);
             uniqueProducts.push(p);
         }
-        
+
         if (uniqueProducts.length >= count) break;
     }
-    
+
     return uniqueProducts;
 }
 

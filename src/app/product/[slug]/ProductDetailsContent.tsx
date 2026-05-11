@@ -370,30 +370,36 @@ export default function ProductDetailsContent({ initialProduct }: { initialProdu
                         </div>
                     </div>
 
-                    {/* Full-width Description Section */}
-                    <div className="mt-6 pt-8 border-t border-slate-200">
-                        <h2 className="text-2xl font-bold text-slate-dark font-ornamental mb-6">
-                            {locale === 'ru' ? 'Описание' : 'Description'}
-                        </h2>
-                        <div className="prose prose-slate max-w-none leading-relaxed font-sans">
-                            <Markdown
-                                components={{
-                                    h1: ({ ...props }) => <h3 className="text-2xl font-bold mt-6 mb-3 font-ornamental text-slate-dark" {...props} />,
-                                    h2: ({ ...props }) => <h4 className="text-xl font-bold mt-5 mb-2 font-ornamental text-slate-dark" {...props} />,
-                                    h3: ({ ...props }) => <h5 className="text-lg font-bold mt-4 mb-2 font-ornamental text-slate-dark" {...props} />,
-                                    ul: ({ ...props }) => <ul className="list-disc pl-5 my-4 space-y-1 marker:text-primary" {...props} />,
-                                    ol: ({ ...props }) => <ol className="list-decimal pl-5 my-4 space-y-1 marker:text-primary" {...props} />,
-                                    li: ({ ...props }) => <li className="pl-1 text-slate" {...props} />,
-                                    p: ({ ...props }) => <p className="mb-4 text-slate" {...props} />,
-                                    strong: ({ ...props }) => <strong className="font-bold text-slate-dark" {...props} />,
-                                    em: ({ ...props }) => <em className="italic text-slate-dark" {...props} />,
-                                    img: () => null,
-                                }}
-                            >
-                                {product.description[locale]}
-                            </Markdown>
-                        </div>
-                    </div>
+                    {/* Full-width Description Section — fallback to shortDescription, hide if empty */}
+                    {(() => {
+                        const descriptionText = product.description?.[locale]?.trim() || product.shortDescription?.[locale]?.trim() || '';
+                        if (!descriptionText) return null;
+                        return (
+                            <div className="mt-6 pt-8 border-t border-slate-200">
+                                <h2 className="text-2xl font-bold text-slate-dark font-ornamental mb-6">
+                                    {locale === 'ru' ? 'Описание' : 'Description'}
+                                </h2>
+                                <div className="prose prose-slate max-w-none leading-relaxed font-sans">
+                                    <Markdown
+                                        components={{
+                                            h1: ({ ...props }) => <h3 className="text-2xl font-bold mt-6 mb-3 font-ornamental text-slate-dark" {...props} />,
+                                            h2: ({ ...props }) => <h4 className="text-xl font-bold mt-5 mb-2 font-ornamental text-slate-dark" {...props} />,
+                                            h3: ({ ...props }) => <h5 className="text-lg font-bold mt-4 mb-2 font-ornamental text-slate-dark" {...props} />,
+                                            ul: ({ ...props }) => <ul className="list-disc pl-5 my-4 space-y-1 marker:text-primary" {...props} />,
+                                            ol: ({ ...props }) => <ol className="list-decimal pl-5 my-4 space-y-1 marker:text-primary" {...props} />,
+                                            li: ({ ...props }) => <li className="pl-1 text-slate" {...props} />,
+                                            p: ({ ...props }) => <p className="mb-4 text-slate" {...props} />,
+                                            strong: ({ ...props }) => <strong className="font-bold text-slate-dark" {...props} />,
+                                            em: ({ ...props }) => <em className="italic text-slate-dark" {...props} />,
+                                            img: () => null,
+                                        }}
+                                    >
+                                        {descriptionText}
+                                    </Markdown>
+                                </div>
+                            </div>
+                        );
+                    })()}
 
                     {/* Related Products */}
                     <RelatedProducts currentProductId={product.id} category={product.category || 'general'} />

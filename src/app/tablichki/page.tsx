@@ -131,14 +131,25 @@ export default function TablichkiPage() {
     const area = (calc.length * calc.width) / 100; // cm²
     const materialValue = parseFloat(calc.material);
 
+    // Area multiplier (progressive discount)
+    const getAreaMultiplier = (a: number) => {
+        if (a <= 25) return 1.0;
+        if (a <= 50) return 0.85;
+        if (a <= 100) return 0.70;
+        return 0.60;
+    };
+
+    const multiplier = getAreaMultiplier(area);
+    const discountPercent = Math.round((1 - multiplier) * 100);
+
     let basePrice = 500;
     if (area < 10) basePrice = 150;
     else if (area < 15) basePrice = 200;
     else if (area <= 50) basePrice = 300;
     else if (area <= 100) basePrice = 400;
 
-    const materialCost = area * materialValue;
-    const lacquerCost = calc.lacquer ? area * 1.5 : 0;
+    const materialCost = area * materialValue * multiplier;
+    const lacquerCost = calc.lacquer ? (area * 1.5 * multiplier) : 0;
     const unrounded = basePrice + materialCost + lacquerCost;
 
     // Rounding logic from original calculator
@@ -384,6 +395,11 @@ export default function TablichkiPage() {
                                         <div className="flex justify-between text-slate">
                                             <span>{locale === 'ru' ? 'Обработка лаком' : 'Lacquer'}</span>
                                             <span className="font-medium">{lacquerCost.toFixed(2)} ₽</span>
+                                        </div>
+                                    {discountPercent > 0 && (
+                                        <div className="flex justify-between text-turquoise-dark font-bold">
+                                            <span>{locale === 'ru' ? `Скидка за размер (${discountPercent}%)` : `Size discount (${discountPercent}%)`}</span>
+                                            <span>-{Math.round((area * materialValue + (calc.lacquer ? area * 1.5 : 0)) * (1 - multiplier))} ₽</span>
                                         </div>
                                     )}
                                 </div>

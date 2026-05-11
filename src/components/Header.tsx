@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCartStore } from '@/store/cart-store';
 import { useCartUIStore } from '@/store/cart-ui-store';
-import { Menu, X, ShoppingBag, Home, Grid3X3, Type, Info, ChevronDown, Keyboard, Tag } from 'lucide-react';
+import { Menu, X, ShoppingBag, Home, Grid3X3, Type, Info, ChevronDown, Keyboard, Tag, Wrench } from 'lucide-react';
 import { useCategoryStore } from '@/store/category-store';
 import { useScrollLock } from '@/hooks/useScrollLock';
 
@@ -24,6 +24,7 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [catalogOpen, setCatalogOpen] = useState(false);
+    const [servicesOpen, setServicesOpen] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -35,6 +36,7 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
     useEffect(() => {
         setMobileMenuOpen(false);
         setCatalogOpen(false);
+        setServicesOpen(false);
     }, [pathname]);
 
     useScrollLock(mobileMenuOpen);
@@ -52,11 +54,14 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
             label: cat.title[currentLocale] || cat.title['ru'] || cat.title['en'] || '',
         }));
 
+    const serviceLinks = [
+        { href: '/keyboard-engraving', label: locale === 'ru' ? 'Гравировка клавиатур' : 'Keyboard Engraving', icon: Keyboard },
+        { href: '/tablichki', label: locale === 'ru' ? 'Таблички с гравировкой' : 'Engraved Plates', icon: Tag },
+    ];
+
     const navLinks = [
         { href: '/', label: t('nav.home'), icon: Home },
         { href: '/gallery', label: locale === 'ru' ? 'Галерея' : 'Gallery', icon: Grid3X3 },
-        { href: '/keyboard-engraving', label: locale === 'ru' ? 'Гравировка клавиатур' : 'Keyboard Engraving', icon: Keyboard },
-        { href: '/tablichki', label: locale === 'ru' ? 'Таблички' : 'Plates', icon: Tag },
         { href: '/fonts', label: locale === 'ru' ? 'Выбор шрифта' : 'Fonts', icon: Type },
         { href: '/about', label: locale === 'ru' ? 'О нас / Контакты' : 'About / Contact', icon: Info },
     ];
@@ -128,6 +133,31 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                                             className="block px-4 py-2.5 text-sm text-slate hover:bg-turquoise-light hover:text-turquoise-dark font-medium transition-colors"
                                         >
                                             {cat.label}
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Services Dropdown */}
+                        <div
+                            className="relative"
+                            onMouseEnter={() => setServicesOpen(true)}
+                            onMouseLeave={() => setServicesOpen(false)}
+                        >
+                            <button className={`flex items-center gap-1 font-semibold transition-colors py-2 ${pathname.startsWith('/keyboard-engraving') || pathname.startsWith('/tablichki') ? 'text-turquoise-dark' : 'text-slate hover:text-turquoise-dark'}`}>
+                                {locale === 'ru' ? 'Услуги' : 'Services'}
+                                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${servicesOpen ? 'rotate-180' : ''}`} />
+                            </button>
+                            <div className={`absolute top-full -left-4 w-56 pt-2 transition-all duration-200 ${servicesOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}`}>
+                                <div className="bg-white rounded-xl shadow-lg border border-slate-100 py-2 overflow-hidden">
+                                    {serviceLinks.map((svc, idx) => (
+                                        <Link
+                                            key={idx}
+                                            href={svc.href}
+                                            className="block px-4 py-2.5 text-sm text-slate hover:bg-turquoise-light hover:text-turquoise-dark font-medium transition-colors"
+                                        >
+                                            {svc.label}
                                         </Link>
                                     ))}
                                 </div>
@@ -230,6 +260,32 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                                     className="block px-6 py-3 text-sm font-medium text-slate hover:text-turquoise-dark"
                                 >
                                     {cat.label}
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Services Accordion for Mobile */}
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden mb-2">
+                        <button
+                            onClick={() => setServicesOpen(!servicesOpen)}
+                            className="w-full flex items-center justify-between p-4 text-slate font-semibold hover:bg-turquoise-light hover:text-turquoise-dark transition-colors"
+                        >
+                            <div className="flex items-center gap-3">
+                                <Wrench className="w-5 h-5 text-turquoise" />
+                                {locale === 'ru' ? 'Услуги' : 'Services'}
+                            </div>
+                            <ChevronDown className={`w-4 h-4 transition-transform ${servicesOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        <div className={`bg-slate-50 transition-all overflow-hidden ${servicesOpen ? 'max-h-64 border-t border-slate-100' : 'max-h-0'}`}>
+                            {serviceLinks.map((svc, idx) => (
+                                <Link
+                                    key={idx}
+                                    href={svc.href}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="block px-6 py-3 text-sm font-medium text-slate hover:text-turquoise-dark"
+                                >
+                                    {svc.label}
                                 </Link>
                             ))}
                         </div>

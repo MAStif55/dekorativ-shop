@@ -170,23 +170,23 @@ export default function TablichkiPage() {
     const useCases = [
         {
             icon: Factory,
-            title: locale === 'ru' ? 'Производство' : 'Manufacturing',
-            desc: locale === 'ru' ? 'Маркировка оборудования, инвентарный учёт, информационные таблички' : 'Equipment marking, inventory tracking, informational plates',
+            title: locale === 'ru' ? 'На производстве' : 'Manufacturing',
+            desc: locale === 'ru' ? 'Маркировка станков, инвентаря и оборудования — чтобы всё было на своих местах и с подписью' : 'Mark machines, inventory, and equipment — so everything is labeled and in its place',
         },
         {
             icon: Gift,
-            title: locale === 'ru' ? 'Подарки' : 'Gifts',
-            desc: locale === 'ru' ? 'Персонализированные таблички на подарках — имя, дата или короткое послание' : 'Personalized plates on gifts — name, date, or a short message',
+            title: locale === 'ru' ? 'На подарке' : 'On a gift',
+            desc: locale === 'ru' ? 'Табличка с именем, датой или тёплым пожеланием превращает обычную вещь в памятный подарок' : 'A plate with a name, date, or warm wish turns an ordinary item into a memorable gift',
         },
         {
             icon: Shield,
-            title: locale === 'ru' ? 'Офис и бизнес' : 'Office & Business',
-            desc: locale === 'ru' ? 'Таблички на технику, мебель, двери — строго, красиво, навсегда' : 'Plates for equipment, furniture, doors — strict, beautiful, lasting',
+            title: locale === 'ru' ? 'В офисе' : 'In the office',
+            desc: locale === 'ru' ? 'На дверь кабинета, на технику, на мебель — аккуратно, солидно и на долгие годы' : 'On office doors, equipment, furniture — neat, solid, and for years to come',
         },
         {
             icon: Sparkles,
-            title: locale === 'ru' ? 'Личные вещи' : 'Personal Items',
-            desc: locale === 'ru' ? 'На чемодан, ноутбук, кошелёк — стильная идентификация своих вещей' : 'For suitcases, laptops, wallets — stylish identification',
+            title: locale === 'ru' ? 'На личных вещах' : 'Personal items',
+            desc: locale === 'ru' ? 'На чемодан, ежедневник или кошелёк — чтобы ваши вещи были узнаваемы' : 'On a suitcase, notebook, or wallet — make your things recognizable',
         },
     ];
 
@@ -211,19 +211,17 @@ export default function TablichkiPage() {
             </section>
 
             {/* ───── What is a shildik + Use Cases ───── */}
-            <section className="py-14 px-6 relative z-10 overflow-hidden">
-                <div className="absolute inset-0 bg-ivory/85 z-0" />
-
-                <div className="max-w-5xl mx-auto relative z-20">
+            <section className="py-14 px-6 relative z-10">
+                <div className="max-w-5xl mx-auto">
                     {/* Intro text */}
                     <div className="text-center mb-10">
                         <h2 className="text-3xl md:text-4xl font-ornamental text-slate-dark mb-4">
-                            {locale === 'ru' ? 'Где используются шильдики' : 'Where plates are used'}
+                            {locale === 'ru' ? 'Для чего нужен шильдик?' : 'What is a nameplate for?'}
                         </h2>
-                        <p className="text-slate/70 max-w-2xl mx-auto">
+                        <p className="text-slate/70 max-w-2xl mx-auto leading-relaxed">
                             {locale === 'ru'
-                                ? 'Шильдик — небольшая табличка с информацией, которая крепится к предмету. Она содержит название, описание или важные данные об объекте.'
-                                : 'A nameplate is a small plate with information attached to an object. It contains a name, description, or important data about the object.'}
+                                ? 'Шильдик — это маленькая металлическая табличка, которая крепится к предмету. На ней может быть имя, дата, логотип или любая надпись. Простая деталь, но именно она делает вещь по-настоящему вашей.'
+                                : 'A nameplate is a small metal plate attached to an object. It can feature a name, date, logo, or any inscription. A simple detail, but one that truly makes an item yours.'}
                         </p>
                     </div>
 
@@ -240,36 +238,6 @@ export default function TablichkiPage() {
                             </div>
                         ))}
                     </div>
-                </div>
-            </section>
-
-            {/* ───── Materials info ───── */}
-            <section className="py-10 px-6">
-                <div className="max-w-3xl mx-auto text-center">
-                    <h2 className="text-3xl md:text-4xl font-ornamental text-slate-dark mb-6">
-                        {locale === 'ru' ? 'Материалы' : 'Materials'}
-                    </h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {[
-                            { color: '#F5D76E', name: locale === 'ru' ? 'Латунь' : 'Brass', desc: locale === 'ru' ? 'Благородный золотистый оттенок, классика' : 'Noble golden hue, classic' },
-                            { color: '#C0C0C0', name: locale === 'ru' ? 'Сталь' : 'Steel', desc: locale === 'ru' ? 'Глянцевая или матовая, строгий стиль' : 'Glossy or matte, strict style' },
-                            { color: '#333', name: locale === 'ru' ? 'Алюминий чёрный' : 'Black aluminium', desc: locale === 'ru' ? 'Современный контрастный вид' : 'Modern contrasting look', textLight: true },
-                            { color: '#FFD700', name: locale === 'ru' ? 'Алюминий золотистый' : 'Gold aluminium', desc: locale === 'ru' ? 'Яркий золотой, праздничный' : 'Bright gold, festive' },
-                        ].map((m, i) => (
-                            <div key={i} className="rounded-2xl border border-slate-100 overflow-hidden bg-white/80 shadow-sm hover:shadow-md transition-shadow">
-                                <div className="h-3" style={{ background: m.color }} />
-                                <div className="p-5">
-                                    <h4 className="font-bold text-slate-dark text-lg">{m.name}</h4>
-                                    <p className="text-sm text-slate/60 mt-1">{m.desc}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    <p className="mt-6 text-slate/60 text-sm">
-                        {locale === 'ru'
-                            ? 'Выбор материала зависит от назначения шильдика и ваших предпочтений. Мы поможем подобрать подходящий вариант.'
-                            : 'The choice of material depends on the purpose of the plate and your preferences. We will help you choose the right option.'}
-                    </p>
                 </div>
             </section>
 

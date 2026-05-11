@@ -17,13 +17,45 @@ import { PortfolioCategory, PortfolioPhoto } from '@/types/portfolio';
 // ==========================================
 
 export async function getNewestProducts(count: number = 4) {
-    const products = await ProductRepository.getNewest(count);
-    return products.filter(p => p.status !== 'HIDDEN');
+    // Fetch a larger batch to account for duplicates and hidden status
+    const products = await ProductRepository.getNewest(count * 4);
+    
+    const uniqueProducts: Product[] = [];
+    const seenTitles = new Set<string>();
+
+    for (const p of products) {
+        if (p.status === 'HIDDEN') continue;
+        
+        // Use normalized Russian title as uniqueness key
+        const titleKey = p.title.ru.trim().toLowerCase();
+        if (!seenTitles.has(titleKey)) {
+            seenTitles.add(titleKey);
+            uniqueProducts.push(p);
+        }
+        
+        if (uniqueProducts.length >= count) break;
+    }
+    
+    return uniqueProducts;
 }
 
 export async function getProductsByCategory(categorySlug: string) {
     const products = await ProductRepository.getByCategory(categorySlug);
-    return products.filter(p => p.status !== 'HIDDEN');
+    
+    const uniqueProducts: Product[] = [];
+    const seenTitles = new Set<string>();
+
+    for (const p of products) {
+        if (p.status === 'HIDDEN') continue;
+        
+        const titleKey = p.title.ru.trim().toLowerCase();
+        if (!seenTitles.has(titleKey)) {
+            seenTitles.add(titleKey);
+            uniqueProducts.push(p);
+        }
+    }
+    
+    return uniqueProducts;
 }
 
 export async function getProductBySlug(slug: string) {

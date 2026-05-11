@@ -220,8 +220,8 @@ export default function TablichkiPage() {
                         </h2>
                         <p className="text-slate/70 max-w-2xl mx-auto leading-relaxed">
                             {locale === 'ru'
-                                ? 'Шильдик — это маленькая металлическая табличка, которая крепится к предмету. На ней может быть имя, дата, логотип или любая надпись. Простая деталь, но именно она делает вещь по-настоящему вашей.'
-                                : 'A nameplate is a small metal plate attached to an object. It can feature a name, date, logo, or any inscription. A simple detail, but one that truly makes an item yours.'}
+                                ? 'Шильдик — это маленькая металлическая табличка, которая крепится к предмету. На ней может быть имя, дата, логотип или любая надпись.'
+                                : 'A nameplate is a small metal plate attached to an object. It can feature a name, date, logo, or any inscription.'}
                         </p>
                     </div>
 
@@ -241,9 +241,27 @@ export default function TablichkiPage() {
                 </div>
             </section>
 
+            {/* ───── Font selection link ───── */}
+            <section className="pb-4 pt-6 px-6 text-center">
+                <Link
+                    href="/fonts"
+                    className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-white/90 border border-slate-100 shadow-sm hover:border-primary hover:shadow-md transition-all"
+                >
+                    <Paintbrush className="w-6 h-6 text-primary" />
+                    <div className="text-left">
+                        <span className="block font-semibold text-slate-dark">
+                            {locale === 'ru' ? 'Подберите шрифт для гравировки' : 'Pick a font for your engraving'}
+                        </span>
+                        <span className="text-sm text-slate/60">
+                            {locale === 'ru' ? 'Посмотрите варианты и выберите тот, который Вам понравится' : 'Browse options and choose the one you like'}
+                        </span>
+                    </div>
+                </Link>
+            </section>
+
             {/* ───── Calculator ───── */}
             <section className="py-12 px-4 sm:px-6">
-                <div className="max-w-xl mx-auto">
+                <div className="max-w-3xl mx-auto">
                     <div className="bg-white/95 rounded-3xl shadow-lg border border-slate-100 p-8 sm:p-10">
                         <div className="flex items-center gap-3 mb-8">
                             <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
@@ -397,16 +415,7 @@ export default function TablichkiPage() {
                 </div>
             </section>
 
-            {/* ───── Font selection link ───── */}
-            <section className="pb-10 px-6 text-center">
-                <Link
-                    href="/fonts"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-turquoise/10 text-turquoise-dark hover:bg-turquoise/20 transition-colors font-medium"
-                >
-                    <Paintbrush className="w-5 h-5" />
-                    {locale === 'ru' ? 'Подобрать шрифт для гравировки' : 'Choose a font for engraving'}
-                </Link>
-            </section>
+
 
             {/* ───── Gallery ───── */}
             <div className="mb-6">

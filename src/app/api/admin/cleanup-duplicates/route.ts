@@ -42,8 +42,7 @@ export async function POST(req: NextRequest) {
             const collection = db.collection('products');
             
             for (const id of toDelete) {
-                // Manually replicate idFilter since it's private in repo
-                const filter = ObjectId.isValid(id) && id.length === 24
+                const filter: any = ObjectId.isValid(id) && id.length === 24
                     ? { _id: new ObjectId(id) }
                     : { _id: id };
                 

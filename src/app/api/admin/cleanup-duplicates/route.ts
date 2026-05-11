@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ProductRepository } from '@/lib/data';
+import { getDb } from '@/lib/data/yandex/mongo-client';
+import { ObjectId } from 'mongodb';
 
 export async function POST(req: NextRequest) {
     try {
@@ -34,19 +36,35 @@ export async function POST(req: NextRequest) {
             toDelete.push(...dupes.map(d => d.id));
         }
 
+        const results: { id: string; success: boolean }[] = [];
         if (!dryRun && toDelete.length > 0) {
-            await Promise.all(toDelete.map(id => ProductRepository.delete(id)));
+            const db = await getDb();
+            const collection = db.collection('products');
+            
+            for (const id of toDelete) {
+                // Manually replicate idFilter since it's private in repo
+                const filter = ObjectId.isValid(id) && id.length === 24
+                    ? { _id: new ObjectId(id) }
+                    : { _id: id };
+                
+                const res = await collection.deleteOne(filter);
+                results.push({ id, success: res.deletedCount > 0 });
+            }
         }
 
         return NextResponse.json({
             dryRun,
+            provider: process.env.NEXT_PUBLIC_DATA_PROVIDER || 'firebase',
             totalProducts: all.length,
             duplicateGroups: report.length,
             toDeleteCount: toDelete.length,
-            deleted: dryRun ? 0 : toDelete.length,
+            actuallyDeleted: results.filter(r => r.success).length,
+            failedToDelete: results.filter(r => !r.success).length,
             report,
+            results: results.slice(0, 50), // Sample of results
         });
     } catch (e) {
+        console.error('Cleanup error:', e);
         return NextResponse.json({ error: String(e) }, { status: 500 });
     }
 }

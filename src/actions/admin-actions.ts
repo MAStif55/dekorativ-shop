@@ -204,6 +204,7 @@ export async function saveCategoryVariations(categorySlug: string, variations: V
 // ==========================================
 
 export async function uploadFile(path: string, formData: FormData): Promise<string> {
+    await requireAuth();
     const file = formData.get('file') as File;
     if (!file) throw new Error('No file provided');
     return await StorageService.upload(path, file);
@@ -213,6 +214,7 @@ import fs from 'fs';
 import pathModule from 'path';
 
 export async function uploadFileBuffer(uploadPath: string, buffer: number[], contentType: string): Promise<string> {
+    await requireAuth();
     const uint8 = new Uint8Array(buffer);
     
     // Intercept fonts to automatically build the WOFF2 optimizations and organize in `/fonts/all/`

@@ -53,18 +53,21 @@ async function run() {
     
     console.log(`Loaded HTML: ${html.length} chars`);
 
-    // Разбиваем HTML по заголовкам виджетов uKit
-    const parts = html.split(/<h[23][^>]*class="[^"]*title[^"]*"[^>]*>/i);
+    // Разбиваем HTML по заголовкам
+    const parts = html.split(/<h[1-3][^>]*class="[^"]*h3[^"]*"[^>]*>/i);
     console.log(`Found ${parts.length - 1} categories`);
     
     for (let i = 1; i < parts.length; i++) {
         const part = parts[i];
         
-        // Ищем текст внутри <span> или до закрывающего тега
-        const titleMatch = part.match(/<span[^>]*>(.*?)<\/span>/i) || part.match(/^(.*?)<\/h[23]>/i);
-        if (!titleMatch) continue;
+        // Извлекаем текст до закрывающего тега h1-h3
+        const headerEnd = part.search(/<\/h[1-3]>/i);
+        if (headerEnd === -1) continue;
+        const titleHtml = part.substring(0, headerEnd);
+        const title = titleHtml.replace(/<[^>]+>/g, '').trim();
         
-        const title = titleMatch[1].replace(/<[^>]+>/g, '').trim();
+        if (!title || title.toLowerCase() === 'контакты') continue;
+        
         console.log(`\nProcessing category: ${title}`);
         
         const catId = new ObjectId().toString();

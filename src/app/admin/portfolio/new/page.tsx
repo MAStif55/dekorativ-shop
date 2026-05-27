@@ -6,7 +6,7 @@ import { useTranslation } from '@/contexts/LanguageContext';
 import { ArrowLeft, Save } from 'lucide-react';
 import Link from 'next/link';
 import { PortfolioCategory } from '@/types/portfolio';
-import { createPortfolioCategory } from '@/lib/firestore-utils';
+import { createPortfolioCategory } from '@/actions/admin-actions';
 
 export default function NewPortfolioCategoryPage() {
     const { locale } = useTranslation();

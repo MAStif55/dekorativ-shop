@@ -44,24 +44,7 @@ export async function getNewestProducts(count: number = 4) {
     return uniqueProducts;
 }
 
-export async function getProductsByCategory(categorySlug: string) {
-    const products = await ProductRepository.getByCategory(categorySlug);
-    
-    const uniqueProducts: Product[] = [];
-    const seenTitles = new Set<string>();
 
-    for (const p of products) {
-        if (p.status === 'HIDDEN') continue;
-        
-        const titleKey = p.title?.ru?.trim().toLowerCase() || `__id__${p.id}`;
-        if (!seenTitles.has(titleKey)) {
-            seenTitles.add(titleKey);
-            uniqueProducts.push(p);
-        }
-    }
-    
-    return uniqueProducts;
-}
 
 export async function getProductBySlug(slug: string) {
     return await ProductRepository.getBySlug(slug);
@@ -84,20 +67,24 @@ export async function getAllCategories() {
     return await CategoryRepository.getAll();
 }
 
-export async function getSubcategories(categorySlug: string) {
-    return await CategoryRepository.getSubcategories(categorySlug);
-}
+
 
 // ==========================================
 // PORTFOLIO (PUBLIC)
 // ==========================================
 
+
+
+export async function getPortfolioCategoriesByPage(targetPageId: string) {
+    return await PortfolioRepository.getCategoriesByPage(targetPageId);
+}
+
 export async function getPortfolioCategories() {
     return await PortfolioRepository.getCategories();
 }
 
-export async function getPortfolioCategoriesByPage(targetPageId: string) {
-    return await PortfolioRepository.getCategoriesByPage(targetPageId);
+export async function getPortfolioCategory(id: string) {
+    return await PortfolioRepository.getCategory(id);
 }
 
 export async function getPortfolioPhotosByCategory(categoryId: string) {
@@ -108,9 +95,7 @@ export async function getNewestPortfolioPhotos(count: number = 4) {
     return await PortfolioRepository.getNewestPhotos(count);
 }
 
-export async function getPortfolioPhotos(targetPageId?: string) {
-    return await PortfolioRepository.getPhotos(targetPageId);
-}
+
 
 // ==========================================
 // REVIEWS (PUBLIC)
@@ -136,14 +121,10 @@ export async function getCategoryVariations(categorySlug: string) {
     return await VariationsRepository.getCategoryVariations(categorySlug);
 }
 
-export async function getAllCategoryVariations() {
-    return await VariationsRepository.getAllCategoryVariations();
-}
+
 
 // ==========================================
 // SETTINGS (PUBLIC)
 // ==========================================
 
-export async function getSettings() {
-    return await SettingsRepository.get();
-}
+

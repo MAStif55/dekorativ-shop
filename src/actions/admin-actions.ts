@@ -21,82 +21,18 @@ import { SubCategory } from '@/types/category';
 import { PortfolioCategory, PortfolioPhoto } from '@/types/portfolio';
 import { FontModel } from '@/types/font';
 
+
 // ==========================================
 // PRODUCTS
 // ==========================================
-
-export async function createProduct(data: Partial<Product>) {
-    await requireAuth();
-    return await ProductRepository.create(data as any);
-}
-
-export async function updateProduct(id: string, data: Partial<Product>) {
-    await requireAuth();
-    return await ProductRepository.update(id, data);
-}
-
-export async function deleteProduct(id: string) {
-    await requireAuth();
-    return await ProductRepository.delete(id);
-}
-
-export async function bulkUpdatePrices(ids: string[], price: number) {
-    await requireAuth();
-    return await ProductRepository.bulkUpdatePrices(ids, price);
-}
-
-export async function bulkUpdateProductOrder(updates: { id: string; order: number }[]) {
-    await requireAuth();
-    return await ProductRepository.bulkUpdateOrder(updates);
-}
 
 // ==========================================
 // CATEGORIES & SUBCATEGORIES
 // ==========================================
 
-export async function createCategory(data: any) {
-    await requireAuth();
-    return await CategoryRepository.create(data);
-}
-
-export async function updateCategory(id: string, data: any) {
-    await requireAuth();
-    return await CategoryRepository.update(id, data);
-}
-
-export async function deleteCategory(id: string) {
-    await requireAuth();
-    return await CategoryRepository.delete(id);
-}
-
-export async function createSubcategory(data: Omit<SubCategory, 'id'>) {
-    await requireAuth();
-    return await CategoryRepository.createSubcategory(data);
-}
-
-export async function updateSubcategory(id: string, data: Partial<SubCategory>) {
-    await requireAuth();
-    return await CategoryRepository.updateSubcategory(id, data);
-}
-
-export async function deleteSubcategory(id: string) {
-    await requireAuth();
-    return await CategoryRepository.deleteSubcategory(id);
-}
-
-export async function bulkUpdateCategoryOrder(collectionName: string, updates: { id: string; order: number }[]) {
-    await requireAuth();
-    return await CategoryRepository.bulkUpdateOrder(collectionName, updates);
-}
-
 // ==========================================
 // ORDERS
 // ==========================================
-
-export async function getAllOrders() {
-    await requireAuth();
-    return await OrderRepository.getAll();
-}
 
 export async function getOrderById(id: string) {
     await requireAuth();
@@ -131,14 +67,14 @@ export async function deleteReview(id: string) {
 // SETTINGS
 // ==========================================
 
-export async function updateSettings(data: Partial<StoreSettings>) {
-    await requireAuth();
-    return await SettingsRepository.update(data);
-}
-
 // ==========================================
 // PORTFOLIO
 // ==========================================
+
+export async function createPortfolioPhoto(data: Omit<PortfolioPhoto, 'id' | 'createdAt'>) {
+    await requireAuth();
+    return await PortfolioRepository.createPhoto(data);
+}
 
 export async function createPortfolioCategory(data: Omit<PortfolioCategory, 'id' | 'createdAt'>) {
     await requireAuth();
@@ -153,11 +89,6 @@ export async function updatePortfolioCategory(id: string, data: Partial<Portfoli
 export async function deletePortfolioCategory(id: string) {
     await requireAuth();
     return await PortfolioRepository.deleteCategory(id);
-}
-
-export async function createPortfolioPhoto(data: Omit<PortfolioPhoto, 'id' | 'createdAt'>) {
-    await requireAuth();
-    return await PortfolioRepository.createPhoto(data);
 }
 
 export async function updatePortfolioPhoto(id: string, data: Partial<PortfolioPhoto>) {
@@ -192,11 +123,6 @@ export async function deleteFont(id: string) {
 // ==========================================
 // VARIATIONS
 // ==========================================
-
-export async function saveCategoryVariations(categorySlug: string, variations: VariationGroup[]) {
-    await requireAuth();
-    return await VariationsRepository.saveCategoryVariations(categorySlug, variations);
-}
 
 // ==========================================
 // STORAGE

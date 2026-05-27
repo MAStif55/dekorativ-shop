@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { Plus, Edit, Trash2, Image as ImageIcon } from 'lucide-react';
 import { PortfolioCategory } from '@/types/portfolio';
-import { getPortfolioCategories, deletePortfolioCategory, deletePortfolioPhoto, getPortfolioPhotosByCategory } from '@/lib/firestore-utils';
+import { deletePortfolioCategory, deletePortfolioPhoto } from '@/actions/admin-actions';
+import { getPortfolioCategories, getPortfolioPhotosByCategory } from '@/actions/catalog-actions';
 import Link from 'next/link';
 
 export default function AdminPortfolioPage() {

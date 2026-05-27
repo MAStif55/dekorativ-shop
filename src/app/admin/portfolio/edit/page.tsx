@@ -8,7 +8,8 @@ import { useTranslation } from '@/contexts/LanguageContext';
 import { ArrowLeft, Save, Trash2, GripVertical, Edit } from 'lucide-react';
 import Link from 'next/link';
 import { PortfolioCategory, PortfolioPhoto } from '@/types/portfolio';
-import { getPortfolioCategory, updatePortfolioCategory, getPortfolioPhotosByCategory, deletePortfolioPhoto, updatePortfolioPhoto } from '@/lib/firestore-utils';
+import { updatePortfolioCategory, deletePortfolioPhoto, updatePortfolioPhoto } from '@/actions/admin-actions';
+import { getPortfolioCategory, getPortfolioPhotosByCategory } from '@/actions/catalog-actions';
 import PortfolioPhotoUploader from '@/components/admin/PortfolioPhotoUploader';
 
 function EditPortfolioCategoryContent() {

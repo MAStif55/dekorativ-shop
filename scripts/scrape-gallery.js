@@ -47,9 +47,9 @@ async function run() {
     });
 
     console.log('Fetching old site...');
-    // Используем punycode домен, чтобы избежать проблем с кириллицей в старых версиях Node
+    // Используем punycode домен, чтобы избежать проблем с кириллицей
     const baseUrl = 'https://xn--80aeeeqk2aqt.xn--p1ai';
-    const html = await fetch(baseUrl + '/primery-rabot').then(r => r.text());
+    const html = require('child_process').execSync(`curl -sL ${baseUrl}/primery-rabot`, { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
     
     console.log(`Loaded HTML: ${html.length} chars`);
 

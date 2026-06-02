@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCartStore } from '@/store/cart-store';
 import { formatPrice } from '@/utils/currency';
@@ -170,9 +171,9 @@ export default function CartPage() {
                                     className={`flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 sm:p-6 ${index !== items.length - 1 ? 'border-b border-[#C9A227]/10' : ''} hover:bg-[#C9A227]/5 transition-colors`}
                                 >
                                     {/* Product Image */}
-                                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#2A2527] rounded-lg flex items-center justify-center text-2xl sm:text-3xl overflow-hidden border border-[#C9A227]/20 flex-shrink-0">
+                                    <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-[#2A2527] rounded-lg flex items-center justify-center text-2xl sm:text-3xl overflow-hidden border border-[#C9A227]/20 flex-shrink-0">
                                         {item.productImage ? (
-                                            <img src={item.productImage} alt={typeof item.productTitle === 'object' ? item.productTitle[locale] : item.productTitle} className="w-full h-full object-cover" />
+                                            <Image src={item.productImage} alt={typeof item.productTitle === 'object' ? item.productTitle[locale] : item.productTitle} fill className="object-cover" />
                                         ) : (
                                             <span>🕉️</span>
                                         )}

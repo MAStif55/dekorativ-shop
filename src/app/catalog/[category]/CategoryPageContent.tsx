@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect, useState, useMemo } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { CategorySlug, SubCategory } from '@/types/category';
@@ -231,11 +232,11 @@ export default function CategoryPageContent({ categorySlug }: CategoryPageConten
                                 >
                                     {/* Image — zooms on hover */}
                                     {thumb ? (
-                                        <img
+                                        <Image
                                             src={thumb}
                                             alt={title}
-                                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                            loading="lazy"
+                                            fill
+                                            className="object-cover transition-transform duration-700 group-hover:scale-110"
                                         />
                                     ) : (
                                         <div className="absolute inset-0 bg-slate-200 flex items-center justify-center text-slate-400">

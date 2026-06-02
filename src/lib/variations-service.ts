@@ -19,6 +19,4 @@ export async function saveCategoryVariations(
     return VariationsRepository.saveCategoryVariations(categorySlug, variations);
 }
 
-export async function getAllCategoryVariations(): Promise<Record<string, VariationGroup[]>> {
-    return VariationsRepository.getAllCategoryVariations();
-}
+

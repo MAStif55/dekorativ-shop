@@ -25,13 +25,12 @@ export const metadata: Metadata = {
         default: 'Dekorativ | Декоратив — Интернет-магазин',
         template: '%s | Dekorativ',
     },
-    description:
-        'Эксклюзивные товары и декор — Exclusive goods and decor.',
+    description: 'Мастерская по гравировке',
     openGraph: {
         type: 'website',
         locale: 'ru_RU',
         siteName: 'Dekorativ — Online Store',
-        images: [{ url: '/og-default.png', width: 1200, height: 630 }],
+        images: [{ url: '/logo.png', width: 800, height: 800 }],
     },
     alternates: {
         canonical: '/',

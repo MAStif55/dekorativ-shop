@@ -35,17 +35,13 @@ export async function getProductById<T = Product>(id: string): Promise<T | null>
     return ProductRepository.getById(id) as Promise<T | null>;
 }
 
-export async function getProductBySlug<T = Product>(slug: string): Promise<T | null> {
-    return ProductRepository.getBySlug(slug) as Promise<T | null>;
-}
+
 
 export async function getProductsByCategory<T = Product>(categorySlug: string): Promise<T[]> {
     return ProductRepository.getByCategory(categorySlug) as Promise<T[]>;
 }
 
-export async function getNewestProducts<T = Product>(count?: number): Promise<T[]> {
-    return ProductRepository.getNewest(count) as Promise<T[]>;
-}
+
 
 export async function createProduct(data: Omit<Product, 'id' | 'createdAt'>): Promise<string> {
     return ProductRepository.create(data);
@@ -129,9 +125,7 @@ export async function getPortfolioCategories(): Promise<PortfolioCategory[]> {
     return PortfolioRepository.getCategories();
 }
 
-export async function getPortfolioCategoriesByPage(targetPageId: string): Promise<PortfolioCategory[]> {
-    return PortfolioRepository.getCategoriesByPage(targetPageId);
-}
+
 
 export async function getPortfolioCategory(id: string): Promise<PortfolioCategory | null> {
     return PortfolioRepository.getCategory(id);
@@ -153,13 +147,9 @@ export async function getPortfolioPhotosByCategory(categoryId: string): Promise<
     return PortfolioRepository.getPhotosByCategory(categoryId);
 }
 
-export async function getNewestPortfolioPhotos(count?: number): Promise<PortfolioPhoto[]> {
-    return PortfolioRepository.getNewestPhotos(count);
-}
 
-export async function createPortfolioPhoto(data: Omit<PortfolioPhoto, 'id' | 'createdAt'>): Promise<string> {
-    return PortfolioRepository.createPhoto(data);
-}
+
+
 
 export async function updatePortfolioPhoto(id: string, data: Partial<PortfolioPhoto>): Promise<void> {
     return PortfolioRepository.updatePhoto(id, data);
@@ -171,18 +161,4 @@ export async function deletePortfolioPhoto(id: string): Promise<void> {
 
 // ── Fonts ──────────────────────────────────────────────────────
 
-export async function getFonts(): Promise<FontModel[]> {
-    return FontRepository.getAll();
-}
 
-export async function createFont(data: Omit<FontModel, 'id' | 'createdAt'>): Promise<string> {
-    return FontRepository.create(data);
-}
-
-export async function updateFont(id: string, data: Partial<FontModel>): Promise<void> {
-    return FontRepository.update(id, data);
-}
-
-export async function deleteFontDoc(id: string): Promise<void> {
-    return FontRepository.delete(id);
-}

@@ -64,7 +64,7 @@ export default function DynamicPortfolio({ pageId, title, subtitle }: DynamicPor
 
     return (
         <>
-            <section className="py-6 px-4 sm:px-6 relative z-10 w-full overflow-hidden">
+            <section className="py-6 px-4 sm:px-6 relative z-10 w-full">
                 <div className="max-w-7xl mx-auto">
 
                     {/* Header */}

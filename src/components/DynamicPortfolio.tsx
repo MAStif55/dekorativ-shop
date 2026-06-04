@@ -171,26 +171,26 @@ export default function DynamicPortfolio({ pageId, title, subtitle }: DynamicPor
                                                     </button>
                                                 </div>
                                             )}
-                                        </div>
 
-                                        {/* Collapse button under expanded grid */}
-                                        {isExpanded && showCollapseControl && (
-                                            <div className="flex justify-center mt-6">
-                                                <button
-                                                    onClick={() => {
-                                                        toggleCategory(cat.id);
-                                                        const el = document.getElementById(`category-${cat.id}`);
-                                                        if (el) {
-                                                            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                                        }
-                                                    }}
-                                                    className="btn-outline bg-white hover:bg-slate-50 text-slate border-slate-300 hover:border-slate-400 font-medium text-sm py-2 px-6 rounded-xl flex items-center gap-2 shadow-sm transition-all cursor-pointer"
-                                                >
-                                                    <span>{locale === 'ru' ? 'Свернуть' : 'Collapse'}</span>
-                                                    <ChevronUp size={16} />
-                                                </button>
-                                            </div>
-                                        )}
+                                            {/* Sticky Collapse Button */}
+                                            {isExpanded && showCollapseControl && (
+                                                <div className="sticky bottom-6 left-0 right-0 z-30 flex justify-center pb-2 pointer-events-none w-full">
+                                                    <button
+                                                        onClick={() => {
+                                                            toggleCategory(cat.id);
+                                                            const el = document.getElementById(`category-${cat.id}`);
+                                                            if (el) {
+                                                                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                                            }
+                                                        }}
+                                                        className="btn-outline pointer-events-auto bg-white/90 backdrop-blur-xs hover:bg-white text-slate border-slate-300 hover:border-slate-400 font-medium text-sm py-2 px-6 rounded-xl flex items-center gap-2 shadow-lg hover:shadow-xl transition-all cursor-pointer transform hover:-translate-y-0.5"
+                                                    >
+                                                        <span>{locale === 'ru' ? 'Свернуть' : 'Collapse'}</span>
+                                                        <ChevronUp size={16} />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 );
                             })}

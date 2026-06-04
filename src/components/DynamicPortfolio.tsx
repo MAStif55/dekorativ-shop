@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PortfolioCategory, PortfolioPhoto } from '@/types/portfolio';
 import { getPortfolioCategoriesByPage, getPortfolioPhotosByCategory } from '@/actions/catalog-actions';
-import { X } from 'lucide-react';
+import { X, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface DynamicPortfolioProps {
     pageId: string;
@@ -22,6 +22,14 @@ export default function DynamicPortfolio({ pageId, title, subtitle }: DynamicPor
     const [categories, setCategories] = useState<CategoryWithPhotos[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedPhoto, setSelectedPhoto] = useState<PortfolioPhoto | null>(null);
+    const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+
+    const toggleCategory = (catId: string) => {
+        setExpandedCategories(prev => ({
+            ...prev,
+            [catId]: !prev[catId]
+        }));
+    };
 
     useEffect(() => {
         const fetchPortfolio = async () => {
@@ -95,9 +103,11 @@ export default function DynamicPortfolio({ pageId, title, subtitle }: DynamicPor
                         <div className="flex flex-col gap-12">
                             {categories.map((cat, idx) => {
                                 const descriptionStr = cat.description?.[locale as 'ru' | 'en'] || cat.description?.ru;
+                                const isExpanded = !!expandedCategories[cat.id];
+                                const showCollapseControl = cat.photos.length > 8;
 
                                 return (
-                                    <div key={cat.id} className="w-full">
+                                    <div key={cat.id} id={`category-${cat.id}`} className="w-full scroll-mt-24">
 
                                         {/* Category Description (only if multiple categories, 
                                         since for a single category it's hoisted to the main header) */}
@@ -114,33 +124,73 @@ export default function DynamicPortfolio({ pageId, title, subtitle }: DynamicPor
                                             </div>
                                         )}
 
-                                        {/* Category Photo Grid */}
-                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-                                            {cat.photos.map((photo) => (
-                                                <div
-                                                    key={photo.id}
-                                                    className="group rounded-2xl overflow-hidden aspect-square relative shadow-sm hover:shadow-md transition-all border border-slate-100 bg-white cursor-pointer"
-                                                    onClick={() => setSelectedPhoto(photo)}
-                                                >
-                                                    <Image
-                                                        src={photo.imageUrl}
-                                                        alt={photo.seo.altText[locale as 'ru' | 'en'] || photo.seo.altText.ru || photo.seo.title}
-                                                        fill
-                                                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                                                        className="object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
-                                                    />
+                                        {/* Category Photo Grid with limiting height */}
+                                        <div className="relative">
+                                            <div
+                                                className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 transition-all duration-750 ease-in-out overflow-hidden ${
+                                                    !isExpanded && showCollapseControl
+                                                        ? 'max-h-[380px] md:max-h-[580px]'
+                                                        : 'max-h-[20000px]'
+                                                }`}
+                                            >
+                                                {cat.photos.map((photo) => (
+                                                    <div
+                                                        key={photo.id}
+                                                        className="group rounded-2xl overflow-hidden aspect-square relative shadow-sm hover:shadow-md transition-all border border-slate-100 bg-white cursor-pointer"
+                                                        onClick={() => setSelectedPhoto(photo)}
+                                                    >
+                                                        <Image
+                                                            src={photo.imageUrl}
+                                                            alt={photo.seo.altText[locale as 'ru' | 'en'] || photo.seo.altText.ru || photo.seo.title}
+                                                            fill
+                                                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                                            className="object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
+                                                        />
 
-                                                    {/* Hover overlay with SEO description */}
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/30 to-transparent opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 sm:p-4 lg:p-6 pointer-events-none">
-                                                        {(photo.seo.description?.[locale as 'ru' | 'en'] || photo.seo.description?.ru) && (
-                                                            <div className="text-white font-medium text-xs sm:text-[1.05rem] leading-snug transform sm:translate-y-2 sm:group-hover:translate-y-0 transition-transform duration-300 line-clamp-3 sm:line-clamp-none">
-                                                                {photo.seo.description[locale as 'ru' | 'en'] || photo.seo.description.ru}
-                                                            </div>
-                                                        )}
+                                                        {/* Hover overlay with SEO description */}
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/30 to-transparent opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 sm:p-4 lg:p-6 pointer-events-none">
+                                                            {(photo.seo.description?.[locale as 'ru' | 'en'] || photo.seo.description?.ru) && (
+                                                                <div className="text-white font-medium text-xs sm:text-[1.05rem] leading-snug transform sm:translate-y-2 sm:group-hover:translate-y-0 transition-transform duration-300 line-clamp-3 sm:line-clamp-none">
+                                                                    {photo.seo.description[locale as 'ru' | 'en'] || photo.seo.description.ru}
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
+                                                ))}
+                                            </div>
+
+                                            {/* Fade-out Overlay */}
+                                            {!isExpanded && showCollapseControl && (
+                                                <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#FFFFF0] via-[#FFFFF0]/85 to-transparent flex items-end justify-center pb-2 pointer-events-none z-20">
+                                                    <button
+                                                        onClick={() => toggleCategory(cat.id)}
+                                                        className="btn-outline pointer-events-auto bg-white/90 hover:bg-white text-slate-dark border-primary hover:border-primary-dark font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all text-sm py-2.5 px-6 rounded-xl flex items-center gap-2 cursor-pointer"
+                                                    >
+                                                        <span>{locale === 'ru' ? 'Развернуть галерею' : 'Expand Gallery'}</span>
+                                                        <ChevronDown size={16} className="animate-bounce" />
+                                                    </button>
                                                 </div>
-                                            ))}
+                                            )}
                                         </div>
+
+                                        {/* Collapse button under expanded grid */}
+                                        {isExpanded && showCollapseControl && (
+                                            <div className="flex justify-center mt-6">
+                                                <button
+                                                    onClick={() => {
+                                                        toggleCategory(cat.id);
+                                                        const el = document.getElementById(`category-${cat.id}`);
+                                                        if (el) {
+                                                            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                                        }
+                                                    }}
+                                                    className="btn-outline bg-white hover:bg-slate-50 text-slate border-slate-300 hover:border-slate-400 font-medium text-sm py-2 px-6 rounded-xl flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+                                                >
+                                                    <span>{locale === 'ru' ? 'Свернуть' : 'Collapse'}</span>
+                                                    <ChevronUp size={16} />
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })}

@@ -3,25 +3,7 @@
  * 
  * ⚠️ CRITICAL: This file must NEVER be imported from a 'use client' component.
  * All client components must access data through Server Actions in src/actions/.
- * 
- * Provider toggle via NEXT_PUBLIC_DATA_PROVIDER:
- *   'firebase' (default) — Firebase SDK
- *   'yandex'             — MongoDB + Yandex Object Storage
  */
-
-// ============================================================================
-// Firebase Implementations
-// ============================================================================
-import { FirebaseProductRepository } from './firebase/FirebaseProductRepository';
-import { FirebaseOrderRepository } from './firebase/FirebaseOrderRepository';
-import { FirebaseCategoryRepository } from './firebase/FirebaseCategoryRepository';
-import { FirebasePortfolioRepository } from './firebase/FirebasePortfolioRepository';
-import { FirebaseReviewRepository } from './firebase/FirebaseReviewRepository';
-import { FirebaseSettingsRepository } from './firebase/FirebaseSettingsRepository';
-import { FirebaseFontRepository } from './firebase/FirebaseFontRepository';
-import { FirebaseVariationsRepository } from './firebase/FirebaseVariationsRepository';
-import { FirebaseStorageService } from './firebase/FirebaseStorageService';
-import { FirebaseAuthService } from './firebase/FirebaseAuthService';
 
 // ============================================================================
 // Yandex (MongoDB + S3) Implementations
@@ -58,40 +40,23 @@ export type {
 // FACTORY
 // ============================================================================
 
-const provider = process.env.NEXT_PUBLIC_DATA_PROVIDER || 'firebase';
-
 function createRepositories() {
-    if (provider === 'yandex') {
-        console.log('[DataLayer] Using Yandex (MongoDB + S3) provider');
-        const hasS3Credentials = !!process.env.YC_S3_ACCESS_KEY_ID && !!process.env.YC_S3_SECRET_ACCESS_KEY;
-        const storageService = hasS3Credentials ? new S3StorageService() : new LocalStorageService();
-        if (!hasS3Credentials) console.log('[DataLayer] Falling back to LocalStorageService because YC_S3 credentials are not configured');
-
-        return {
-            ProductRepository: new MongoProductRepository(),
-            OrderRepository: new MongoOrderRepository(),
-            CategoryRepository: new MongoCategoryRepository(),
-            PortfolioRepository: new MongoPortfolioRepository(),
-            ReviewRepository: new MongoReviewRepository(),
-            SettingsRepository: new MongoSettingsRepository(),
-            FontRepository: new MongoFontRepository(),
-            VariationsRepository: new MongoVariationsRepository(),
-            StorageService: storageService,
-            AuthService: new MongoAuthService(),
-        };
-    }
+    console.log('[DataLayer] Using Yandex (MongoDB + S3) provider');
+    const hasS3Credentials = !!process.env.YC_S3_ACCESS_KEY_ID && !!process.env.YC_S3_SECRET_ACCESS_KEY;
+    const storageService = hasS3Credentials ? new S3StorageService() : new LocalStorageService();
+    if (!hasS3Credentials) console.log('[DataLayer] Falling back to LocalStorageService because YC_S3 credentials are not configured');
 
     return {
-        ProductRepository: new FirebaseProductRepository(),
-        OrderRepository: new FirebaseOrderRepository(),
-        CategoryRepository: new FirebaseCategoryRepository(),
-        PortfolioRepository: new FirebasePortfolioRepository(),
-        ReviewRepository: new FirebaseReviewRepository(),
-        SettingsRepository: new FirebaseSettingsRepository(),
-        FontRepository: new FirebaseFontRepository(),
-        VariationsRepository: new FirebaseVariationsRepository(),
-        StorageService: new FirebaseStorageService(),
-        AuthService: new FirebaseAuthService(),
+        ProductRepository: new MongoProductRepository(),
+        OrderRepository: new MongoOrderRepository(),
+        CategoryRepository: new MongoCategoryRepository(),
+        PortfolioRepository: new MongoPortfolioRepository(),
+        ReviewRepository: new MongoReviewRepository(),
+        SettingsRepository: new MongoSettingsRepository(),
+        FontRepository: new MongoFontRepository(),
+        VariationsRepository: new MongoVariationsRepository(),
+        StorageService: storageService,
+        AuthService: new MongoAuthService(),
     };
 }
 

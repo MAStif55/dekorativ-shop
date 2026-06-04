@@ -11,6 +11,7 @@ import Breadcrumbs from '@/components/admin/Breadcrumbs';
 import { AdminProductCard } from '@/components/admin/AdminProductCard';
 import { AddProductCard } from '@/components/admin/AddProductCard';
 import { formatPrice } from '@/utils/currency';
+import { useProductStore } from '@/store/product-store';
 
 import {
     DndContext,
@@ -191,6 +192,18 @@ export default function AdminProductsPage() {
         } catch (error) {
             console.error("Error duplicating:", error);
             alert("Failed to duplicate product");
+        }
+    };
+
+    const handleUpdateProduct = async (id: string, updatedFields: Partial<Product>) => {
+        try {
+            await updateProduct(id, updatedFields);
+            setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updatedFields } : p));
+            await useProductStore.getState().fetchProducts(true);
+        } catch (error) {
+            console.error("Error updating product:", error);
+            alert(locale === 'ru' ? 'Не удалось обновить товар' : 'Failed to update product');
+            throw error;
         }
     };
 
@@ -468,6 +481,7 @@ export default function AdminProductsPage() {
                                 setItemToDelete(id);
                                 setDeleteModalOpen(true);
                             }}
+                            onUpdate={handleUpdateProduct}
                         />
                     ))}
                 </div>

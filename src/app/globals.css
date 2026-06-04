@@ -64,6 +64,19 @@ body {
     display: none;
 }
 
+/* Gallery collapse & expand heights */
+.gallery-collapsed {
+    max-height: 380px;
+}
+@media (min-width: 768px) {
+    .gallery-collapsed {
+        max-height: 580px;
+    }
+}
+.gallery-expanded {
+    max-height: 20000px;
+}
+
 /* Elegant typography classes */
 .font-ornamental {
     font-family: var(--font-lora), serif;

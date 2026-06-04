@@ -129,8 +129,8 @@ export default function DynamicPortfolio({ pageId, title, subtitle }: DynamicPor
                                             <div
                                                 className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 transition-all duration-750 ease-in-out overflow-hidden ${
                                                     !isExpanded && showCollapseControl
-                                                        ? 'max-h-[380px] md:max-h-[580px]'
-                                                        : 'max-h-[20000px]'
+                                                        ? 'gallery-collapsed'
+                                                        : 'gallery-expanded'
                                                 }`}
                                             >
                                                 {cat.photos.map((photo) => (

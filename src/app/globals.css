@@ -38,7 +38,7 @@
 html {
     scroll-behavior: smooth;
     background-color: var(--color-ivory);
-    overflow-x: hidden;
+    overflow-x: clip;
 }
 
 body {
@@ -46,7 +46,7 @@ body {
     color: var(--color-text);
     line-height: 1.6;
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow-x: clip;
     /* The core aesthetic: A beautiful, seamless, full-page mesh gradient */
     background: radial-gradient(circle at top left, var(--color-turquoise-light), transparent 60%),
         radial-gradient(circle at bottom right, #ccfbf1, transparent 60%),

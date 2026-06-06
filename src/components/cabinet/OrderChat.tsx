@@ -94,7 +94,8 @@ export default function OrderChat({ orderId, userType }: OrderChatProps) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     text: textToSend,
-                    fileUrl: attachedUrl || null
+                    fileUrl: attachedUrl || null,
+                    sender: userType
                 }),
             });
 

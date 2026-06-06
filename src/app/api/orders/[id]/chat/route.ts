@@ -114,7 +114,7 @@ export async function POST(
 
     try {
         const body = await request.json();
-        const { text, fileUrl } = body;
+        const { text, fileUrl, sender: bodySender } = body;
 
         if (!text && !fileUrl) {
             return NextResponse.json({ success: false, error: 'Message text or attachment is required' }, { status: 400 });
@@ -131,7 +131,18 @@ export async function POST(
             return NextResponse.json({ success: false, error: 'Access denied' }, { status: 403 });
         }
 
-        const sender = adminSession ? 'admin' : 'client';
+        let sender: 'admin' | 'client' = 'client';
+        if (bodySender === 'admin') {
+            if (!adminSession) {
+                return NextResponse.json({ success: false, error: 'Unauthorized to send as admin' }, { status: 403 });
+            }
+            sender = 'admin';
+        } else {
+            if (!customerSession && !adminSession) {
+                return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+            }
+            sender = 'client';
+        }
 
         const messageDoc = {
             orderId,

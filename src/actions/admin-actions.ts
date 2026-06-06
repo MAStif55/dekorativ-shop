@@ -44,6 +44,40 @@ export async function updateOrder(id: string, data: Partial<Order>) {
     return await OrderRepository.update(id, data);
 }
 
+import { sendEmailOrderApproved } from '@/lib/mailer';
+
+export async function approveOrderAndBill(id: string) {
+    await requireAuth();
+    const order = await OrderRepository.getById(id);
+    if (!order) throw new Error('Order not found');
+    
+    // In dev or placeholder mode, we use the local mock URL. 
+    // This allows the client to complete test payments.
+    const domain = process.env.NEXT_PUBLIC_SITE_DOMAIN || 'localhost:3000';
+    const protocol = domain.includes('localhost') ? 'http' : 'https';
+    const clientOrderUrl = `${protocol}://${domain}/orders/${order.id}`;
+    const mockPaymentUrl = `/payment-mock?orderId=${order.id}&amount=${order.total}`;
+    
+    await OrderRepository.update(id, {
+        paymentStatus: 'awaiting_transfer',
+        paymentUrl: mockPaymentUrl,
+    });
+    
+    try {
+        await sendEmailOrderApproved(order.email, order.id, order.total, clientOrderUrl);
+    } catch (err) {
+        console.error('Failed to send order approved email:', err);
+    }
+}
+
+export async function cancelInvoice(id: string) {
+    await requireAuth();
+    await OrderRepository.update(id, {
+        paymentStatus: 'pending',
+        paymentUrl: null as any,
+    });
+}
+
 // ==========================================
 // REVIEWS
 // ==========================================

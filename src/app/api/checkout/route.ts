@@ -39,6 +39,26 @@ function calculateGiftDiscount(cartItems: any[]) {
     return discount;
 }
 
+async function verifyTurnstileToken(token: string) {
+    const secret = process.env.TURNSTILE_SECRET_KEY;
+    if (!secret) {
+        console.warn('[Turnstile] No TURNSTILE_SECRET_KEY configured, bypassing verification.');
+        return true;
+    }
+    try {
+        const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `secret=${encodeURIComponent(secret)}&response=${encodeURIComponent(token)}`,
+        });
+        const outcome = await response.json();
+        return outcome.success;
+    } catch (err) {
+        console.error('[Turnstile] Verification error:', err);
+        return false;
+    }
+}
+
 function validateOrder(data: any) {
     if (!data.customerName || data.customerName.length < 2) return 'Invalid name';
     if (data.customerName.length > 100) return 'Name too long';
@@ -50,7 +70,7 @@ function validateOrder(data: any) {
     if (data.address.length > 500) return 'Address too long';
     if (data.telegram && data.telegram.length > 100) return 'Telegram too long';
     if (data.notes && data.notes.length > 1000) return 'Notes too long';
-    if (!['card', 'bank_transfer'].includes(data.paymentMethod)) return 'Invalid payment method';
+    if (data.paymentMethod && !['card', 'bank_transfer', 'post_payment'].includes(data.paymentMethod)) return 'Invalid payment method';
     return null;
 }
 
@@ -72,6 +92,14 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error }, { status: 400 });
         }
 
+        // Captcha validation
+        if (customerInfo.captchaToken) {
+            const isHuman = await verifyTurnstileToken(customerInfo.captchaToken);
+            if (!isHuman) {
+                return NextResponse.json({ success: false, error: 'CAPTCHA verification failed. Please try again.' }, { status: 400 });
+            }
+        }
+
         const orderItems = cartItems.map((item: any) => ({
             productId: item.productId,
             productTitle: serializeProductTitle(item.productTitle),
@@ -85,7 +113,7 @@ export async function POST(request: Request) {
         const giftDiscount = calculateGiftDiscount(orderItems);
         const total = Math.max(0, subtotal - giftDiscount);
 
-        const paymentMethod = customerInfo.paymentMethod;
+        const paymentMethod = customerInfo.paymentMethod || 'post_payment';
 
         const orderData = {
             customerName: customerInfo.customerName,
@@ -100,8 +128,9 @@ export async function POST(request: Request) {
             subtotal,
             giftDiscount,
             total,
-            paymentMethod: paymentMethod,
-            paymentStatus: paymentMethod === 'card' ? 'pending' : 'awaiting_transfer',
+            paymentMethod,
+            paymentStatus: 'pending', // Pending verification by master
+            attachments: customerInfo.attachments || [],
         };
 
         // 1. Save order to database
@@ -109,64 +138,28 @@ export async function POST(request: Request) {
 
         const fullOrderData = { ...orderData, id: orderId, status: 'pending', createdAt: Date.now() };
 
-        // 2. Handle payment method
-        if (paymentMethod === 'card') {
-            const itemDescriptions = orderItems
-                .map((item: any) => `${item.productTitle} x${item.quantity}`)
-                .join(', ');
-            const description = `Заказ #${orderId.slice(-6).toUpperCase()}: ${itemDescriptions}`.substring(0, 128);
+        // 2. Notify master and customer (without payment flow since it is post-payment)
+        const [telegramResult, emailResult] = await Promise.allSettled([
+            sendTelegramOrderNotification(fullOrderData, orderId, false),
+            sendEmailOrderNotification(fullOrderData, orderId, false),
+        ]);
 
-            try {
-                const payment = await createYooKassaPayment(
-                    total,
-                    orderId,
-                    customerInfo.email,
-                    description
-                );
-
-                await OrderRepository.update(orderId, {
-                    paymentId: payment.id,
-                    paymentUrl: payment.confirmation.confirmation_url,
-                });
-
-                return NextResponse.json({
-                    success: true,
-                    orderId,
-                    paymentMethod: 'card',
-                    paymentUrl: payment.confirmation.confirmation_url,
-                });
-            } catch (paymentError) {
-                console.error('Payment creation error:', paymentError);
-                await OrderRepository.update(orderId, { paymentStatus: 'failed' });
-                return NextResponse.json({
-                    success: false,
-                    error: 'Failed to create payment. Please try again.',
-                }, { status: 500 });
-            }
-        } else {
-            // --- BANK TRANSFER ---
-            const [telegramResult, emailResult] = await Promise.allSettled([
-                sendTelegramOrderNotification(fullOrderData, orderId, false),
-                sendEmailOrderNotification(fullOrderData, orderId, false),
-            ]);
-
-            const notificationStatus: any = {};
-            if (telegramResult.status === 'rejected') {
-                notificationStatus.telegramError = telegramResult.reason?.message || 'Unknown error';
-            }
-            if (emailResult.status === 'rejected') {
-                notificationStatus.emailError = emailResult.reason?.message || 'Unknown error';
-            }
-            if (Object.keys(notificationStatus).length > 0) {
-                await OrderRepository.update(orderId, { notificationStatus });
-            }
-
-            return NextResponse.json({
-                success: true,
-                orderId,
-                paymentMethod: 'bank_transfer',
-            });
+        const notificationStatus: any = {};
+        if (telegramResult.status === 'rejected') {
+            notificationStatus.telegramError = telegramResult.reason?.message || 'Unknown error';
         }
+        if (emailResult.status === 'rejected') {
+            notificationStatus.emailError = emailResult.reason?.message || 'Unknown error';
+        }
+        if (Object.keys(notificationStatus).length > 0) {
+            await OrderRepository.update(orderId, { notificationStatus });
+        }
+
+        return NextResponse.json({
+            success: true,
+            orderId,
+            paymentMethod,
+        });
     } catch (error) {
         console.error('Create Checkout Error:', error);
         return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });

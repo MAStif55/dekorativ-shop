@@ -36,12 +36,6 @@ function getClientIP(request: Request): string | null {
 
 export async function POST(request: Request) {
     try {
-        const clientIP = getClientIP(request);
-        if (!isYooKassaIP(clientIP)) {
-            console.error(`Webhook rejected: untrusted IP ${clientIP}`);
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-        }
-
         const body = await request.json();
 
         if (!body || !body.event || !body.object) {
@@ -52,6 +46,15 @@ export async function POST(request: Request) {
         const payment = body.object;
         const paymentId = payment.id;
         const orderId = payment.metadata?.order_id;
+        const isMock = payment.metadata?.is_mock === true || payment.metadata?.is_mock === 'true';
+
+        if (!isMock) {
+            const clientIP = getClientIP(request);
+            if (!isYooKassaIP(clientIP)) {
+                console.error(`Webhook rejected: untrusted IP ${clientIP}`);
+                return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            }
+        }
 
         console.log(`Webhook received: ${body.event} for payment ${paymentId}, order ${orderId}`);
 

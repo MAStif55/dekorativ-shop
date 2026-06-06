@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
@@ -11,12 +11,42 @@ import { AddressAutocomplete } from './AddressAutocomplete';
 import { formatPrice } from '@/utils/currency';
 import { API } from '@/lib/config';
 
+interface UploadingFile {
+    name: string;
+    progress: number;
+    url?: string;
+    error?: string;
+}
+
+declare global {
+    interface Window {
+        onloadTurnstileCallback?: () => void;
+        turnstile?: {
+            render: (container: string | HTMLElement, options: any) => string;
+            remove: (widgetId: string) => void;
+            reset: (widgetId: string) => void;
+        };
+    }
+}
+
 export default function CheckoutForm() {
     const { locale, t } = useLanguage();
     const router = useRouter();
     const { items, clearCart, getFinalPrice } = useCartStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
+
+    // Draft Order ID to keep uploads grouped in S3
+    const [tempId] = useState(() => Math.random().toString(36).substring(2, 11) + Date.now().toString(36));
+
+    // S3 Attachments State
+    const [attachments, setAttachments] = useState<UploadingFile[]>([]);
+    const [uploadingCount, setUploadingCount] = useState(0);
+
+    // Turnstile CAPTCHA State
+    const [captchaToken, setCaptchaToken] = useState<string>('');
+    const turnstileRef = useRef<HTMLDivElement>(null);
+    const widgetIdRef = useRef<string | null>(null);
 
     const schema = getLocalizedSchema(locale);
 
@@ -27,61 +57,230 @@ export default function CheckoutForm() {
         watch,
         formState: { errors },
     } = useForm<CheckoutFormData>({
-        resolver: zodResolver(schema),
+        resolver: zodResolver(schema) as any,
+        defaultValues: {
+            paymentMethod: 'post_payment',
+        }
     });
 
     const addressValue = watch('address') || '';
-    const paymentMethodValue = watch('paymentMethod');
 
     const handleAddressChange = (value: string) => {
         setValue('address', value, { shouldValidate: true });
     };
 
     const handleAddressSelect = (suggestion: any) => {
-        // Save full structured data
         setValue('addressDetails', suggestion.data);
+    };
 
-        // You might want to auto-fill zip code if available, but for now we just save the struct
-        // suggestion.data.postal_code could be useful
+    // Load Turnstile script dynamically
+    useEffect(() => {
+        const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'; // Demo key fallback
+        const scriptId = 'cf-turnstile-script';
+        let script = document.getElementById(scriptId) as HTMLScriptElement;
+
+        const initializeTurnstile = () => {
+            if (window.turnstile && turnstileRef.current && !widgetIdRef.current) {
+                try {
+                    widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
+                        sitekey: siteKey,
+                        callback: (token: string) => {
+                            setCaptchaToken(token);
+                        },
+                        'error-callback': (err: any) => {
+                            console.error('Turnstile error:', err);
+                        }
+                    });
+                } catch (e) {
+                    console.error('Failed to render Turnstile:', e);
+                }
+            }
+        };
+
+        if (!script) {
+            script = document.createElement('script');
+            script.id = scriptId;
+            script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback';
+            script.async = true;
+            script.defer = true;
+            document.body.appendChild(script);
+
+            window.onloadTurnstileCallback = () => {
+                initializeTurnstile();
+            };
+        } else if (window.turnstile) {
+            initializeTurnstile();
+        }
+
+        return () => {
+            if (window.turnstile && widgetIdRef.current) {
+                try {
+                    window.turnstile.remove(widgetIdRef.current);
+                    widgetIdRef.current = null;
+                } catch (e) {}
+            }
+        };
+    }, []);
+
+    // File Upload Handler (Direct S3 uploads via Presigned URLs)
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        const allowedExtensions = ['.cdr', '.dxf', '.ai', '.pdf', '.eps', '.png', '.jpg', '.jpeg'];
+        const maxSizeBytes = 50 * 1024 * 1024; // 50MB
+
+        const fileList = Array.from(files);
+
+        for (const file of fileList) {
+            const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+            if (!allowedExtensions.includes(ext)) {
+                alert(
+                    locale === 'ru'
+                        ? `Неподдерживаемый формат файла: ${file.name}. Разрешены только: ${allowedExtensions.join(', ')}`
+                        : `Unsupported file format: ${file.name}. Only: ${allowedExtensions.join(', ')} are allowed.`
+                );
+                continue;
+            }
+
+            if (file.size > maxSizeBytes) {
+                alert(
+                    locale === 'ru'
+                        ? `Файл ${file.name} слишком большой. Максимальный размер: 50 МБ`
+                        : `File ${file.name} is too large. Max size is 50MB`
+                );
+                continue;
+            }
+
+            // Add to state
+            const newFile: UploadingFile = { name: file.name, progress: 0 };
+            setAttachments(prev => [...prev, newFile]);
+            setUploadingCount(prev => prev + 1);
+
+            try {
+                // 1. Get Presigned URL from backend
+                const uploadResponse = await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fileName: file.name,
+                        fileType: file.type,
+                        tempId,
+                    }),
+                });
+
+                const uploadData = await uploadResponse.json();
+                if (!uploadResponse.ok || !uploadData.success) {
+                    throw new Error(uploadData.error || 'Failed to get upload URL');
+                }
+
+                const { uploadUrl, publicUrl } = uploadData;
+
+                // 2. Upload file directly to Yandex Object Storage (S3) via XMLHttpRequest for progress tracking
+                const xhr = new XMLHttpRequest();
+                xhr.open('PUT', uploadUrl);
+                xhr.setRequestHeader('Content-Type', file.type);
+
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const percent = Math.round((event.loaded / event.total) * 100);
+                        setAttachments(prev =>
+                            prev.map(item => item.name === file.name ? { ...item, progress: percent } : item)
+                        );
+                    }
+                };
+
+                xhr.onload = () => {
+                    setUploadingCount(prev => Math.max(0, prev - 1));
+                    if (xhr.status === 200) {
+                        setAttachments(prev =>
+                            prev.map(item => item.name === file.name ? { ...item, url: publicUrl, progress: 100 } : item)
+                        );
+                    } else {
+                        setAttachments(prev =>
+                            prev.map(item => item.name === file.name ? { ...item, error: 'Upload failed', progress: 0 } : item)
+                        );
+                    }
+                };
+
+                xhr.onerror = () => {
+                    setUploadingCount(prev => Math.max(0, prev - 1));
+                    setAttachments(prev =>
+                        prev.map(item => item.name === file.name ? { ...item, error: 'Network error', progress: 0 } : item)
+                    );
+                };
+
+                xhr.send(file);
+            } catch (err: any) {
+                console.error('File upload error:', err);
+                setUploadingCount(prev => Math.max(0, prev - 1));
+                setAttachments(prev =>
+                    prev.map(item => item.name === file.name ? { ...item, error: err.message || 'Upload failed', progress: 0 } : item)
+                );
+            }
+        }
+    };
+
+    const removeAttachment = (fileName: string) => {
+        setAttachments(prev => prev.filter(item => item.name !== fileName));
     };
 
     const onSubmit = async (data: CheckoutFormData) => {
+        if (uploadingCount > 0) {
+            alert(
+                locale === 'ru'
+                    ? 'Пожалуйста, дождитесь окончания загрузки всех файлов.'
+                    : 'Please wait until all files are uploaded.'
+            );
+            return;
+        }
+
         setIsSubmitting(true);
         setSubmitError(null);
 
         try {
+            const uploadedUrls = attachments.filter(a => a.url).map(a => a.url as string);
+
+            const payload = {
+                cartItems: items,
+                customerInfo: {
+                    ...data,
+                    attachments: uploadedUrls,
+                    captchaToken,
+                    paymentMethod: 'post_payment',
+                },
+                locale,
+            };
+
             const response = await fetch(API.CREATE_ORDER, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    cartItems: items,
-                    customerInfo: data,
-                    locale,
-                }),
+                body: JSON.stringify(payload),
             });
 
             const result = await response.json();
 
             if (!response.ok) {
+                // Reset captcha on failure to let them try again
+                if (window.turnstile && widgetIdRef.current) {
+                    window.turnstile.reset(widgetIdRef.current);
+                }
                 throw new Error(result.error || 'Failed to submit order');
             }
 
-            if (result.success && result.paymentUrl) {
-                // Card payment: redirect to YooKassa payment page
-                window.location.href = result.paymentUrl;
-            } else if (result.success) {
-                // Bank transfer: go to order success page
-                router.push(`/order-success?orderId=${result.orderId}&method=bank_transfer`);
+            if (result.success) {
+                clearCart();
+                router.push(`/order-success?orderId=${result.orderId}`);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Checkout error:', error);
-            setSubmitError(
+            setSubmitError(error.message || (
                 locale === 'ru'
                     ? 'Произошла ошибка при оформлении заказа. Попробуйте позже.'
                     : 'An error occurred while placing your order. Please try again later.'
-            );
+            ));
         } finally {
             setIsSubmitting(false);
         }
@@ -150,7 +349,6 @@ export default function CheckoutForm() {
                     locale={locale}
                     placeholder={locale === 'ru' ? 'г. Москва, ул. Пушкина, д. 1, кв. 10' : '123 Main St, New York, NY'}
                 />
-
             </div>
 
             {/* Telegram (Optional) */}
@@ -169,130 +367,128 @@ export default function CheckoutForm() {
                 )}
             </div>
 
-            {/* Notes (Optional) */}
+            {/* Layout Attachment Upload Field */}
             <div>
                 <label className="block text-sm font-medium text-[#E8D48B] mb-2">
-                    {locale === 'ru' ? 'Комментарий к заказу' : 'Order Notes'} <span className="text-[#F5ECD7]/50 font-normal">({locale === 'ru' ? 'необязательно' : 'optional'})</span>
+                    {locale === 'ru' ? 'Макеты для гравировки / Референсы' : 'Engraving Layouts / References'}
+                </label>
+                <div className="w-full border-2 border-dashed border-[#C9A227]/30 rounded-lg bg-[#0D0A0B] p-6 text-center hover:border-[#C9A227]/60 transition-colors relative">
+                    <input
+                        type="file"
+                        multiple
+                        onChange={handleFileChange}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        accept=".cdr,.dxf,.ai,.pdf,.eps,.png,.jpg,.jpeg"
+                    />
+                    <div className="space-y-1 pointer-events-none">
+                        <span className="text-3xl">📁</span>
+                        <p className="text-[#E8D48B] font-medium">
+                            {locale === 'ru' ? 'Выберите или перетащите файлы' : 'Choose or drag files here'}
+                        </p>
+                        <p className="text-xs text-[#F5ECD7]/50">
+                            {locale === 'ru' ? 'Разрешены: .cdr, .dxf, .ai, .pdf, .eps, .png, .jpg (до 50 МБ)' : 'Allowed: .cdr, .dxf, .ai, .pdf, .eps, .png, .jpg (up to 50MB)'}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Uploading Progress & Files List */}
+                {attachments.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                        {attachments.map((file, idx) => (
+                            <div key={file.name + idx} className="flex items-center justify-between p-3 bg-[#1A1517] border border-[#C9A227]/10 rounded-lg">
+                                <div className="flex-1 mr-4">
+                                    <div className="flex justify-between items-center text-sm font-semibold text-[#F5ECD7] mb-1">
+                                        <span className="truncate max-w-[200px] sm:max-w-xs">{file.name}</span>
+                                        <span className="text-xs font-mono text-[#C9A227]">
+                                            {file.error ? (
+                                                <span className="text-red-400">{file.error}</span>
+                                            ) : (
+                                                `${file.progress}%`
+                                            )}
+                                        </span>
+                                    </div>
+                                    {!file.error && file.progress < 100 && (
+                                        <div className="w-full bg-[#0D0A0B] h-1.5 rounded-full overflow-hidden">
+                                            <div
+                                                className="bg-gradient-to-r from-[#C9A227] to-[#8B7D4B] h-full transition-all duration-300"
+                                                style={{ width: `${file.progress}%` }}
+                                            ></div>
+                                        </div>
+                                    )}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => removeAttachment(file.name)}
+                                    className="text-red-400/80 hover:text-red-400 text-sm p-1 ml-2 transition-colors"
+                                >
+                                    ❌
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Notes / Specifications */}
+            <div>
+                <label className="block text-sm font-medium text-[#E8D48B] mb-2">
+                    {locale === 'ru' ? 'Комментарий к макету и ТЗ' : 'Engraving Specifications'} <span className="text-[#F5ECD7]/50 font-normal">({locale === 'ru' ? 'необязательно' : 'optional'})</span>
                 </label>
                 <textarea
                     {...register('notes')}
                     rows={4}
                     className="w-full px-4 py-3 bg-[#0D0A0B] border border-[#C9A227]/30 rounded-lg text-[#F5ECD7] placeholder-[#F5ECD7]/40 focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] transition-colors resize-none"
-                    placeholder={locale === 'ru' ? 'Ваши пожелания или уточнения...' : 'Any special instructions...'}
+                    placeholder={locale === 'ru' ? 'Напишите текст для гравировки, расположение, выбор шрифта...' : 'Write text, placement, font preferences...'}
                 />
                 {errors.notes && (
                     <p className="text-red-400 text-sm mt-1">{errors.notes.message}</p>
                 )}
             </div>
 
-            {/* Payment Method */}
-            <div>
-                <label className="block text-sm font-medium text-[#E8D48B] mb-3">
-                    {locale === 'ru' ? 'Способ оплаты' : 'Payment Method'}
-                </label>
-                <div className="space-y-3">
-                    {/* Card Payment Option */}
-                    <label
-                        className={`flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all ${paymentMethodValue === 'card'
-                            ? 'bg-[#C9A227]/10 border-[#C9A227]/60 shadow-[0_0_12px_rgba(201,162,39,0.15)] ring-1 ring-[#C9A227]'
-                            : 'bg-[#0D0A0B] border-[#C9A227]/20 hover:border-[#C9A227]/40'
-                            }`}
-                    >
-                        <input
-                            type="radio"
-                            value="card"
-                            {...register('paymentMethod')}
-                            className="w-4 h-4 accent-[#C9A227]"
-                        />
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                                <span className="text-lg">💳</span>
-                                <span className="font-medium text-[#E8D48B]">
-                                    {locale === 'ru' ? 'Оплата картой (ЮKassa)' : 'Card Payment (YooKassa)'}
-                                </span>
-                            </div>
-                            <p className="text-xs text-[#F5ECD7]/50 mt-1">
-                                {locale === 'ru' ? 'Visa, Mastercard, МИР' : 'Visa, Mastercard, MIR'}
-                            </p>
-                            {paymentMethodValue === 'card' && (
-                                <div className="mt-2 text-xs text-[#C9A227] bg-[#C9A227]/10 p-2 rounded border border-[#C9A227]/20">
-                                    {locale === 'ru'
-                                        ? 'Внимание: при оплате картой взимается комиссия сервиса +3.5%'
-                                        : 'Note: A +3.5% service fee is applied for card payments'}
-                                </div>
-                            )}
-                        </div>
-                    </label>
-
-                    {/* Bank Transfer Option */}
-                    <label
-                        className={`flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all ${paymentMethodValue === 'bank_transfer'
-                            ? 'bg-[#C9A227]/10 border-[#C9A227]/60 shadow-[0_0_12px_rgba(201,162,39,0.15)] ring-1 ring-[#C9A227]'
-                            : 'bg-[#0D0A0B] border-[#C9A227]/20 hover:border-[#C9A227]/40'
-                            }`}
-                    >
-                        <input
-                            type="radio"
-                            value="bank_transfer"
-                            {...register('paymentMethod')}
-                            className="w-4 h-4 accent-[#C9A227]"
-                        />
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                                <span className="text-lg">🏦</span>
-                                <span className="font-medium text-[#E8D48B]">
-                                    {locale === 'ru' ? 'Перевод по реквизитам' : 'Bank Transfer'}
-                                </span>
-                            </div>
-                            <p className="text-xs text-[#F5ECD7]/50 mt-1">
-                                {locale === 'ru' ? 'Без комиссии. Менеджер свяжется для оплаты.' : 'No fee. Manager will contact regarding payment.'}
-                            </p>
-                        </div>
-                    </label>
+            {/* Process Info Box */}
+            <div className="p-4 bg-[#C9A227]/5 border border-[#C9A227]/20 rounded-xl space-y-2">
+                <div className="flex items-center gap-2 text-[#E8D48B] font-semibold text-sm">
+                    <span>💡</span>
+                    <span>{locale === 'ru' ? 'Как происходит заказ:' : 'How it works:'}</span>
                 </div>
-                {errors.paymentMethod && (
-                    <p className="text-red-400 text-sm mt-2">{errors.paymentMethod.message}</p>
-                )}
+                <p className="text-xs text-[#F5ECD7]/70 leading-relaxed">
+                    {locale === 'ru'
+                        ? 'Вы отправляете заявку. Наш мастер проверит ваши макеты, откроет обсуждение в чате Личного Кабинета и утвердит цену. Оплатить заказ можно будет картой через ЮKassa в вашем личном кабинете после согласования макета.'
+                        : 'Submit your request. Our master will verify your layouts, discuss them with you in the client cabinet chat, and confirm the price. You can pay securely via YooKassa in your cabinet after the layout is approved.'}
+                </p>
+            </div>
+
+            {/* Turnstile Captcha Container */}
+            <div className="flex justify-center my-4">
+                <div ref={turnstileRef} id="cf-turnstile-container"></div>
             </div>
 
             {/* Error Message */}
             {submitError && (
-                <div className="p-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg">
+                <div className="p-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg text-sm">
                     {submitError}
                 </div>
             )}
 
-            {/* Total Display */}
+            {/* Estimated Total Display */}
             <div className="flex justify-between items-center p-4 bg-[#1A1517] rounded-xl border border-[#C9A227]/20">
                 <span className="text-[#F5ECD7]/70 text-sm">
-                    {paymentMethodValue === 'card'
-                        ? (locale === 'ru' ? 'Итого к оплате (с комиссией):' : 'Total to pay (with fee):')
-                        : (locale === 'ru' ? 'Итого к оплате:' : 'Total to pay:')}
+                    {locale === 'ru' ? 'Предварительная стоимость:' : 'Estimated total:'}
                 </span>
                 <span className="text-xl font-bold text-[#E8D48B] text-glow-gold">
-                    {(() => {
-                        const finalPrice = getFinalPrice();
-                        if (paymentMethodValue === 'card') {
-                            const fee = finalPrice * 0.035;
-                            const totalWithFee = finalPrice + fee;
-                            return formatPrice(totalWithFee);
-                        }
-                        return formatPrice(finalPrice);
-                    })()}
+                    {formatPrice(getFinalPrice())}
                 </span>
             </div>
 
             {/* Submit Button */}
             <button
                 type="submit"
-                disabled={isSubmitting || items.length === 0}
+                disabled={isSubmitting || items.length === 0 || uploadingCount > 0}
                 className="w-full bg-gradient-to-r from-[#C9A227] to-[#8B7D4B] text-[#0D0A0B] py-4 rounded-xl font-bold hover:shadow-[0_0_20px_rgba(201,162,39,0.4)] transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1"
             >
                 {isSubmitting
-                    ? (locale === 'ru' ? 'Обработка...' : 'Processing...')
-                    : paymentMethodValue === 'card'
-                        ? (locale === 'ru' ? 'Перейти к оплате' : 'Proceed to Payment')
-                        : (locale === 'ru' ? 'Оформить заказ' : 'Place Order')}
+                    ? (locale === 'ru' ? 'Отправка заявки...' : 'Submitting Request...')
+                    : (locale === 'ru' ? 'Отправить на проверку мастеру' : 'Submit for Master Verification')}
             </button>
         </form>
     );

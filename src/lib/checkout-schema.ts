@@ -37,9 +37,9 @@ export const checkoutSchema = z.object({
         .max(1000, { message: 'Note must be less than 1000 characters' })
         .optional(),
     addressDetails: z.any().optional(),
-    paymentMethod: z.enum(['card', 'bank_transfer'], {
-        message: 'Please select a payment method',
-    }),
+    paymentMethod: z.enum(['card', 'bank_transfer', 'post_payment']).default('post_payment'),
+    attachments: z.array(z.string()).optional(),
+    captchaToken: z.string().optional(),
 });
 
 export type CheckoutFormData = z.infer<typeof checkoutSchema>;
@@ -100,8 +100,9 @@ export const getLocalizedSchema = (locale: 'en' | 'ru') => {
             .max(1000, { message: locale === 'ru' ? 'Комментарий слишком длинный' : 'Note is too long' })
             .optional(),
         addressDetails: z.any().optional(),
-        paymentMethod: z.enum(['card', 'bank_transfer'], {
-            message: locale === 'ru' ? 'Выберите способ оплаты' : 'Please select a payment method',
-        }),
+        paymentMethod: z.enum(['card', 'bank_transfer', 'post_payment']).default('post_payment'),
+        attachments: z.array(z.string()).optional(),
+        captchaToken: z.string().optional(),
     });
 };
+

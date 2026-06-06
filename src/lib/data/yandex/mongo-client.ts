@@ -63,6 +63,12 @@ export async function getDb(): Promise<Db> {
 
         const db = client.db(DB_NAME);
 
+        // Ensure TTL index for auth_tokens (expire after 1 hour)
+        db.collection('auth_tokens').createIndex(
+            { createdAt: 1 },
+            { expireAfterSeconds: 3600 }
+        ).catch(err => console.error('[MongoDB] Error creating TTL index for auth_tokens:', err));
+
         globalForMongo._mongoClient = client;
         globalForMongo._mongoDb = db;
         globalForMongo._mongoConnecting = undefined;

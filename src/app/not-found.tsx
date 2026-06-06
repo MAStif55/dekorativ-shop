@@ -7,7 +7,7 @@ export default function NotFound() {
     const { locale } = useLanguage();
 
     return (
-        <main className="min-h-screen bg-ivory flex flex-col items-center justify-center text-center px-6 relative overflow-hidden">
+        <main className="min-h-screen flex flex-col items-center justify-center text-center px-6 relative overflow-hidden">
             {/* Background Effects */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#C5A059] opacity-[0.03] rounded-full blur-3xl pointer-events-none"></div>
 
@@ -33,7 +33,7 @@ export default function NotFound() {
 
                 <Link
                     href="/"
-                    className="bg-[#C5A059] text-white px-8 py-3.5 rounded-xl font-bold transition-all shadow-md inline-block hover:scale-105 hover:bg-[#A08044]"
+                    className="btn-primary inline-block text-center"
                 >
                     {locale === 'ru' ? 'Вернуться на Главную' : 'Return to Home'}
                 </Link>

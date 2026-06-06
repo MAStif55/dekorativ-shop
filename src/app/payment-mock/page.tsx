@@ -74,15 +74,15 @@ function PaymentMockContent() {
 
     if (!orderId) {
         return (
-            <div className="min-h-screen bg-ivory flex items-center justify-center text-red-600 font-semibold">
+            <div className="min-h-screen flex items-center justify-center text-red-600 font-semibold">
                 Ошибка: Отсутствует параметр orderId.
             </div>
         );
     }
 
     return (
-        <main className="min-h-screen bg-ivory flex items-center justify-center p-4">
-            <div className="max-w-md w-full bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 shadow-sm relative overflow-hidden space-y-6">
+        <main className="min-h-screen flex items-center justify-center p-4">
+            <div className="max-w-md w-full bg-white/80 backdrop-blur-sm border border-slate-100 rounded-2xl p-6 sm:p-8 shadow-sm relative overflow-hidden space-y-6">
                 {/* Visual Glow */}
                 <div className="absolute -top-12 -left-12 w-24 h-24 bg-[#C5A059]/5 rounded-full blur-2xl pointer-events-none"></div>
 
@@ -150,7 +150,7 @@ function PaymentMockContent() {
 
 export default function PaymentMockPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-ivory flex items-center justify-center text-slate">Loading...</div>}>
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-slate">Loading...</div>}>
             <PaymentMockContent />
         </Suspense>
     );

@@ -28,7 +28,7 @@ function OrderSuccessContent() {
     }, [orderId, clearCart, mounted]);
 
     return (
-        <main className="min-h-screen bg-ivory flex flex-col">
+        <main className="min-h-screen flex flex-col">
             <Header />
 
             <section className="flex-1 flex items-center justify-center py-16 px-6">
@@ -49,7 +49,7 @@ function OrderSuccessContent() {
 
                     {/* Order Number */}
                     {orderId && (
-                        <div className="bg-white border border-slate-100 rounded-xl p-6 mb-8 shadow-sm">
+                        <div className="bg-white/80 backdrop-blur-sm border border-slate-100 rounded-2xl p-6 mb-8 shadow-sm">
                             <p className="text-slate/60 text-sm mb-2">
                                 {locale === 'ru' ? 'Номер заказа:' : 'Order Number:'}
                             </p>
@@ -67,7 +67,7 @@ function OrderSuccessContent() {
                     </p>
 
                     {/* Cabinet & Chat Info Block */}
-                    <div className="bg-white border border-slate-100 rounded-xl p-5 mb-8 text-left shadow-sm space-y-3">
+                    <div className="bg-white/80 backdrop-blur-sm border border-slate-100 rounded-2xl p-5 mb-8 text-left shadow-sm space-y-3">
                         <div className="flex items-center gap-2">
                             <span className="text-xl">💬</span>
                             <h3 className="font-bold text-slate-dark">
@@ -91,7 +91,7 @@ function OrderSuccessContent() {
 
                     {/* Bank Transfer Info */}
                     {paymentMethod === 'bank_transfer' && (
-                        <div className="bg-amber-50/50 border border-amber-200/50 rounded-xl p-5 mb-8 text-left shadow-sm">
+                        <div className="bg-amber-50/40 backdrop-blur-sm border border-amber-200/30 rounded-2xl p-5 mb-8 text-left shadow-sm">
                             <div className="flex items-center gap-2 mb-3">
                                 <span className="text-xl">🏦</span>
                                 <h3 className="font-bold text-slate-dark">
@@ -107,7 +107,7 @@ function OrderSuccessContent() {
                     )}
 
                     {/* Contact Info */}
-                    <div className="bg-white/40 border border-slate-200/60 rounded-xl p-4 mb-8 shadow-sm">
+                    <div className="bg-white/40 backdrop-blur-sm border border-slate-200/60 rounded-2xl p-4 mb-8 shadow-sm">
                         <p className="text-slate/60 text-sm">
                             {locale === 'ru'
                                 ? 'Если у вас есть вопросы, свяжитесь с нами через Telegram или email.'
@@ -116,19 +116,19 @@ function OrderSuccessContent() {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                         <Link
                             href="/catalog"
-                            className="inline-flex items-center justify-center gap-2 bg-[#C5A059] text-white px-8 py-3.5 rounded-xl font-bold hover:bg-[#A08044] transition-all shadow-md transform hover:-translate-y-0.5"
+                            className="btn-primary inline-flex items-center justify-center gap-2 w-full sm:w-auto text-center"
                         >
                             {locale === 'ru' ? 'Продолжить покупки' : 'Continue Shopping'}
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                             </svg>
                         </Link>
                         <Link
                             href="/"
-                            className="inline-flex items-center justify-center gap-2 border border-slate-200 text-slate px-8 py-3.5 rounded-xl font-bold hover:bg-slate-50 transition-all shadow-sm"
+                            className="btn-outline inline-flex items-center justify-center gap-2 w-full sm:w-auto text-center"
                         >
                             {locale === 'ru' ? 'На главную' : 'Home'}
                         </Link>
@@ -143,7 +143,7 @@ function OrderSuccessContent() {
 
 export default function OrderSuccessPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-ivory flex items-center justify-center text-slate">Loading...</div>}>
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-slate">Loading...</div>}>
             <OrderSuccessContent />
         </Suspense>
     );

@@ -40,7 +40,11 @@ export default function OrderChat({ orderId, userType }: OrderChatProps) {
             .then(res => res.json())
             .then(data => {
                 if (active && data.success) {
-                    setMessages(data.messages || []);
+                    const formatted = (data.messages || []).map((m: any) => ({
+                        ...m,
+                        id: m._id?.toString() || m.id
+                    }));
+                    setMessages(formatted);
                     setTimeout(() => scrollToBottom('auto'), 50);
                 }
             })
@@ -232,9 +236,11 @@ export default function OrderChat({ orderId, userType }: OrderChatProps) {
                                     <span className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${
                                         isOwnMsg ? 'text-white/80' : 'text-[#C5A059]'
                                     }`}>
-                                        {isAdminMsg 
-                                            ? (locale === 'ru' ? 'Мастер' : 'Master') 
-                                            : (locale === 'ru' ? 'Клиент' : 'Client')}
+                                        {isOwnMsg 
+                                            ? (locale === 'ru' ? 'Вы' : 'You')
+                                            : (isAdminMsg 
+                                                ? (locale === 'ru' ? 'Мастер' : 'Master') 
+                                                : (locale === 'ru' ? 'Клиент' : 'Client'))}
                                     </span>
 
                                     {/* Text */}

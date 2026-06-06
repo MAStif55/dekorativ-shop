@@ -35,17 +35,17 @@ export default function CartPage() {
     // Show loading state during hydration
     if (!mounted) {
         return (
-            <main className="min-h-screen bg-gradient-to-b from-[#0D0A0B] via-[#1A1517] to-[#0D0A0B] flex flex-col">
+            <main className="min-h-screen flex flex-col">
                 <Header />
                 <section className="py-6 px-6 text-center">
-                    <h2 className="text-3xl md:text-4xl font-ornamental text-[#E8D48B] mb-2 text-glow-gold">
+                    <h2 className="text-3xl md:text-4xl font-ornamental text-slate-dark mb-2">
                         {t('cart.title')}
                     </h2>
                 </section>
                 <section className="flex-1 py-8 px-6 max-w-4xl mx-auto w-full">
-                    <div className="bg-[#1A1517] border border-[#C9A227]/20 rounded-2xl p-8 animate-pulse">
-                        <div className="h-20 bg-[#2A2527] rounded-lg mb-4"></div>
-                        <div className="h-20 bg-[#2A2527] rounded-lg"></div>
+                    <div className="bg-white/80 border border-slate-100 rounded-2xl p-8 animate-pulse shadow-sm">
+                        <div className="h-20 bg-slate-100 rounded-lg mb-4"></div>
+                        <div className="h-20 bg-slate-100 rounded-lg"></div>
                     </div>
                 </section>
                 <Footer />
@@ -76,7 +76,7 @@ export default function CartPage() {
     const giftProgress = isGiftSuccess ? 100 : ((totalItems % 11) / 11) * 100;
 
     return (
-        <main className="min-h-screen bg-gradient-to-b from-[#0D0A0B] via-[#1A1517] to-[#0D0A0B] flex flex-col">
+        <main className="min-h-screen flex flex-col">
             <Header />
 
             {/* Hero Banner */}
@@ -84,12 +84,12 @@ export default function CartPage() {
                 className="py-6 px-6 text-center relative overflow-hidden"
             >
                 {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, #C9A227 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
+                <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, #C5A059 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
 
-                <h2 className="text-3xl md:text-4xl font-ornamental text-[#E8D48B] mb-2 relative z-10 text-glow-gold">
+                <h2 className="text-3xl md:text-4xl font-ornamental text-slate-dark mb-2 relative z-10">
                     {t('cart.title')}
                 </h2>
-                <p className="text-[#C9A227]/80 relative z-10 tracking-wider">
+                <p className="text-[#C5A059] relative z-10 tracking-wider font-medium">
                     {isEmpty
                         ? (locale === 'ru' ? 'Ваша корзина пуста' : 'Your cart is empty')
                         : (locale === 'ru' ? `${items.length} товар(ов)` : `${items.length} item(s)`)}
@@ -99,21 +99,21 @@ export default function CartPage() {
             {/* Cart Content */}
             <section className="flex-1 py-6 sm:py-8 px-4 sm:px-6 max-w-4xl mx-auto w-full">
                 {isEmpty ? (
-                    <div className="text-center py-8 bg-[#1A1517] border border-[#C9A227]/20 rounded-2xl shadow-2xl relative overflow-hidden group">
-                        <div className="absolute inset-0 bg-gradient-to-b from-[#C9A227]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                    <div className="text-center py-12 bg-white/80 border border-slate-100 rounded-2xl shadow-sm relative overflow-hidden group backdrop-blur-sm">
+                        <div className="absolute inset-0 bg-gradient-to-b from-[#C5A059]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
 
-                        <div className="text-7xl mb-6 opacity-80">🛒</div>
-                        <h3 className="text-2xl font-bold text-[#E8D48B] mb-4 font-ornamental">
+                        <div className="text-7xl mb-6 opacity-60">🛒</div>
+                        <h3 className="text-2xl font-bold text-slate-dark mb-4 font-ornamental">
                             {t('cart.empty')}
                         </h3>
-                        <p className="text-[#F5ECD7]/60 mb-8 max-w-md mx-auto">
+                        <p className="text-slate-light mb-8 max-w-md mx-auto">
                             {locale === 'ru'
                                 ? 'Добавьте товары из каталога, чтобы оформить заказ'
                                 : 'Add items from the catalog to place an order'}
                         </p>
                         <Link
                             href="/catalog"
-                            className="relative z-10 inline-flex items-center gap-2 bg-gradient-to-r from-[#C9A227] to-[#8B7D4B] text-[#0D0A0B] px-8 py-3 rounded-xl font-bold hover:shadow-[0_0_20px_rgba(201,162,39,0.4)] transition-all transform hover:-translate-y-1"
+                            className="relative z-10 inline-flex items-center gap-2 bg-[#C5A059] text-white px-8 py-3.5 rounded-xl font-bold hover:bg-[#A08044] hover:shadow-lg hover:shadow-[#C5A059]/20 transition-all transform hover:-translate-y-0.5"
                         >
                             {t('cart.continueShopping')}
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,36 +127,36 @@ export default function CartPage() {
                         {/* Progress Bars */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Free Shipping Bar */}
-                            <div className="bg-[#1A1517] border border-[#C9A227]/20 rounded-xl p-4 shadow-lg">
+                            <div className="bg-white/80 border border-slate-100 rounded-xl p-4 shadow-sm backdrop-blur-sm">
                                 <div className="flex justify-between items-center mb-2">
-                                    <span className={`text-sm font-medium ${isFreeShipping ? 'text-green-400' : 'text-[#E8D48B]'}`}>
+                                    <span className={`text-sm font-medium ${isFreeShipping ? 'text-green-600' : 'text-slate-dark'}`}>
                                         {isFreeShipping
                                             ? t('cart.freeShippingSuccess')
                                             : t('cart.freeShippingRemaining', { amount: formatPrice(freeShippingRemaining) })}
                                     </span>
-                                    <span className="text-[#C9A227] text-xs font-mono">{Math.round(freeShippingProgress)}%</span>
+                                    <span className="text-slate-light text-xs font-mono">{Math.round(freeShippingProgress)}%</span>
                                 </div>
-                                <div className="h-2 bg-[#2A2527] rounded-full overflow-hidden">
+                                <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
                                     <div
-                                        className={`h-full transition-all duration-500 ease-out ${isFreeShipping ? 'bg-green-500' : 'bg-gradient-to-r from-[#C9A227] to-[#8B7D4B]'}`}
+                                        className={`h-full transition-all duration-500 ease-out ${isFreeShipping ? 'bg-green-500' : 'bg-gradient-to-r from-[#C5A059] to-[#A08044]'}`}
                                         style={{ width: `${freeShippingProgress}%` }}
                                     ></div>
                                 </div>
                             </div>
 
                             {/* Gift Item Bar */}
-                            <div className="bg-[#1A1517] border border-[#C9A227]/20 rounded-xl p-4 shadow-lg">
+                            <div className="bg-white/80 border border-slate-100 rounded-xl p-4 shadow-sm backdrop-blur-sm">
                                 <div className="flex justify-between items-center mb-2">
-                                    <span className={`text-sm font-medium ${isGiftSuccess ? 'text-green-400' : 'text-[#E8D48B]'}`}>
+                                    <span className={`text-sm font-medium ${isGiftSuccess ? 'text-green-600' : 'text-slate-dark'}`}>
                                         {isGiftSuccess
                                             ? t('cart.giftSuccess')
                                             : t('cart.giftRemaining', { count: giftRemaining })}
                                     </span>
-                                    <span className="text-[#C9A227] text-xs font-mono">{Math.round(giftProgress)}%</span>
+                                    <span className="text-slate-light text-xs font-mono">{Math.round(giftProgress)}%</span>
                                 </div>
-                                <div className="h-2 bg-[#2A2527] rounded-full overflow-hidden">
+                                <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
                                     <div
-                                        className={`h-full transition-all duration-500 ease-out ${isGiftSuccess ? 'bg-green-500' : 'bg-gradient-to-r from-[#C9A227] to-[#8B7D4B]'}`}
+                                        className={`h-full transition-all duration-500 ease-out ${isGiftSuccess ? 'bg-green-500' : 'bg-gradient-to-r from-[#C5A059] to-[#A08044]'}`}
                                         style={{ width: `${giftProgress}%` }}
                                     ></div>
                                 </div>
@@ -164,34 +164,36 @@ export default function CartPage() {
                         </div>
 
                         {/* Cart Items */}
-                        <div className="bg-[#1A1517] border border-[#C9A227]/20 rounded-2xl shadow-xl overflow-hidden backdrop-blur-sm">
+                        <div className="bg-white/80 border border-slate-100 rounded-2xl shadow-sm overflow-hidden backdrop-blur-sm">
                             {items.map((item, index) => (
                                 <div
                                     key={item.id}
-                                    className={`flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 sm:p-6 ${index !== items.length - 1 ? 'border-b border-[#C9A227]/10' : ''} hover:bg-[#C9A227]/5 transition-colors`}
+                                    className={`flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 sm:p-6 ${index !== items.length - 1 ? 'border-b border-slate-100' : ''} hover:bg-slate-50/50 transition-colors`}
                                 >
                                     {/* Product Image */}
-                                    <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-[#2A2527] rounded-lg flex items-center justify-center text-2xl sm:text-3xl overflow-hidden border border-[#C9A227]/20 flex-shrink-0">
+                                    <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-slate-50 rounded-lg flex items-center justify-center overflow-hidden border border-slate-200 flex-shrink-0">
                                         {item.productImage ? (
                                             <Image src={item.productImage} alt={typeof item.productTitle === 'object' ? item.productTitle[locale] : item.productTitle} fill className="object-cover" />
                                         ) : (
-                                            <span>🕉️</span>
+                                            <svg className="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
                                         )}
                                     </div>
 
                                     {/* Product Info */}
                                     <div className="flex-1 min-w-0 w-full sm:w-auto">
-                                        <h4 className="font-bold text-[#E8D48B] text-lg sm:text-xl pr-2">
+                                        <h4 className="font-bold text-slate-dark text-lg sm:text-xl pr-2">
                                             {typeof item.productTitle === 'object'
                                                 ? item.productTitle[locale]
                                                 : item.productTitle}
                                             {item.configuration && Object.keys(item.configuration).length > 0 && (
-                                                <span className="text-[#F5ECD7]/60 font-normal text-base sm:text-lg ml-2">
+                                                <span className="text-slate-light font-normal text-base sm:text-lg ml-2">
                                                     ({Object.values(item.configuration).join(', ')})
                                                 </span>
                                             )}
                                         </h4>
-                                        <p className="text-[#C9A227] font-mono text-base sm:text-lg">
+                                        <p className="text-[#C5A059] font-mono text-base sm:text-lg">
                                             {formatPrice(item.price)}
                                         </p>
                                     </div>
@@ -199,17 +201,17 @@ export default function CartPage() {
                                     {/* Quantity and Controls */}
                                     <div className="flex flex-col sm:flex-row items-center gap-4">
                                         {/* Quantity */}
-                                        <div className="flex items-center gap-2 bg-[#0D0A0B]/50 rounded-lg p-1 border border-[#C9A227]/20">
+                                        <div className="flex items-center gap-2 bg-slate-50 rounded-lg p-1 border border-slate-200">
                                             <button
                                                 onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
-                                                className="w-7 h-7 flex items-center justify-center rounded-md bg-[#2A2527] text-[#C9A227] hover:bg-[#C9A227] hover:text-[#0D0A0B] transition-colors"
+                                                className="w-7 h-7 flex items-center justify-center rounded-md bg-white text-slate hover:bg-[#C5A059] hover:text-white border border-slate-200/60 transition-colors"
                                             >
                                                 -
                                             </button>
-                                            <span className="w-8 text-center font-bold text-[#F5ECD7]">{item.quantity}</span>
+                                            <span className="w-8 text-center font-bold text-slate-dark">{item.quantity}</span>
                                             <button
                                                 onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                                className="w-7 h-7 flex items-center justify-center rounded-md bg-[#2A2527] text-[#C9A227] hover:bg-[#C9A227] hover:text-[#0D0A0B] transition-colors"
+                                                className="w-7 h-7 flex items-center justify-center rounded-md bg-white text-slate hover:bg-[#C5A059] hover:text-white border border-slate-200/60 transition-colors"
                                             >
                                                 +
                                             </button>
@@ -218,7 +220,7 @@ export default function CartPage() {
                                         {/* Remove Button */}
                                         <button
                                             onClick={() => removeItem(item.id)}
-                                            className="text-red-400 hover:text-red-300 transition-colors p-2 hover:bg-red-500/10 rounded-full"
+                                            className="text-slate-light hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-full"
                                             title={t('cart.remove')}
                                         >
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -231,11 +233,11 @@ export default function CartPage() {
                         </div>
 
                         {/* Cart Summary */}
-                        <div className="bg-[#1A1517] border border-[#C9A227]/20 rounded-2xl shadow-xl p-6">
+                        <div className="bg-white/80 border border-slate-100 rounded-2xl shadow-sm p-6 backdrop-blur-sm">
                             {/* Subtotal */}
                             <div className="flex justify-between items-center mb-2">
-                                <span className="text-[#F5ECD7]/70">{t('cart.subtotal')}:</span>
-                                <span className="text-xl font-medium text-[#E8D48B]">
+                                <span className="text-slate">{t('cart.subtotal')}:</span>
+                                <span className="text-xl font-medium text-slate-dark">
                                     {formatPrice(subtotal)}
                                 </span>
                             </div>
@@ -243,8 +245,8 @@ export default function CartPage() {
                             {/* Discount */}
                             {discount > 0 && (
                                 <div className="flex justify-between items-center mb-2">
-                                    <span className="text-green-400/80">{t('cart.discount')}:</span>
-                                    <span className="text-xl font-medium text-green-400">
+                                    <span className="text-green-600">{t('cart.discount')}:</span>
+                                    <span className="text-xl font-medium text-green-600">
                                         -{formatPrice(discount)}
                                     </span>
                                 </div>
@@ -252,19 +254,19 @@ export default function CartPage() {
 
                             {/* Shipping */}
                             <div className="flex justify-between items-center mb-4">
-                                <span className="text-[#F5ECD7]/70">{t('cart.shipping')}:</span>
-                                <span className={`text-xl font-medium ${isFreeShippingEligible() ? 'text-green-400' : 'text-[#E8D48B]'}`}>
+                                <span className="text-slate">{t('cart.shipping')}:</span>
+                                <span className={`text-xl font-medium ${isFreeShippingEligible() ? 'text-green-600' : 'text-slate-dark'}`}>
                                     {isFreeShippingEligible() ? t('cart.free') : formatPrice(getShippingCost())}
                                 </span>
                             </div>
 
                             {/* Total Separator */}
-                            <div className="border-t border-[#C9A227]/20 my-4"></div>
+                            <div className="border-t border-slate-100 my-4"></div>
 
                             {/* Total */}
                             <div className="flex justify-between items-center mb-6">
-                                <span className="text-lg font-bold text-[#F5ECD7]/90">{t('cart.total')}:</span>
-                                <span className="text-3xl font-bold text-[#E8D48B] text-glow-gold">
+                                <span className="text-lg font-bold text-slate-dark">{t('cart.total')}:</span>
+                                <span className="text-3xl font-bold text-slate-dark font-ornamental">
                                     {formatPrice(finalPrice)}
                                 </span>
                             </div>
@@ -272,13 +274,13 @@ export default function CartPage() {
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <Link
                                     href="/catalog"
-                                    className="flex-1 text-center border border-[#C9A227]/50 text-[#C9A227] px-6 py-3 rounded-xl font-bold hover:bg-[#C9A227]/10 hover:border-[#C9A227] transition-all"
+                                    className="flex-1 text-center border border-[#C5A059] text-slate px-6 py-3.5 rounded-xl font-bold hover:text-[#A08044] hover:border-[#A08044] hover:bg-white transition-all uppercase tracking-wider text-xs"
                                 >
                                     {t('cart.continueShopping')}
                                 </Link>
                                 <Link
                                     href="/checkout"
-                                    className="flex-1 bg-gradient-to-r from-[#C9A227] to-[#8B7D4B] text-[#0D0A0B] px-6 py-3 rounded-xl font-bold hover:shadow-[0_0_15px_rgba(201,162,39,0.4)] transition-all shadow-lg flex items-center justify-center gap-2"
+                                    className="flex-1 bg-[#C5A059] text-white px-6 py-3.5 rounded-xl font-bold hover:bg-[#A08044] hover:shadow-lg hover:shadow-[#C5A059]/20 transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-sm"
                                 >
                                     {t('cart.checkout')}
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -292,7 +294,7 @@ export default function CartPage() {
                         <div className="text-center">
                             <button
                                 onClick={clearCart}
-                                className="text-red-400 hover:text-red-300 text-sm font-medium transition-colors hover:underline"
+                                className="text-red-500/60 hover:text-red-600 text-sm font-medium transition-colors hover:underline"
                             >
                                 {locale === 'ru' ? 'Очистить корзину' : 'Clear Cart'}
                             </button>

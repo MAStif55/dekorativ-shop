@@ -37,8 +37,6 @@ export async function POST(request: Request) {
             Bucket: BUCKET_NAME,
             Key: s3Key,
             ContentType: fileType,
-            // Force browser download by setting Content-Disposition header
-            ContentDisposition: `attachment; filename="${encodeURIComponent(fileName)}"`,
         });
 
         // Generate the presigned URL valid for 15 minutes (900 seconds)

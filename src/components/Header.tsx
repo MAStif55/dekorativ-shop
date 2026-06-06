@@ -175,6 +175,21 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                             <span>{t('nav.cart')}</span>
                         </button>
 
+                        <div className="w-px h-6 bg-slate-200 mx-2"></div>
+
+                        {/* Cabinet */}
+                        <Link
+                            href="/cabinet"
+                            className={`flex items-center gap-2 font-semibold transition-colors ${isActive('/cabinet') ? 'text-turquoise-dark' : 'text-slate hover:text-turquoise-dark'}`}
+                        >
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <span>{locale === 'ru' ? 'Кабинет' : 'Cabinet'}</span>
+                        </Link>
+
+                        <div className="w-px h-6 bg-slate-200 mx-2"></div>
+
                         {/* Language */}
                         <button
                             onClick={() => setLocale(locale === 'ru' ? 'en' : 'ru')}
@@ -266,6 +281,18 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                     >
                         <Keyboard className="w-5 h-5 text-turquoise" />
                         {locale === 'ru' ? 'Гравировка клавиатур' : 'Keyboard Engraving'}
+                    </Link>
+
+                    {/* Client Cabinet Link for Mobile */}
+                    <Link
+                        href="/cabinet"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center gap-3 p-4 rounded-xl border font-semibold transition-all ${isActive('/cabinet') ? 'bg-turquoise-light border-turquoise-light text-turquoise-dark' : 'bg-white border-slate-100 text-slate hover:border-turquoise hover:text-turquoise-dark shadow-sm'}`}
+                    >
+                        <svg className={`w-5 h-5 ${isActive('/cabinet') ? 'text-turquoise-dark' : 'text-turquoise'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        {locale === 'ru' ? 'Личный кабинет' : 'Client Cabinet'}
                     </Link>
 
                     {[...navLinks].map((link) => {

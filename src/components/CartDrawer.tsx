@@ -162,7 +162,7 @@ export default function CartDrawer() {
                             >
                                 <div className="flex gap-3">
                                     {/* Image */}
-                                    <div className="w-16 h-16 rounded-lg overflow-hidden bg-[#2A2527] flex-shrink-0 border border-[#C9A227]/20">
+                                    <div className="w-16 h-16 relative rounded-lg overflow-hidden bg-[#2A2527] flex-shrink-0 border border-[#C9A227]/20">
                                         {item.productImage ? (
                                             <Image
                                                 src={item.productImage}

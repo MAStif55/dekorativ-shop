@@ -128,12 +128,26 @@ function PaymentResultContent() {
                                 : 'Thank you for your purchase! Your order has been paid and accepted. We will contact you to confirm delivery details.'}
                         </p>
 
-                        <div className="bg-white/40 border border-slate-200/60 rounded-xl p-4 mb-8 shadow-sm">
-                            <p className="text-slate/60 text-sm">
+                        <div className="bg-white/40 border border-slate-200/60 rounded-xl p-5 mb-8 text-left shadow-sm space-y-3">
+                            <div className="flex items-center gap-2">
+                                <span className="text-xl">💬</span>
+                                <h3 className="font-bold text-slate-dark text-sm sm:text-base">
+                                    {locale === 'ru' ? 'Обсуждение заказа в личном кабинете' : 'Discuss Order in Client Cabinet'}
+                                </h3>
+                            </div>
+                            <p className="text-slate text-xs sm:text-sm leading-relaxed">
                                 {locale === 'ru'
-                                    ? 'Если у вас есть вопросы, свяжитесь с нами через Telegram или email.'
-                                    : 'If you have any questions, contact us via Telegram or email.'}
+                                    ? 'Вы можете следить за статусом заказа, просматривать макеты и переписываться с мастером в вашем личном кабинете.'
+                                    : 'You can track your order status, view layouts, and chat with the master in your client cabinet.'}
                             </p>
+                            <div className="pt-1">
+                                <Link
+                                    href="/cabinet"
+                                    className="inline-flex items-center gap-1.5 text-[#C5A059] hover:text-[#A08044] font-bold text-xs sm:text-sm transition-colors"
+                                >
+                                    {locale === 'ru' ? 'Войти в Личный Кабинет →' : 'Go to Client Cabinet →'}
+                                </Link>
+                            </div>
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">

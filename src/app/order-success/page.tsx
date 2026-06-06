@@ -66,6 +66,29 @@ function OrderSuccessContent() {
                             : 'Thank you for your order! We will contact you shortly to confirm delivery details.'}
                     </p>
 
+                    {/* Cabinet & Chat Info Block */}
+                    <div className="bg-white border border-slate-100 rounded-xl p-5 mb-8 text-left shadow-sm space-y-3">
+                        <div className="flex items-center gap-2">
+                            <span className="text-xl">💬</span>
+                            <h3 className="font-bold text-slate-dark">
+                                {locale === 'ru' ? 'Обсуждение макета и чат с мастером' : 'Layout Discussion & Chat'}
+                            </h3>
+                        </div>
+                        <p className="text-slate text-xs sm:text-sm leading-relaxed">
+                            {locale === 'ru'
+                                ? 'Для согласования эскизов и макета гравировки мы создали для вас личный кабинет. Вы можете зайти в него без пароля в любое время — достаточно указать ваш email. Там доступен чат с мастером.'
+                                : 'For engraving layouts approval, we have created a client cabinet for you. You can log in without a password at any time — simply by entering your email. A live chat with the master is available there.'}
+                        </p>
+                        <div className="pt-1">
+                            <Link
+                                href="/cabinet"
+                                className="inline-flex items-center gap-1.5 text-[#C5A059] hover:text-[#A08044] font-bold text-xs sm:text-sm transition-colors"
+                            >
+                                {locale === 'ru' ? 'Войти в Личный Кабинет →' : 'Go to Client Cabinet →'}
+                            </Link>
+                        </div>
+                    </div>
+
                     {/* Bank Transfer Info */}
                     {paymentMethod === 'bank_transfer' && (
                         <div className="bg-amber-50/50 border border-amber-200/50 rounded-xl p-5 mb-8 text-left shadow-sm">

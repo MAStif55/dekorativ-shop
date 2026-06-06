@@ -7,6 +7,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import CheckoutForm from '@/components/CheckoutForm';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { formatPrice } from '@/utils/currency';
 
 export default function CheckoutPage() {
@@ -20,13 +21,7 @@ export default function CheckoutPage() {
         setMounted(true);
     }, []);
 
-    useEffect(() => {
-        if (mounted && items.length === 0) {
-            router.push('/cart');
-        }
-    }, [items, router, mounted]);
-
-    // Show loading state during hydration or if cart is empty
+    // Show loading state during hydration
     if (!mounted) {
         return (
             <main className="min-h-screen flex flex-col">
@@ -53,7 +48,36 @@ export default function CheckoutPage() {
         );
     }
 
-    if (items.length === 0) return null;
+    // Empty state if cart is empty after hydration
+    if (items.length === 0) {
+        return (
+            <main className="min-h-screen flex flex-col">
+                <Header />
+                <section className="flex-1 flex items-center justify-center py-16 px-6">
+                    <div className="max-w-md w-full text-center space-y-6">
+                        <div className="w-20 h-20 mx-auto bg-slate-50 border border-slate-100 rounded-full flex items-center justify-center text-slate text-3xl">
+                            🛒
+                        </div>
+                        <h2 className="text-2xl font-bold text-slate-dark font-ornamental">
+                            {locale === 'ru' ? 'Ваша корзина пуста' : 'Your cart is empty'}
+                        </h2>
+                        <p className="text-slate text-sm">
+                            {locale === 'ru'
+                                ? 'Для оформления заказа необходимо добавить товары в корзину.'
+                                : 'You need to add items to your cart to proceed to checkout.'}
+                        </p>
+                        <Link
+                            href="/catalog"
+                            className="inline-block bg-[#C5A059] text-white px-8 py-3.5 rounded-xl font-bold hover:bg-[#A08044] transition-all shadow-md"
+                        >
+                            {locale === 'ru' ? 'Перейти в каталог' : 'Go to Catalog'}
+                        </Link>
+                    </div>
+                </section>
+                <Footer />
+            </main>
+        );
+    }
 
     return (
         <main className="min-h-screen flex flex-col">

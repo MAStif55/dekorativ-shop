@@ -35,21 +35,21 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
     };
 
     const colors = {
-        success: 'from-[#1A1517] to-[#1A1517] border-[#C9A227]/60 text-[#E8D48B]',
-        error: 'from-red-900/90 to-red-950/90 border-red-500/60 text-red-200',
-        info: 'from-blue-900/90 to-blue-950/90 border-blue-500/60 text-blue-200',
+        success: 'from-white/95 to-white/95 border-emerald-100 text-slate-dark',
+        error: 'from-white/95 to-white/95 border-red-100 text-slate-dark',
+        info: 'from-white/95 to-white/95 border-blue-100 text-slate-dark',
     };
 
     const iconBg = {
-        success: 'bg-[#C9A227]/20 text-[#C9A227]',
-        error: 'bg-red-500/20 text-red-400',
-        info: 'bg-blue-500/20 text-blue-400',
+        success: 'bg-emerald-50 text-emerald-600',
+        error: 'bg-red-50 text-red-600',
+        info: 'bg-blue-50 text-blue-600',
     };
 
     return (
         <div
             className={`
-                flex items-center gap-3 px-4 py-3 rounded-xl border backdrop-blur-md shadow-2xl
+                flex items-center gap-3 px-4 py-3 rounded-xl border backdrop-blur-md shadow-lg
                 bg-gradient-to-r ${colors[toast.type]}
                 transform transition-all duration-300 ease-out
                 ${isEntering ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'}
@@ -62,12 +62,12 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
             </div>
 
             {/* Message */}
-            <p className="font-medium text-sm flex-1 pr-2">{toast.message}</p>
+            <p className="font-medium text-sm flex-1 pr-2 text-slate-dark">{toast.message}</p>
 
             {/* Close Button */}
             <button
                 onClick={handleClose}
-                className="p-1 rounded-lg hover:bg-white/10 transition-colors opacity-60 hover:opacity-100"
+                className="p-1 rounded-lg hover:bg-slate-100 transition-colors opacity-60 hover:opacity-100 text-slate"
             >
                 <X className="w-4 h-4" />
             </button>

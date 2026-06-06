@@ -118,25 +118,25 @@ export function AddressAutocomplete({
                 type="text"
                 value={value}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 bg-[#0D0A0B] border border-[#C9A227]/30 rounded-lg text-[#F5ECD7] placeholder-[#F5ECD7]/40 focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] transition-colors"
+                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-slate placeholder-slate-400 focus:ring-2 focus:ring-[#C5A059] focus:border-[#C5A059] transition-colors shadow-sm"
                 placeholder={placeholder}
                 autoComplete="off"
             />
             {isLoading && (
                 <div className="absolute right-3 top-3.5">
-                    <div className="w-5 h-5 border-2 border-[#C9A227] border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-5 h-5 border-2 border-[#C5A059] border-t-transparent rounded-full animate-spin"></div>
                 </div>
             )}
 
             {error && <p className="text-red-400 text-sm mt-1">{error}</p>}
 
             {isOpen && suggestions.length > 0 && (
-                <ul className="absolute z-50 w-full mt-1 bg-[#1A1819] border border-[#C9A227]/30 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                <ul className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                     {suggestions.map((suggestion, index) => (
                         <li
                             key={index}
                             onClick={() => handleSelect(suggestion)}
-                            className="px-4 py-3 text-[#F5ECD7] hover:bg-[#C9A227]/20 cursor-pointer transition-colors text-sm"
+                            className="px-4 py-3 text-slate hover:bg-slate-50 cursor-pointer transition-colors text-sm"
                         >
                             {suggestion.value}
                         </li>

@@ -186,16 +186,16 @@ export default function OrderChat({ orderId, userType }: OrderChatProps) {
     };
 
     return (
-        <div className="flex flex-col h-[500px] bg-[#1A1517] border border-[#C9A227]/30 rounded-2xl overflow-hidden shadow-2xl">
+        <div className="flex flex-col h-[500px] bg-white/80 backdrop-blur-sm border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
             {/* Header */}
-            <div className="bg-[#0D0A0B] border-b border-[#C9A227]/20 px-6 py-4 flex items-center justify-between">
+            <div className="bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></span>
-                    <h4 className="font-bold text-[#E8D48B] font-ornamental">
+                    <h4 className="font-bold text-slate-dark font-ornamental">
                         {locale === 'ru' ? 'Обсуждение макета' : 'Layout Discussion'}
                     </h4>
                 </div>
-                <span className="text-xs text-[#F5ECD7]/40">
+                <span className="text-xs text-slate/60">
                     {userType === 'client' 
                         ? (locale === 'ru' ? 'Мастер онлайн' : 'Master Online') 
                         : (locale === 'ru' ? 'Клиент' : 'Client')}
@@ -203,9 +203,9 @@ export default function OrderChat({ orderId, userType }: OrderChatProps) {
             </div>
 
             {/* Message Area */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-[#0D0A0B]/30 scrollbar-thin">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/50 scrollbar-thin">
                 {messages.length === 0 ? (
-                    <div className="h-full flex items-center justify-center text-center text-sm text-[#F5ECD7]/40 px-4">
+                    <div className="h-full flex items-center justify-center text-center text-sm text-slate/40 px-4">
                         {locale === 'ru' 
                             ? 'Напишите сообщение или прикрепите макет, чтобы начать обсуждение.' 
                             : 'Send a message or attach a layout to start the discussion.'}
@@ -221,15 +221,15 @@ export default function OrderChat({ orderId, userType }: OrderChatProps) {
                                 className={`flex ${isOwnMsg ? 'justify-end' : 'justify-start'}`}
                             >
                                 <div
-                                    className={`max-w-[80%] rounded-2xl px-4 py-2.5 shadow-md flex flex-col ${
+                                    className={`max-w-[80%] rounded-2xl px-4 py-2.5 shadow-sm flex flex-col ${
                                         isOwnMsg
-                                            ? 'bg-[#C9A227] text-[#0D0A0B] rounded-tr-none'
-                                            : 'bg-[#1A1517] text-[#F5ECD7] border border-[#C9A227]/20 rounded-tl-none'
+                                            ? 'bg-[#C5A059] text-white rounded-tr-none'
+                                            : 'bg-white text-slate-dark border border-slate-100 rounded-tl-none'
                                     }`}
                                 >
                                     {/* Sender Label */}
                                     <span className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${
-                                        isOwnMsg ? 'text-[#0D0A0B]/60' : 'text-[#C9A227]'
+                                        isOwnMsg ? 'text-white/80' : 'text-[#C5A059]'
                                     }`}>
                                         {isAdminMsg 
                                             ? (locale === 'ru' ? 'Мастер' : 'Master') 
@@ -243,8 +243,8 @@ export default function OrderChat({ orderId, userType }: OrderChatProps) {
                                     {msg.fileUrl && (
                                         <div className={`mt-2 p-3 rounded-lg flex items-center gap-3 border ${
                                             isOwnMsg 
-                                                ? 'bg-[#0D0A0B]/10 border-[#0D0A0B]/20 text-[#0D0A0B]' 
-                                                : 'bg-[#0D0A0B]/60 border-[#C9A227]/20 text-[#F5ECD7]'
+                                                ? 'bg-white/10 border-white/20 text-white' 
+                                                : 'bg-slate-50 border border-slate-100 text-slate-dark'
                                         }`}>
                                             <span className="text-2xl">📎</span>
                                             <div className="flex-1 min-w-0">
@@ -255,7 +255,7 @@ export default function OrderChat({ orderId, userType }: OrderChatProps) {
                                                     href={msg.fileUrl}
                                                     download
                                                     className={`text-[11px] font-bold underline transition-colors hover:opacity-80 block mt-0.5 ${
-                                                        isOwnMsg ? 'text-[#0D0A0B]' : 'text-[#C9A227]'
+                                                        isOwnMsg ? 'text-white' : 'text-[#C5A059] hover:text-[#A08044]'
                                                     }`}
                                                 >
                                                     {locale === 'ru' ? 'Скачать файл' : 'Download File'}
@@ -266,7 +266,7 @@ export default function OrderChat({ orderId, userType }: OrderChatProps) {
 
                                     {/* Date */}
                                     <span className={`text-[9px] mt-1.5 self-end ${
-                                        isOwnMsg ? 'text-[#0D0A0B]/50' : 'text-[#F5ECD7]/40'
+                                        isOwnMsg ? 'text-white/70' : 'text-slate/40'
                                     }`}>
                                         {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </span>
@@ -280,16 +280,16 @@ export default function OrderChat({ orderId, userType }: OrderChatProps) {
 
             {/* Upload Progress Overlay */}
             {uploadingFile && (
-                <div className="bg-[#1A1517] border-t border-[#C9A227]/20 px-6 py-2 flex items-center justify-between text-xs text-[#F5ECD7]/80">
+                <div className="bg-white border-t border-slate-100 px-6 py-2 flex items-center justify-between text-xs text-slate/80">
                     <span className="truncate max-w-[200px]">⚡ Загрузка: {uploadingFile.name}</span>
-                    <span className="font-mono text-[#C9A227] font-bold">{uploadingFile.progress}%</span>
+                    <span className="font-mono text-[#C5A059] font-bold">{uploadingFile.progress}%</span>
                 </div>
             )}
 
             {/* Input Form */}
-            <form onSubmit={handleSend} className="bg-[#0D0A0B] border-t border-[#C9A227]/20 p-4 flex gap-3 items-center">
+            <form onSubmit={handleSend} className="bg-white border-t border-slate-100 p-4 flex gap-3 items-center">
                 {/* File Attachment Button */}
-                <label className="p-3 bg-[#1A1517] hover:bg-[#C9A227]/15 border border-[#C9A227]/30 text-[#C9A227] rounded-xl cursor-pointer transition-all shadow-md flex items-center justify-center">
+                <label className="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate rounded-xl cursor-pointer transition-all shadow-sm flex items-center justify-center">
                     <input
                         type="file"
                         onChange={handleFileChange}
@@ -306,7 +306,7 @@ export default function OrderChat({ orderId, userType }: OrderChatProps) {
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     disabled={isSending || !!uploadingFile}
-                    className="flex-1 px-4 py-3 bg-[#1A1517] border border-[#C9A227]/30 rounded-xl text-[#F5ECD7] placeholder-[#F5ECD7]/40 focus:ring-1 focus:ring-[#C9A227] focus:border-[#C9A227] transition-all text-sm outline-none"
+                    className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate placeholder-slate/40 focus:ring-1 focus:ring-[#C5A059] focus:border-[#C5A059] transition-all text-sm outline-none"
                     placeholder={locale === 'ru' ? 'Введите сообщение...' : 'Type a message...'}
                 />
 
@@ -314,7 +314,7 @@ export default function OrderChat({ orderId, userType }: OrderChatProps) {
                 <button
                     type="submit"
                     disabled={isSending || (!text.trim() && !uploadingFile) || !!uploadingFile}
-                    className="px-5 py-3 bg-gradient-to-r from-[#C9A227] to-[#8B7D4B] text-[#0D0A0B] font-bold rounded-xl shadow-md hover:shadow-[0_0_15px_rgba(201,162,39,0.3)] transition-all disabled:opacity-50 transform active:translate-y-0.5 text-sm"
+                    className="px-5 py-3 bg-[#C5A059] text-white font-bold rounded-xl shadow-sm hover:bg-[#A08044] transition-all disabled:opacity-50 transform active:translate-y-0.5 text-sm"
                 >
                     {locale === 'ru' ? 'Отправить' : 'Send'}
                 </button>

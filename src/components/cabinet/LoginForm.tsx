@@ -48,14 +48,14 @@ export default function LoginForm() {
     };
 
     return (
-        <div className="max-w-md w-full mx-auto bg-[#1A1517] border border-[#C9A227]/30 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+        <div className="max-w-md w-full mx-auto bg-white/80 backdrop-blur-sm border border-slate-100 rounded-2xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
             {/* Ambient Background Glow */}
-            <div className="absolute -top-12 -right-12 w-24 h-24 bg-[#C9A227]/10 rounded-full blur-2xl pointer-events-none"></div>
+            <div className="absolute -top-12 -right-12 w-24 h-24 bg-[#C5A059]/5 rounded-full blur-2xl pointer-events-none"></div>
 
-            <h2 className="text-2xl font-ornamental text-[#E8D48B] mb-2 text-center text-glow-gold">
+            <h2 className="text-2xl font-ornamental text-slate-dark mb-2 text-center">
                 {locale === 'ru' ? 'Вход в Личный Кабинет' : 'Client Cabinet Login'}
             </h2>
-            <p className="text-sm text-[#F5ECD7]/60 mb-6 text-center">
+            <p className="text-sm text-slate-light mb-6 text-center">
                 {locale === 'ru'
                     ? 'Введите email, указанный при оформлении заказа. Пароль не требуется.'
                     : 'Enter the email you used during checkout. No password required.'}
@@ -63,7 +63,7 @@ export default function LoginForm() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label className="block text-xs font-semibold text-[#E8D48B] uppercase tracking-wider mb-2">
+                    <label className="block text-xs font-semibold text-slate uppercase tracking-wider mb-2">
                         Email Address
                     </label>
                     <input
@@ -71,7 +71,7 @@ export default function LoginForm() {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full px-4 py-3 bg-[#0D0A0B] border border-[#C9A227]/30 rounded-lg text-[#F5ECD7] placeholder-[#F5ECD7]/30 focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] transition-colors"
+                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-slate placeholder-slate-400 focus:ring-2 focus:ring-[#C5A059] focus:border-[#C5A059] transition-colors shadow-sm"
                         placeholder="your-email@example.com"
                         disabled={status === 'loading' || status === 'success'}
                     />
@@ -80,8 +80,8 @@ export default function LoginForm() {
                 {message && (
                     <div
                         className={`p-3 rounded-lg text-sm border ${status === 'success'
-                            ? 'bg-green-500/10 border-green-500/30 text-green-400'
-                            : 'bg-red-500/10 border-red-500/30 text-red-400'
+                            ? 'bg-green-50 border-green-200 text-green-700'
+                            : 'bg-red-50 border-red-200 text-red-600'
                             }`}
                     >
                         {message}
@@ -91,7 +91,7 @@ export default function LoginForm() {
                 <button
                     type="submit"
                     disabled={status === 'loading' || status === 'success'}
-                    className="w-full bg-gradient-to-r from-[#C9A227] to-[#8B7D4B] text-[#0D0A0B] py-3.5 rounded-lg font-bold hover:shadow-[0_0_15px_rgba(201,162,39,0.3)] transition-all disabled:opacity-50 transform hover:-translate-y-0.5"
+                    className="w-full bg-[#C5A059] text-white py-3.5 rounded-lg font-bold hover:bg-[#A08044] transition-all disabled:opacity-50 transform hover:-translate-y-0.5 shadow-md"
                 >
                     {status === 'loading'
                         ? (locale === 'ru' ? 'Отправка...' : 'Sending...')

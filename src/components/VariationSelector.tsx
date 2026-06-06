@@ -40,10 +40,10 @@ export default function VariationSelector({
     if (!variations || variations.length === 0) return null;
 
     return (
-        <div className="space-y-6 mb-8 p-6 bg-[#1A1517]/50 rounded-xl border border-[#C9A227]/20">
+        <div className="space-y-6 mb-8 p-6 bg-white/80 border border-slate-100 rounded-xl shadow-sm">
             {variations.map((group) => (
                 <div key={group.id}>
-                    <h4 className="text-sm font-bold text-[#C9A227] uppercase tracking-wider mb-3">
+                    <h4 className="text-sm font-bold text-slate-dark uppercase tracking-wider mb-3">
                         {group.name[locale]}
                     </h4>
                     <div className="flex flex-wrap gap-3">
@@ -58,8 +58,8 @@ export default function VariationSelector({
                                         px-4 py-2.5 rounded-lg border-2 transition-all duration-200
                                         flex flex-col items-center min-w-[100px]
                                         ${isSelected
-                                            ? 'border-[#C9A227] bg-[#C9A227]/10 text-[#E8D48B] shadow-[0_0_15px_rgba(201,162,39,0.2)]'
-                                            : 'border-[#F5ECD7]/20 bg-[#0D0A0B]/50 text-[#F5ECD7]/80 hover:border-[#C9A227]/50 hover:text-[#F5ECD7]'
+                                            ? 'border-[#C5A059] bg-[#C5A059]/10 text-slate-dark font-semibold shadow-sm'
+                                            : 'border-slate-200 bg-white text-slate hover:border-[#C5A059]/50 hover:text-slate-dark'
                                         }
                                     `}
                                 >
@@ -67,7 +67,7 @@ export default function VariationSelector({
                                         {option.label[locale]}
                                     </span>
                                     {option.priceModifier !== 0 && (
-                                        <span className={`text-xs mt-1 ${isSelected ? 'text-[#C9A227]' : 'text-[#F5ECD7]/50'}`}>
+                                        <span className={`text-xs mt-1 ${isSelected ? 'text-[#C5A059]' : 'text-slate/50'}`}>
                                             {option.priceModifier > 0 ? '+' : ''}{formatPrice(option.priceModifier)}
                                         </span>
                                     )}

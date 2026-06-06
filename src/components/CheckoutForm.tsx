@@ -290,13 +290,13 @@ export default function CheckoutForm() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Customer Name */}
             <div>
-                <label className="block text-sm font-medium text-[#E8D48B] mb-2">
+                <label className="block text-sm font-medium text-slate-dark mb-2">
                     {locale === 'ru' ? 'Ваше имя' : 'Your Name'}
                 </label>
                 <input
                     type="text"
                     {...register('customerName')}
-                    className="w-full px-4 py-3 bg-[#0D0A0B] border border-[#C9A227]/30 rounded-lg text-[#F5ECD7] placeholder-[#F5ECD7]/40 focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] transition-colors"
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-slate placeholder-slate-400 focus:ring-2 focus:ring-[#C5A059] focus:border-[#C5A059] transition-colors shadow-sm"
                     placeholder={locale === 'ru' ? 'Иван Иванов' : 'John Doe'}
                 />
                 {errors.customerName && (
@@ -306,13 +306,13 @@ export default function CheckoutForm() {
 
             {/* Email */}
             <div>
-                <label className="block text-sm font-medium text-[#E8D48B] mb-2">
+                <label className="block text-sm font-medium text-slate-dark mb-2">
                     Email
                 </label>
                 <input
                     type="email"
                     {...register('email')}
-                    className="w-full px-4 py-3 bg-[#0D0A0B] border border-[#C9A227]/30 rounded-lg text-[#F5ECD7] placeholder-[#F5ECD7]/40 focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] transition-colors"
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-slate placeholder-slate-400 focus:ring-2 focus:ring-[#C5A059] focus:border-[#C5A059] transition-colors shadow-sm"
                     placeholder="example@mail.com"
                 />
                 {errors.email && (
@@ -322,13 +322,13 @@ export default function CheckoutForm() {
 
             {/* Phone */}
             <div>
-                <label className="block text-sm font-medium text-[#E8D48B] mb-2">
+                <label className="block text-sm font-medium text-slate-dark mb-2">
                     {locale === 'ru' ? 'Телефон' : 'Phone'}
                 </label>
                 <input
                     type="tel"
                     {...register('phone')}
-                    className="w-full px-4 py-3 bg-[#0D0A0B] border border-[#C9A227]/30 rounded-lg text-[#F5ECD7] placeholder-[#F5ECD7]/40 focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] transition-colors"
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-slate placeholder-slate-400 focus:ring-2 focus:ring-[#C5A059] focus:border-[#C5A059] transition-colors shadow-sm"
                     placeholder="+7 999 000-00-00"
                 />
                 {errors.phone && (
@@ -338,7 +338,7 @@ export default function CheckoutForm() {
 
             {/* Address */}
             <div>
-                <label className="block text-sm font-medium text-[#E8D48B] mb-2">
+                <label className="block text-sm font-medium text-slate-dark mb-2">
                     {locale === 'ru' ? 'Адрес доставки' : 'Delivery Address'}
                 </label>
                 <AddressAutocomplete
@@ -353,13 +353,13 @@ export default function CheckoutForm() {
 
             {/* Telegram (Optional) */}
             <div>
-                <label className="block text-sm font-medium text-[#E8D48B] mb-2">
-                    Telegram <span className="text-[#F5ECD7]/50 font-normal">({locale === 'ru' ? 'необязательно' : 'optional'})</span>
+                <label className="block text-sm font-medium text-slate-dark mb-2">
+                    Telegram <span className="text-slate-light font-normal">({locale === 'ru' ? 'необязательно' : 'optional'})</span>
                 </label>
                 <input
                     type="text"
                     {...register('telegram')}
-                    className="w-full px-4 py-3 bg-[#0D0A0B] border border-[#C9A227]/30 rounded-lg text-[#F5ECD7] placeholder-[#F5ECD7]/40 focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] transition-colors"
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-slate placeholder-slate-400 focus:ring-2 focus:ring-[#C5A059] focus:border-[#C5A059] transition-colors shadow-sm"
                     placeholder="@username"
                 />
                 {errors.telegram && (
@@ -369,10 +369,10 @@ export default function CheckoutForm() {
 
             {/* Layout Attachment Upload Field */}
             <div>
-                <label className="block text-sm font-medium text-[#E8D48B] mb-2">
+                <label className="block text-sm font-medium text-slate-dark mb-2">
                     {locale === 'ru' ? 'Макеты для гравировки / Референсы' : 'Engraving Layouts / References'}
                 </label>
-                <div className="w-full border-2 border-dashed border-[#C9A227]/30 rounded-lg bg-[#0D0A0B] p-6 text-center hover:border-[#C9A227]/60 transition-colors relative">
+                <div className="w-full border-2 border-dashed border-slate-200 rounded-lg bg-white/50 p-6 text-center hover:border-[#C5A059] hover:bg-white transition-colors relative shadow-sm">
                     <input
                         type="file"
                         multiple
@@ -382,10 +382,10 @@ export default function CheckoutForm() {
                     />
                     <div className="space-y-1 pointer-events-none">
                         <span className="text-3xl">📁</span>
-                        <p className="text-[#E8D48B] font-medium">
+                        <p className="text-slate-dark font-medium">
                             {locale === 'ru' ? 'Выберите или перетащите файлы' : 'Choose or drag files here'}
                         </p>
-                        <p className="text-xs text-[#F5ECD7]/50">
+                        <p className="text-xs text-slate-light">
                             {locale === 'ru' ? 'Разрешены: .cdr, .dxf, .ai, .pdf, .eps, .png, .jpg (до 50 МБ)' : 'Allowed: .cdr, .dxf, .ai, .pdf, .eps, .png, .jpg (up to 50MB)'}
                         </p>
                     </div>
@@ -395,22 +395,22 @@ export default function CheckoutForm() {
                 {attachments.length > 0 && (
                     <div className="mt-4 space-y-2">
                         {attachments.map((file, idx) => (
-                            <div key={file.name + idx} className="flex items-center justify-between p-3 bg-[#1A1517] border border-[#C9A227]/10 rounded-lg">
+                            <div key={file.name + idx} className="flex items-center justify-between p-3 bg-white/80 border border-slate-100 rounded-lg shadow-sm backdrop-blur-sm animate-fade-in">
                                 <div className="flex-1 mr-4">
-                                    <div className="flex justify-between items-center text-sm font-semibold text-[#F5ECD7] mb-1">
+                                    <div className="flex justify-between items-center text-sm font-semibold text-slate-dark mb-1">
                                         <span className="truncate max-w-[200px] sm:max-w-xs">{file.name}</span>
-                                        <span className="text-xs font-mono text-[#C9A227]">
+                                        <span className="text-xs font-mono text-[#C5A059]">
                                             {file.error ? (
-                                                <span className="text-red-400">{file.error}</span>
+                                                <span className="text-red-500">{file.error}</span>
                                             ) : (
                                                 `${file.progress}%`
                                             )}
                                         </span>
                                     </div>
                                     {!file.error && file.progress < 100 && (
-                                        <div className="w-full bg-[#0D0A0B] h-1.5 rounded-full overflow-hidden">
+                                        <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
                                             <div
-                                                className="bg-gradient-to-r from-[#C9A227] to-[#8B7D4B] h-full transition-all duration-300"
+                                                className="bg-gradient-to-r from-[#C5A059] to-[#A08044] h-full transition-all duration-300"
                                                 style={{ width: `${file.progress}%` }}
                                             ></div>
                                         </div>
@@ -419,7 +419,7 @@ export default function CheckoutForm() {
                                 <button
                                     type="button"
                                     onClick={() => removeAttachment(file.name)}
-                                    className="text-red-400/80 hover:text-red-400 text-sm p-1 ml-2 transition-colors"
+                                    className="text-red-500/80 hover:text-red-500 text-sm p-1 ml-2 transition-colors"
                                 >
                                     ❌
                                 </button>
@@ -431,13 +431,13 @@ export default function CheckoutForm() {
 
             {/* Notes / Specifications */}
             <div>
-                <label className="block text-sm font-medium text-[#E8D48B] mb-2">
-                    {locale === 'ru' ? 'Комментарий к макету и ТЗ' : 'Engraving Specifications'} <span className="text-[#F5ECD7]/50 font-normal">({locale === 'ru' ? 'необязательно' : 'optional'})</span>
+                <label className="block text-sm font-medium text-slate-dark mb-2">
+                    {locale === 'ru' ? 'Комментарий к макету и ТЗ' : 'Engraving Specifications'} <span className="text-slate-light font-normal">({locale === 'ru' ? 'необязательно' : 'optional'})</span>
                 </label>
                 <textarea
                     {...register('notes')}
                     rows={4}
-                    className="w-full px-4 py-3 bg-[#0D0A0B] border border-[#C9A227]/30 rounded-lg text-[#F5ECD7] placeholder-[#F5ECD7]/40 focus:ring-2 focus:ring-[#C9A227] focus:border-[#C9A227] transition-colors resize-none"
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-lg text-slate placeholder-slate-400 focus:ring-2 focus:ring-[#C5A059] focus:border-[#C5A059] transition-colors resize-none shadow-sm"
                     placeholder={locale === 'ru' ? 'Напишите текст для гравировки, расположение, выбор шрифта...' : 'Write text, placement, font preferences...'}
                 />
                 {errors.notes && (
@@ -446,12 +446,12 @@ export default function CheckoutForm() {
             </div>
 
             {/* Process Info Box */}
-            <div className="p-4 bg-[#C9A227]/5 border border-[#C9A227]/20 rounded-xl space-y-2">
-                <div className="flex items-center gap-2 text-[#E8D48B] font-semibold text-sm">
+            <div className="p-4 bg-white/40 border border-slate-200/60 rounded-xl space-y-2 shadow-sm">
+                <div className="flex items-center gap-2 text-slate-dark font-semibold text-sm">
                     <span>💡</span>
                     <span>{locale === 'ru' ? 'Как происходит заказ:' : 'How it works:'}</span>
                 </div>
-                <p className="text-xs text-[#F5ECD7]/70 leading-relaxed">
+                <p className="text-xs text-slate leading-relaxed">
                     {locale === 'ru'
                         ? 'Вы отправляете заявку. Наш мастер проверит ваши макеты, откроет обсуждение в чате Личного Кабинета и утвердит цену. Оплатить заказ можно будет картой через ЮKassa в вашем личном кабинете после согласования макета.'
                         : 'Submit your request. Our master will verify your layouts, discuss them with you in the client cabinet chat, and confirm the price. You can pay securely via YooKassa in your cabinet after the layout is approved.'}
@@ -465,17 +465,17 @@ export default function CheckoutForm() {
 
             {/* Error Message */}
             {submitError && (
-                <div className="p-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg text-sm">
+                <div className="p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm shadow-sm">
                     {submitError}
                 </div>
             )}
 
             {/* Estimated Total Display */}
-            <div className="flex justify-between items-center p-4 bg-[#1A1517] rounded-xl border border-[#C9A227]/20">
-                <span className="text-[#F5ECD7]/70 text-sm">
+            <div className="flex justify-between items-center p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
+                <span className="text-slate text-sm">
                     {locale === 'ru' ? 'Предварительная стоимость:' : 'Estimated total:'}
                 </span>
-                <span className="text-xl font-bold text-[#E8D48B] text-glow-gold">
+                <span className="text-xl font-bold text-[#C5A059] font-ornamental">
                     {formatPrice(getFinalPrice())}
                 </span>
             </div>
@@ -484,7 +484,7 @@ export default function CheckoutForm() {
             <button
                 type="submit"
                 disabled={isSubmitting || items.length === 0 || uploadingCount > 0}
-                className="w-full bg-gradient-to-r from-[#C9A227] to-[#8B7D4B] text-[#0D0A0B] py-4 rounded-xl font-bold hover:shadow-[0_0_20px_rgba(201,162,39,0.4)] transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1"
+                className="w-full bg-[#C5A059] text-white py-4 rounded-xl font-bold hover:bg-[#A08044] transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
             >
                 {isSubmitting
                     ? (locale === 'ru' ? 'Отправка заявки...' : 'Submitting Request...')

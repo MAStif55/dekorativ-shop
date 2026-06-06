@@ -17,6 +17,16 @@ interface OrderChatProps {
     userType: 'client' | 'admin';
 }
 
+const isImageFile = (url: string) => {
+    const cleanUrl = url.toLowerCase().split('?')[0];
+    return cleanUrl.endsWith('.png') || 
+           cleanUrl.endsWith('.jpg') || 
+           cleanUrl.endsWith('.jpeg') || 
+           cleanUrl.endsWith('.webp') || 
+           cleanUrl.endsWith('.gif') ||
+           cleanUrl.endsWith('.svg');
+};
+
 export default function OrderChat({ orderId, userType }: OrderChatProps) {
     const { locale } = useLanguage();
     const [messages, setMessages] = useState<Message[]>([]);
@@ -248,27 +258,55 @@ export default function OrderChat({ orderId, userType }: OrderChatProps) {
 
                                     {/* Attachment */}
                                     {msg.fileUrl && (
-                                        <div className={`mt-2 p-3 rounded-lg flex items-center gap-3 border ${
-                                            isOwnMsg 
-                                                ? 'bg-white/10 border-white/20 text-white' 
-                                                : 'bg-slate-50 border border-slate-100 text-slate-dark'
-                                        }`}>
-                                            <span className="text-2xl">📎</span>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-xs font-semibold truncate">
-                                                    {decodeURIComponent(msg.fileUrl.substring(msg.fileUrl.lastIndexOf('/') + 1)).replace(/^[a-f0-9-]{36}-/, '')}
-                                                </p>
-                                                <a
-                                                    href={msg.fileUrl}
-                                                    download
-                                                    className={`text-[11px] font-bold underline transition-colors hover:opacity-80 block mt-0.5 ${
-                                                        isOwnMsg ? 'text-white' : 'text-[#C5A059] hover:text-[#A08044]'
-                                                    }`}
-                                                >
-                                                    {locale === 'ru' ? 'Скачать файл' : 'Download File'}
-                                                </a>
+                                        isImageFile(msg.fileUrl) ? (
+                                            <div className="mt-2 space-y-1">
+                                                <div className="rounded-xl overflow-hidden border border-black/5 bg-slate-100/30 max-w-[260px] shadow-sm relative group">
+                                                    <img 
+                                                        src={msg.fileUrl} 
+                                                        alt="Attachment preview" 
+                                                        className="w-full h-auto max-h-[200px] object-contain cursor-zoom-in hover:scale-[1.02] transition-transform duration-300"
+                                                        onClick={() => window.open(msg.fileUrl!, '_blank')} 
+                                                    />
+                                                </div>
+                                                <div className="flex items-center gap-1.5 px-0.5">
+                                                    <a
+                                                        href={msg.fileUrl}
+                                                        download
+                                                        className={`text-[11px] font-bold underline transition-colors hover:opacity-80 ${
+                                                            isOwnMsg ? 'text-white/80' : 'text-[#C5A059] hover:text-[#A08044]'
+                                                        }`}
+                                                    >
+                                                        {locale === 'ru' ? 'Скачать' : 'Download'}
+                                                    </a>
+                                                    <span className={`text-[10px] ${isOwnMsg ? 'text-white/40' : 'text-slate-400'}`}>•</span>
+                                                    <span className={`text-[10px] truncate max-w-[120px] ${isOwnMsg ? 'text-white/60' : 'text-slate-500'}`}>
+                                                        {decodeURIComponent(msg.fileUrl.substring(msg.fileUrl.lastIndexOf('/') + 1)).replace(/^[a-f0-9-]{36}-/, '')}
+                                                    </span>
+                                                </div>
                                             </div>
-                                        </div>
+                                        ) : (
+                                            <div className={`mt-2 p-3 rounded-lg flex items-center gap-3 border ${
+                                                isOwnMsg 
+                                                    ? 'bg-white/10 border-white/20 text-white' 
+                                                    : 'bg-slate-50 border border-slate-100 text-slate-dark'
+                                            }`}>
+                                                <span className="text-2xl">📎</span>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs font-semibold truncate">
+                                                        {decodeURIComponent(msg.fileUrl.substring(msg.fileUrl.lastIndexOf('/') + 1)).replace(/^[a-f0-9-]{36}-/, '')}
+                                                    </p>
+                                                    <a
+                                                        href={msg.fileUrl}
+                                                        download
+                                                        className={`text-[11px] font-bold underline transition-colors hover:opacity-80 block mt-0.5 ${
+                                                            isOwnMsg ? 'text-white' : 'text-[#C5A059] hover:text-[#A08044]'
+                                                        }`}
+                                                    >
+                                                        {locale === 'ru' ? 'Скачать файл' : 'Download File'}
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        )
                                     )}
 
                                     {/* Date */}

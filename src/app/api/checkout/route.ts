@@ -3,6 +3,57 @@ import { OrderRepository } from '@/lib/data';
 import { sendTelegramOrderNotification } from '@/lib/telegram';
 import { sendEmailOrderNotification } from '@/lib/mailer';
 import { createYooKassaPayment } from '@/lib/yookassa';
+import { S3Client, CopyObjectCommand } from '@aws-sdk/client-s3';
+
+const BUCKET_NAME = process.env.YC_S3_BUCKET || 'dekorativ-media';
+const REGION = process.env.YC_S3_REGION || 'ru-central1';
+const ENDPOINT = process.env.YC_S3_ENDPOINT || 'https://storage.yandexcloud.net';
+
+const s3Client = new S3Client({
+    region: REGION,
+    endpoint: ENDPOINT,
+    credentials: {
+        accessKeyId: process.env.YC_S3_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.YC_S3_SECRET_ACCESS_KEY || '',
+    },
+});
+
+async function copyAttachmentsToPermanent(attachments: string[], orderId: string): Promise<string[]> {
+    const permanentUrls: string[] = [];
+    
+    for (const url of attachments) {
+        if (!url.includes('temp-uploads/')) {
+            permanentUrls.push(url);
+            continue;
+        }
+
+        try {
+            const tempUploadsIndex = url.indexOf('temp-uploads/');
+            if (tempUploadsIndex === -1) {
+                permanentUrls.push(url);
+                continue;
+            }
+
+            const sourceKey = url.substring(tempUploadsIndex);
+            const filename = sourceKey.substring(sourceKey.lastIndexOf('/') + 1);
+            const targetKey = `orders/${orderId}/${filename}`;
+
+            await s3Client.send(new CopyObjectCommand({
+                Bucket: BUCKET_NAME,
+                CopySource: `/${BUCKET_NAME}/${sourceKey}`,
+                Key: targetKey,
+            }));
+
+            const permanentUrl = `${ENDPOINT}/${BUCKET_NAME}/${targetKey}`;
+            permanentUrls.push(permanentUrl);
+        } catch (err) {
+            console.error(`Failed to copy S3 attachment ${url} to permanent folder:`, err);
+            permanentUrls.push(url);
+        }
+    }
+
+    return permanentUrls;
+}
 
 // ============================================================================
 // Promo config — mirrors client-side config/promotions.ts
@@ -133,12 +184,19 @@ export async function POST(request: Request) {
             attachments: customerInfo.attachments || [],
         };
 
-        // 1. Save order to database
+        // 1. Save order to database (initially with temporary URLs)
         const orderId = await OrderRepository.create(orderData as any);
 
-        const fullOrderData = { ...orderData, id: orderId, status: 'pending', createdAt: Date.now() };
+        // 2. Copy S3 attachments to permanent folder and update order doc
+        let finalAttachments = orderData.attachments;
+        if (orderData.attachments.length > 0) {
+            finalAttachments = await copyAttachmentsToPermanent(orderData.attachments, orderId);
+            await OrderRepository.update(orderId, { attachments: finalAttachments });
+        }
 
-        // 2. Notify master and customer (without payment flow since it is post-payment)
+        const fullOrderData = { ...orderData, attachments: finalAttachments, id: orderId, status: 'pending', createdAt: Date.now() };
+
+        // 3. Notify master and customer (without payment flow since it is post-payment)
         const [telegramResult, emailResult] = await Promise.allSettled([
             sendTelegramOrderNotification(fullOrderData, orderId, false),
             sendEmailOrderNotification(fullOrderData, orderId, false),

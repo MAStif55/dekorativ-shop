@@ -29,7 +29,13 @@ export async function POST(request: Request) {
         const uuid = crypto.randomUUID();
         // Clean Cyrillic or space issues from fileName for the storage key
         const safeName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
-        const folder = tempId ? `orders/${tempId}` : 'orders/temp';
+        
+        // Finalized orders have a 24-character hex ObjectId. Temporary ones have a random base-36 string.
+        const isFinalOrder = tempId && /^[a-f\d]{24}$/i.test(tempId);
+        const folder = isFinalOrder 
+            ? `orders/${tempId}` 
+            : (tempId ? `temp-uploads/${tempId}` : 'temp-uploads/temp');
+            
         const s3Key = `${folder}/${uuid}-${safeName}`;
 
         // Prepare the PutObject command

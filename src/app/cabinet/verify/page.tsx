@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Header from '@/components/Header';
@@ -11,10 +11,10 @@ function VerifyContent() {
     const searchParams = useSearchParams();
     const token = searchParams.get('token');
     const { locale } = useLanguage();
-    const [status, setStatus] = useState<'verifying' | 'error'>('verifying');
+    const [status, setStatus] = useState<'idle' | 'verifying' | 'error'>('idle');
     const [errorMessage, setErrorMessage] = useState('');
 
-    useEffect(() => {
+    const handleVerify = async () => {
         if (!token) {
             setStatus('error');
             setErrorMessage('missing_token');
@@ -22,33 +22,31 @@ function VerifyContent() {
             return;
         }
 
-        const verifyToken = async () => {
-            try {
-                const res = await fetch('/api/auth/callback', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token }),
-                });
+        setStatus('verifying');
 
-                const data = await res.json();
+        try {
+            const res = await fetch('/api/auth/callback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token }),
+            });
 
-                if (res.ok && data.success) {
-                    router.push('/cabinet');
-                } else {
-                    setStatus('error');
-                    setErrorMessage(data.error || 'expired');
-                    router.push(`/cabinet?error=${data.error || 'expired'}`);
-                }
-            } catch (err) {
-                console.error('Error verifying token:', err);
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                router.push('/cabinet');
+            } else {
                 setStatus('error');
-                setErrorMessage('server_error');
-                router.push('/cabinet?error=server_error');
+                setErrorMessage(data.error || 'expired');
+                router.push(`/cabinet?error=${data.error || 'expired'}`);
             }
-        };
-
-        verifyToken();
-    }, [token, router]);
+        } catch (err) {
+            console.error('Error verifying token:', err);
+            setStatus('error');
+            setErrorMessage('server_error');
+            router.push('/cabinet?error=server_error');
+        }
+    };
 
     return (
         <main className="min-h-screen flex flex-col">
@@ -57,22 +55,44 @@ function VerifyContent() {
             <section className="flex-1 flex items-center justify-center py-16 px-6">
                 <div className="max-w-md w-full text-center">
                     <div className="bg-white/80 backdrop-blur-sm border border-slate-100 rounded-2xl p-8 shadow-sm space-y-6">
-                        {status === 'verifying' ? (
+                        {status === 'idle' && (
                             <>
-                                {/* Gold Spinner */}
+                                <div className="w-16 h-16 mx-auto bg-turquoise-light text-turquoise-dark rounded-full flex items-center justify-center text-2xl">
+                                    🔑
+                                </div>
+                                <h1 className="text-2xl font-ornamental text-slate-dark">
+                                    {locale === 'ru' ? 'Подтверждение входа' : 'Confirm Sign In'}
+                                </h1>
+                                <p className="text-slate text-sm leading-relaxed">
+                                    {locale === 'ru'
+                                        ? 'Вы почти у цели! Нажмите кнопку ниже, чтобы подтвердить вход в личный кабинет.'
+                                        : 'You are almost there! Click the button below to confirm your sign-in.'}
+                                </p>
+                                <button
+                                    onClick={handleVerify}
+                                    className="btn-primary w-full py-3.5 text-center flex items-center justify-center"
+                                >
+                                    {locale === 'ru' ? 'Войти в кабинет' : 'Log In to Cabinet'}
+                                </button>
+                            </>
+                        )}
+
+                        {status === 'verifying' && (
+                            <>
                                 <div className="w-16 h-16 mx-auto border-4 border-slate-200 border-t-[#C5A059] rounded-full animate-spin" />
                                 <h1 className="text-2xl font-ornamental text-slate-dark">
                                     {locale === 'ru' ? 'Выполняется вход...' : 'Verifying link...'}
                                 </h1>
                                 <p className="text-slate text-sm">
-                                    {locale === 'ru' 
-                                        ? 'Пожалуйста, подождите. Мы подтверждаем вашу ссылку для входа.' 
+                                    {locale === 'ru'
+                                        ? 'Пожалуйста, подождите. Мы подтверждаем вашу ссылку для входа.'
                                         : 'Please wait. We are validating your sign-in link.'}
                                 </p>
                             </>
-                        ) : (
+                        )}
+
+                        {status === 'error' && (
                             <>
-                                {/* Error Icon */}
                                 <div className="w-16 h-16 mx-auto bg-red-50 border border-red-200 rounded-full flex items-center justify-center text-red-600 text-2xl font-bold">
                                     ✕
                                 </div>

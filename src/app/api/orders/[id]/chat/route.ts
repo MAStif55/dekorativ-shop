@@ -3,7 +3,7 @@ import { getDb } from '@/lib/data/yandex/mongo-client';
 import { OrderRepository } from '@/lib/data';
 import { getSession } from '@/actions/auth-actions';
 import { getCustomerSession } from '@/actions/customer-auth-actions';
-import { chatEmitter } from '@/utils/chat-emitter';
+import { chatEmitter, activeClients, emailDebounceTimers, emailLastMessages } from '@/utils/chat-emitter';
 import { sendEmailNewChatMessage } from '@/lib/mailer';
 
 export async function GET(
@@ -54,9 +54,34 @@ export async function GET(
             // Register listener
             chatEmitter.on('newMessage', onNewMessage);
 
+            // Track client connection (customer session email matches order email)
+            const isClient = !adminSession && customerSession && order.email.toLowerCase() === customerSession.email.toLowerCase();
+            if (isClient) {
+                const currentCount = activeClients.get(orderId) || 0;
+                activeClients.set(orderId, currentCount + 1);
+
+                // Cancel any pending email debounce timer since the client is now online
+                const pendingTimer = emailDebounceTimers.get(orderId);
+                if (pendingTimer) {
+                    clearTimeout(pendingTimer);
+                    emailDebounceTimers.delete(orderId);
+                    emailLastMessages.delete(orderId);
+                    console.log(`[SSE Chat] Client came online for order ${orderId}. Cancelled pending email notification.`);
+                }
+            }
+
             // Clean up when client disconnects
             request.signal.addEventListener('abort', () => {
                 chatEmitter.off('newMessage', onNewMessage);
+                if (isClient) {
+                    const currentCount = activeClients.get(orderId) || 0;
+                    const newCount = Math.max(0, currentCount - 1);
+                    if (newCount === 0) {
+                        activeClients.delete(orderId);
+                    } else {
+                        activeClients.set(orderId, newCount);
+                    }
+                }
                 try {
                     writer.close();
                 } catch (e) {}
@@ -161,16 +186,49 @@ export async function POST(
         // 3. Emit message event for active SSE connections
         chatEmitter.emit('newMessage', savedMessage);
 
-        // 4. Send email alert to customer if master (admin) sent a message
+        // 4. Send email alert to customer if master (admin) sent a message (with hybrid online check and 2 min debounce)
         if (sender === 'admin' && order.email) {
-            const protocol = request.headers.get('x-forwarded-proto') || 'http';
-            const host = request.headers.get('host') || 'localhost:3000';
-            const orderLink = `${protocol}://${host}/orders/${orderId}`;
+            const isClientOnline = (activeClients.get(orderId) || 0) > 0;
             
-            // Send in background, do not block the chat response
-            sendEmailNewChatMessage(order.email, orderId, text || '[Вложение]', orderLink).catch(e => {
-                console.error('[API Chat POST] Failed to send email notification:', e);
-            });
+            if (isClientOnline) {
+                console.log(`[API Chat POST] Customer is online for order ${orderId}. Suppressing email notification.`);
+            } else {
+                const protocol = request.headers.get('x-forwarded-proto') || 'http';
+                const host = request.headers.get('host') || 'localhost:3000';
+                const orderLink = `${protocol}://${host}/orders/${orderId}`;
+                const messageText = text || '[Вложение]';
+
+                // Reset any existing debounce timer for this order
+                const existingTimer = emailDebounceTimers.get(orderId);
+                if (existingTimer) {
+                    clearTimeout(existingTimer);
+                }
+
+                // Buffer the latest message content
+                emailLastMessages.set(orderId, {
+                    email: order.email,
+                    orderId,
+                    text: messageText,
+                    orderLink
+                });
+
+                // Set a 2-minute debounce timer (120,000 ms)
+                const timer = setTimeout(() => {
+                    const lastMsg = emailLastMessages.get(orderId);
+                    if (lastMsg) {
+                        emailDebounceTimers.delete(orderId);
+                        emailLastMessages.delete(orderId);
+                        
+                        console.log(`[API Chat POST] Sending debounced email notification to ${lastMsg.email} for order ${lastMsg.orderId}`);
+                        sendEmailNewChatMessage(lastMsg.email, lastMsg.orderId, lastMsg.text, lastMsg.orderLink).catch(e => {
+                            console.error('[API Chat POST] Failed to send debounced email notification:', e);
+                        });
+                    }
+                }, 120000);
+
+                emailDebounceTimers.set(orderId, timer);
+                console.log(`[API Chat POST] Customer is offline. Scheduled email notification for order ${orderId} in 2 minutes.`);
+            }
         }
 
         return NextResponse.json({ success: true, message: savedMessage });

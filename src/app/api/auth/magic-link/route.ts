@@ -39,7 +39,7 @@ export async function POST(request: Request) {
         // 4. Construct Magic Link
         const protocol = request.headers.get('x-forwarded-proto') || 'http';
         const host = request.headers.get('host') || 'localhost:3000';
-        const magicLink = `${protocol}://${host}/api/auth/callback?token=${token}`;
+        const magicLink = `${protocol}://${host}/cabinet/verify?token=${token}`;
 
         // 5. Send Magic Link Email
         await sendMagicLinkEmail(email.trim().toLowerCase(), magicLink);

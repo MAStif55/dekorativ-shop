@@ -50,52 +50,13 @@ export default function AboutPage() {
         <main className="min-h-screen bg-canvas flex flex-col">
             <Header />
 
-            {/* Hero Section */}
-            <section className="pt-12 pb-8 px-4 sm:px-6 text-center relative overflow-hidden">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-turquoise-light/20 rounded-[100%] blur-3xl pointer-events-none"></div>
-
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-slate-100 text-slate text-sm font-semibold mb-6 shadow-sm">
-                    <Info className="w-4 h-4 text-turquoise" />
-                    {locale === 'ru' ? 'О Компании' : 'About Us'}
-                </div>
-
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-ornamental text-slate-dark mb-6 relative z-10">
-                    {locale === 'ru' ? 'Мастерская Dekorativ' : 'Dekorativ Workshop'}
-                </h1>
-
-                <p className="text-lg text-slate max-w-2xl mx-auto font-light leading-relaxed relative z-10">
-                    {locale === 'ru'
-                        ? 'Мы воплощаем ваши идеи в материале, создавая уникальные гравировки на стекле, металле и дереве. Каждое изделие — это сочетание точности технологий и ручного труда.'
-                        : 'We bring your ideas to life in material, creating unique engravings on glass, metal, and wood. Each piece is a combination of precision technology and handcraft.'}
-                </p>
-            </section>
-
-            {/* Values Grid */}
-            <section className="py-6 px-6">
-                <div className="max-w-5xl mx-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-                        {[
-                            { icon: '✨', titleEn: 'Aesthetics', titleRu: 'Эстетика', descEn: 'Beautiful minimalist designs for your home or business.', descRu: 'Красивый минималистичный дизайн для дома или бизнеса.' },
-                            { icon: '🎯', titleEn: 'Precision', titleRu: 'Точность', descEn: 'High-quality engraving ensuring every detail is perfect.', descRu: 'Высококачественная гравировка, где продумана каждая деталь.' },
-                            { icon: '🤝', titleEn: 'Care', titleRu: 'Забота', descEn: 'Personal approach and attentive customer service.', descRu: 'Индивидуальный подход и внимательное обслуживание.' }
-                        ].map((value, i) => (
-                            <div key={i} className="bg-white rounded-3xl p-8 text-center shadow-sm border border-slate-100 hover:shadow-md transition-shadow group">
-                                <div className="text-4xl mb-6 transform group-hover:scale-110 transition-transform">{value.icon}</div>
-                                <h4 className="text-xl font-bold text-slate-dark mb-3">{locale === 'ru' ? value.titleRu : value.titleEn}</h4>
-                                <p className="text-slate/80 text-sm leading-relaxed">{locale === 'ru' ? value.descRu : value.descEn}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
             {/* Contact Section */}
-            <section id="contact" className="py-5 px-4 sm:px-6 relative flex-1">
+            <section id="contact" className="pt-12 pb-8 px-4 sm:px-6 relative flex-1">
                 <div className="max-w-6xl mx-auto">
                     <div className="text-center mb-8">
-                        <h2 className="text-3xl sm:text-4xl font-ornamental text-slate-dark mb-4">
+                        <h1 className="text-4xl sm:text-5xl font-ornamental text-slate-dark mb-4">
                             {locale === 'ru' ? 'Связаться с Нами' : 'Get in Touch'}
-                        </h2>
+                        </h1>
                         <p className="text-slate text-lg">
                             {locale === 'ru' ? 'Выберите удобный способ связи или оставьте заявку.' : 'Choose a convenient way to connect or leave a request.'}
                         </p>
@@ -105,7 +66,7 @@ export default function AboutPage() {
                         {/* Messenger Links */}
                         <div className="flex flex-col gap-6">
                             <a
-                                href="https://t.me/Trubitsina_Elena_Astrolog"
+                                href="https://t.me/+79236800515"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-6 p-6 rounded-3xl bg-white border border-slate-100 hover:border-turquoise hover:shadow-md transition-all group"

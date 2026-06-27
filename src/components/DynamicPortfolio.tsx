@@ -17,6 +17,43 @@ interface CategoryWithPhotos extends PortfolioCategory {
     photos: PortfolioPhoto[];
 }
 
+interface GalleryPhotoCardProps {
+    photo: PortfolioPhoto;
+    locale: string;
+    onClick: () => void;
+}
+
+function GalleryPhotoCard({ photo, locale, onClick }: GalleryPhotoCardProps) {
+    const [loaded, setLoaded] = useState(false);
+
+    return (
+        <div
+            className="group rounded-2xl overflow-hidden aspect-square relative shadow-sm hover:shadow-md transition-all border border-slate-100 bg-white cursor-pointer"
+            onClick={onClick}
+        >
+            <Image
+                src={photo.imageUrl}
+                alt={photo.seo.altText[locale as 'ru' | 'en'] || photo.seo.altText.ru || photo.seo.title}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className={`object-cover transform transition-all duration-700 ease-out group-hover:scale-105 ${
+                    loaded ? 'opacity-100 blur-0 scale-100' : 'opacity-0 blur-sm scale-98'
+                }`}
+                onLoad={() => setLoaded(true)}
+            />
+
+            {/* Hover overlay with SEO description */}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/30 to-transparent opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 sm:p-4 lg:p-6 pointer-events-none">
+                {(photo.seo.description?.[locale as 'ru' | 'en'] || photo.seo.description?.ru) && (
+                    <div className="text-white font-medium text-xs sm:text-[1.05rem] leading-snug transform sm:translate-y-2 sm:group-hover:translate-y-0 transition-transform duration-300 line-clamp-3 sm:line-clamp-none">
+                        {photo.seo.description[locale as 'ru' | 'en'] || photo.seo.description.ru}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 export default function DynamicPortfolio({ pageId, title, subtitle }: DynamicPortfolioProps) {
     const { locale } = useLanguage();
     const [categories, setCategories] = useState<CategoryWithPhotos[]>([]);
@@ -134,28 +171,12 @@ export default function DynamicPortfolio({ pageId, title, subtitle }: DynamicPor
                                                 }`}
                                             >
                                                 {cat.photos.map((photo) => (
-                                                    <div
+                                                    <GalleryPhotoCard
                                                         key={photo.id}
-                                                        className="group rounded-2xl overflow-hidden aspect-square relative shadow-sm hover:shadow-md transition-all border border-slate-100 bg-white cursor-pointer"
+                                                        photo={photo}
+                                                        locale={locale}
                                                         onClick={() => setSelectedPhoto(photo)}
-                                                    >
-                                                        <Image
-                                                            src={photo.imageUrl}
-                                                            alt={photo.seo.altText[locale as 'ru' | 'en'] || photo.seo.altText.ru || photo.seo.title}
-                                                            fill
-                                                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                                                            className="object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
-                                                        />
-
-                                                        {/* Hover overlay with SEO description */}
-                                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/30 to-transparent opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 sm:p-4 lg:p-6 pointer-events-none">
-                                                            {(photo.seo.description?.[locale as 'ru' | 'en'] || photo.seo.description?.ru) && (
-                                                                <div className="text-white font-medium text-xs sm:text-[1.05rem] leading-snug transform sm:translate-y-2 sm:group-hover:translate-y-0 transition-transform duration-300 line-clamp-3 sm:line-clamp-none">
-                                                                    {photo.seo.description[locale as 'ru' | 'en'] || photo.seo.description.ru}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
+                                                    />
                                                 ))}
                                             </div>
 

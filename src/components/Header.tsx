@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -106,14 +106,14 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <nav className="hidden md:flex items-center gap-4 lg:gap-8">
+                    <nav className="hidden md:flex items-center text-sm gap-1 lg:gap-2">
                         {/* Dropdown Catalog */}
                         <div
-                            className="relative"
+                            className="relative flex items-center"
                             onMouseEnter={() => setCatalogOpen(true)}
                             onMouseLeave={() => setCatalogOpen(false)}
                         >
-                            <button className={`flex items-center gap-1 font-semibold transition-colors py-2 ${isActive('/catalog') ? 'text-turquoise-dark' : 'text-slate hover:text-turquoise-dark'}`}>
+                            <button className={`flex items-center justify-center gap-1 font-semibold transition-colors py-2 px-2.5 lg:px-4 text-center leading-tight ${isActive('/catalog') ? 'text-turquoise-dark' : 'text-slate hover:text-turquoise-dark'}`}>
                                 {t('nav.catalog')}
                                 <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${catalogOpen ? 'rotate-180' : ''}`} />
                             </button>
@@ -141,29 +141,37 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                             </div>
                         </div>
 
+                        <div className="w-px h-5 bg-slate-200 shrink-0"></div>
+
                         {/* Direct Link to Keyboard Engraving */}
                         <Link
                             href="/keyboard-engraving"
-                            className={`font-semibold transition-colors py-2 ${isActive('/keyboard-engraving') ? 'text-turquoise-dark' : 'text-slate hover:text-turquoise-dark'}`}
+                            className={`flex items-center justify-center text-center font-semibold transition-colors py-2 px-2.5 lg:px-4 leading-tight ${isActive('/keyboard-engraving') ? 'text-turquoise-dark' : 'text-slate hover:text-turquoise-dark'}`}
                         >
                             {locale === 'ru' ? 'Гравировка клавиатур' : 'Keyboard Engraving'}
                         </Link>
 
+                        <div className="w-px h-5 bg-slate-200 shrink-0"></div>
+
                         {/* Standard Links */}
-                        {navLinks.filter(l => l.href !== '/').map((link) => (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                className={`font-semibold transition-colors py-2 ${isActive(link.href) ? 'text-turquoise-dark' : 'text-slate hover:text-turquoise-dark'}`}
-                            >
-                                {link.label}
-                            </Link>
+                        {navLinks.filter(l => l.href !== '/').map((link, index, array) => (
+                            <Fragment key={link.href}>
+                                <Link
+                                    href={link.href}
+                                    className={`flex items-center justify-center text-center font-semibold transition-colors py-2 px-2.5 lg:px-4 leading-tight ${isActive(link.href) ? 'text-turquoise-dark' : 'text-slate hover:text-turquoise-dark'}`}
+                                >
+                                    {link.label}
+                                </Link>
+                                {index < array.length - 1 && (
+                                    <div className="w-px h-5 bg-slate-200 shrink-0"></div>
+                                )}
+                            </Fragment>
                         ))}
 
-                        <div className="w-px h-6 bg-slate-200 mx-2"></div>
+                        <div className="w-px h-5 bg-slate-200 shrink-0"></div>
 
                         {/* Cart */}
-                        <button onClick={openDrawer} className="flex items-center gap-2 font-semibold text-slate hover:text-turquoise-dark transition-colors">
+                        <button onClick={openDrawer} className="flex items-center justify-center gap-2 font-semibold text-slate hover:text-turquoise-dark transition-colors py-2 px-2.5 lg:px-4">
                             <div className="relative">
                                 <ShoppingBag className="w-5 h-5" />
                                 {totalItems > 0 && (
@@ -175,28 +183,18 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                             <span>{t('nav.cart')}</span>
                         </button>
 
-                        <div className="w-px h-6 bg-slate-200 mx-2"></div>
+                        <div className="w-px h-5 bg-slate-200 shrink-0"></div>
 
                         {/* Cabinet */}
                         <Link
                             href="/cabinet"
-                            className={`flex items-center gap-2 font-semibold transition-colors ${isActive('/cabinet') ? 'text-turquoise-dark' : 'text-slate hover:text-turquoise-dark'}`}
+                            className={`flex items-center justify-center gap-2 font-semibold transition-colors py-2 px-2.5 lg:px-4 ${isActive('/cabinet') ? 'text-turquoise-dark' : 'text-slate hover:text-turquoise-dark'}`}
                         >
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                             <span>{locale === 'ru' ? 'Кабинет' : 'Cabinet'}</span>
                         </Link>
-
-                        <div className="w-px h-6 bg-slate-200 mx-2"></div>
-
-                        {/* Language */}
-                        <button
-                            onClick={() => setLocale(locale === 'ru' ? 'en' : 'ru')}
-                            className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center text-xs font-bold text-slate hover:border-turquoise hover:text-turquoise transition-colors"
-                        >
-                            {locale === 'ru' ? 'EN' : 'RU'}
-                        </button>
                     </nav>
 
                     {/* Mobile Menu Controls */}
@@ -311,14 +309,6 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                     })}
                 </nav>
 
-                <div className="p-4 border-t border-slate-200 bg-white">
-                    <button
-                        onClick={() => setLocale(locale === 'ru' ? 'en' : 'ru')}
-                        className="w-full py-3 rounded-xl border-2 border-slate-100 text-slate font-bold hover:border-turquoise hover:text-turquoise-dark transition-colors flex items-center justify-center gap-2"
-                    >
-                        <span>{locale === 'ru' ? '🇬🇧 English' : '🇷🇺 Русский'}</span>
-                    </button>
-                </div>
             </div>
         </div>
     );

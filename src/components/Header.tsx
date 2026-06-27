@@ -106,7 +106,7 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <nav className="hidden md:flex items-center text-sm gap-1 lg:gap-2">
+                    <nav className="hidden md:flex items-center text-base gap-1 lg:gap-2">
                         {/* Dropdown Catalog */}
                         <div
                             className="relative flex items-center"
@@ -141,7 +141,7 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                             </div>
                         </div>
 
-                        <div className="w-px h-5 bg-slate-200 shrink-0"></div>
+                        <div className="w-px h-6 bg-slate-300 shrink-0"></div>
 
                         {/* Direct Link to Keyboard Engraving */}
                         <Link
@@ -151,7 +151,7 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                             {locale === 'ru' ? 'Гравировка клавиатур' : 'Keyboard Engraving'}
                         </Link>
 
-                        <div className="w-px h-5 bg-slate-200 shrink-0"></div>
+                        <div className="w-px h-6 bg-slate-300 shrink-0"></div>
 
                         {/* Standard Links */}
                         {navLinks.filter(l => l.href !== '/').map((link, index, array) => (
@@ -163,12 +163,12 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                                     {link.label}
                                 </Link>
                                 {index < array.length - 1 && (
-                                    <div className="w-px h-5 bg-slate-200 shrink-0"></div>
+                                    <div className="w-px h-6 bg-slate-300 shrink-0"></div>
                                 )}
                             </Fragment>
                         ))}
 
-                        <div className="w-px h-5 bg-slate-200 shrink-0"></div>
+                        <div className="w-px h-6 bg-slate-300 shrink-0"></div>
 
                         {/* Cart */}
                         <button onClick={openDrawer} className="flex items-center justify-center gap-2 font-semibold text-slate hover:text-turquoise-dark transition-colors py-2 px-2.5 lg:px-4">
@@ -183,7 +183,7 @@ export default function Header({ variant = 'solid' }: HeaderProps) {
                             <span>{t('nav.cart')}</span>
                         </button>
 
-                        <div className="w-px h-5 bg-slate-200 shrink-0"></div>
+                        <div className="w-px h-6 bg-slate-300 shrink-0"></div>
 
                         {/* Cabinet */}
                         <Link

@@ -245,20 +245,47 @@ export default function AdminProductsPage() {
 
     const filteredProducts = products.filter(p => {
         let matchesFilter = true;
-        if (checkedCategories.size > 0) {
-            const categoryMatch = p.category ? checkedCategories.has(p.category) : false;
-            if (!categoryMatch) {
-                matchesFilter = false;
-            } else if (checkedSubcategories.size > 0 && p.category && checkedCategories.has(p.category)) {
+        
+        // If there are no category or subcategory filters, it matches.
+        if (checkedCategories.size > 0 || checkedSubcategories.size > 0) {
+            let matched = false;
+            
+            // Condition 1: "Без категории"
+            if (checkedCategories.has('_no_category') && !p.category) {
+                matched = true;
+            }
+            
+            // Condition 2: "Без подкатегории"
+            if (checkedCategories.has('_no_subcategory') && !p.subcategory) {
+                matched = true;
+            }
+
+            // Condition 3: Real categories and subcategories
+            if (!matched && p.category && checkedCategories.has(p.category)) {
+                // Product's category is checked. Now check subcategories.
                 const relevantSubs = Array.from(checkedSubcategories).filter(sub => {
                     const catSubs = subcategoriesMap[p.category!] || [];
                     return catSubs.some(s => s.slug === sub);
                 });
+                
                 if (relevantSubs.length > 0) {
-                    matchesFilter = p.subcategory ? relevantSubs.includes(p.subcategory) : false;
+                    // Category is checked AND has specific subcategories checked.
+                    // Must match one of the checked subcategories.
+                    if (p.subcategory && relevantSubs.includes(p.subcategory)) {
+                        matched = true;
+                    }
+                } else {
+                    // Category is checked but NO specific subcategories are checked.
+                    // Matches the whole category.
+                    matched = true;
                 }
             }
+
+            if (!matched) {
+                matchesFilter = false;
+            }
         }
+
         const matchesSearch = searchQuery
             ? (p.title.en.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 p.title.ru.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -616,6 +643,35 @@ export default function AdminProductsPage() {
 									);
 								})}
 							</div>
+                            {/* Special Filters */}
+                            <div className="flex gap-4 mt-4 pt-4 border-t border-gray-100">
+                                <label className="flex items-center gap-2 cursor-pointer group py-1">
+                                    <input
+                                        type="checkbox"
+                                        checked={checkedCategories.has('_no_category')}
+                                        onChange={() => toggleCategory('_no_category')}
+                                        className="w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500 cursor-pointer"
+                                    />
+                                    <span className={`text-sm font-semibold transition-colors ${
+                                        checkedCategories.has('_no_category') ? 'text-orange-700' : 'text-gray-800 group-hover:text-gray-600'
+                                    }`}>
+                                        {locale === 'ru' ? 'Без категории' : 'No Category'}
+                                    </span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer group py-1">
+                                    <input
+                                        type="checkbox"
+                                        checked={checkedCategories.has('_no_subcategory')}
+                                        onChange={() => toggleCategory('_no_subcategory')}
+                                        className="w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500 cursor-pointer"
+                                    />
+                                    <span className={`text-sm font-semibold transition-colors ${
+                                        checkedCategories.has('_no_subcategory') ? 'text-orange-700' : 'text-gray-800 group-hover:text-gray-600'
+                                    }`}>
+                                        {locale === 'ru' ? 'Без подкатегории' : 'No Subcategory'}
+                                    </span>
+                                </label>
+                            </div>
                         </div>
                     )}
                 </>

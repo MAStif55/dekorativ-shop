@@ -290,7 +290,7 @@ export default function CategoryPageContent({ categorySlug }: CategoryPageConten
                                                 </h2>
 
                                                 {sub.description && (sub.description[currentLocale] || sub.description.ru || sub.description.en) && (
-                                                    <div className="text-sm text-slate-dark font-medium leading-tight mt-1.5 text-left catalog-prose">
+                                                    <div className="text-base text-slate-dark font-medium leading-relaxed mt-2 text-center catalog-prose max-w-4xl mx-auto">
                                                         <Markdown components={markdownComponents}>
                                                             {sub.description[currentLocale] || sub.description.ru || sub.description.en || ''}
                                                         </Markdown>

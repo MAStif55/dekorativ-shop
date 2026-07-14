@@ -120,23 +120,6 @@ export function AdminProductCard({
                 : 'border-gray-200 hover:border-primary/50'
                 }`}
         >
-            {/* Selection Checkbox (Absolute Top Left) */}
-            <div
-                className="absolute top-3 left-3 z-10"
-                onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onToggleSelect(product.id, e);
-                }}
-            >
-                <div className={`w-6 h-6 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${selected
-                    ? 'bg-primary border-primary text-white'
-                    : 'bg-white/80 border-gray-300 hover:border-primary text-transparent'
-                    }`}>
-                    <Check size={14} strokeWidth={3} />
-                </div>
-            </div>
-
             {/* Main Clickable Area (Link to full edit) */}
             <Link
                 href={`/admin/products/edit?id=${product.id}`}
@@ -177,37 +160,10 @@ export function AdminProductCard({
             </Link>
 
             {/* Footer Area (Price and Actions) */}
-            <div className="p-4 pt-2 mt-auto flex items-center justify-between border-t border-gray-100 bg-gray-50/30">
+            <div className="p-4 pt-2 mt-auto flex items-center border-t border-gray-100 bg-gray-50/30">
                 <span className="font-bold text-gray-900 text-base">
                     {formatCurrency(product.basePrice)}
                 </span>
-
-                {/* Quick Actions */}
-                <div className="flex space-x-1">
-                    <a
-                        href={`/pack?id=${product.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-1.5 text-gray-400 hover:text-blue-500 rounded-full hover:bg-blue-50 transition-colors"
-                        title="View Live"
-                    >
-                        <ExternalLink size={14} />
-                    </a>
-                    <button
-                        onClick={(e) => onDuplicate(product, e)}
-                        className="p-1.5 text-gray-400 hover:text-indigo-500 rounded-full hover:bg-indigo-50 transition-colors"
-                        title="Duplicate"
-                    >
-                        <Copy size={14} />
-                    </button>
-                    <button
-                        onClick={(e) => onDelete(product.id, e)}
-                        className="p-1.5 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors"
-                        title="Delete"
-                    >
-                        <Trash2 size={14} />
-                    </button>
-                </div>
             </div>
 
             {/* Quick Edit Overlay */}
@@ -223,9 +179,24 @@ export function AdminProductCard({
                 }}
             >
                 <div className="flex justify-between items-center mb-3">
-                    <span className="text-[10px] uppercase tracking-wider font-bold text-primary-dark">
-                        {locale === 'ru' ? 'Быстрое редактирование' : 'Quick Edit'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                        <div
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                onToggleSelect(product.id, e);
+                            }}
+                            className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors cursor-pointer ${selected
+                                ? 'bg-primary border-primary text-white'
+                                : 'bg-white border-gray-300 hover:border-primary text-transparent'
+                                }`}
+                        >
+                            <Check size={14} strokeWidth={3} />
+                        </div>
+                        <span className="text-[10px] uppercase tracking-wider font-bold text-primary-dark">
+                            {locale === 'ru' ? 'Быстрое редактирование' : 'Quick Edit'}
+                        </span>
+                    </div>
                     {isDirty && (
                         <span className="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-medium animate-pulse">
                             {locale === 'ru' ? 'Изменено' : 'Modified'}
@@ -344,6 +315,36 @@ export function AdminProductCard({
 
                 {/* Actions */}
                 <div className="flex flex-col gap-2 mt-auto pt-3 border-t border-gray-100">
+                    <div className="flex items-center justify-between pb-1 border-b border-gray-100/50">
+                        <span className="text-[10px] font-semibold text-gray-400 uppercase">
+                            {locale === 'ru' ? 'Действия' : 'Actions'}
+                        </span>
+                        <div className="flex space-x-1">
+                            <a
+                                href={`/pack?id=${product.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1 text-gray-400 hover:text-blue-500 rounded hover:bg-blue-50 transition-colors"
+                                title="View Live"
+                            >
+                                <ExternalLink size={14} />
+                            </a>
+                            <button
+                                onClick={(e) => onDuplicate(product, e)}
+                                className="p-1 text-gray-400 hover:text-indigo-500 rounded hover:bg-indigo-50 transition-colors"
+                                title="Duplicate"
+                            >
+                                <Copy size={14} />
+                            </button>
+                            <button
+                                onClick={(e) => onDelete(product.id, e)}
+                                className="p-1 text-gray-400 hover:text-red-500 rounded hover:bg-red-50 transition-colors"
+                                title="Delete"
+                            >
+                                <Trash2 size={14} />
+                            </button>
+                        </div>
+                    </div>
                     <Link
                         href={`/admin/products/edit?id=${product.id}`}
                         className="w-full py-1.5 text-xs font-semibold text-primary hover:text-primary-dark bg-primary/5 hover:bg-primary/10 rounded-lg transition-colors flex items-center justify-center gap-1.5 border border-primary/20"

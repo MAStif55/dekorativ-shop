@@ -673,6 +673,8 @@ export default function AdminProductsPage() {
                             product={product}
                             locale={locale as 'en' | 'ru'}
                             selected={selectedIds.has(product.id)}
+                            categories={CATEGORIES}
+                            subcategoriesMap={subcategoriesMap}
                             onToggleSelect={(id, e) => {
                                 e.preventDefault(); // Stop navigation
                                 toggleSelect(id);

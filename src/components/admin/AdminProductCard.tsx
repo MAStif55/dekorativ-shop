@@ -10,6 +10,8 @@ interface AdminProductCardProps {
     product: Product;
     locale: 'en' | 'ru';
     selected: boolean;
+    categories: { id: string; label: { en: string; ru: string } }[];
+    subcategoriesMap: Record<string, any[]>;
     onToggleSelect: (id: string, e: React.MouseEvent) => void;
     onDuplicate: (product: Product, e: React.MouseEvent) => void;
     onDelete: (id: string, e: React.MouseEvent) => void;
@@ -20,6 +22,8 @@ export function AdminProductCard({
     product,
     locale,
     selected,
+    categories,
+    subcategoriesMap,
     onToggleSelect,
     onDuplicate,
     onDelete,
@@ -33,19 +37,25 @@ export function AdminProductCard({
     const [titleVal, setTitleVal] = useState(product.title[locale] || '');
     const [priceVal, setPriceVal] = useState(product.basePrice || 0);
     const [statusVal, setStatusVal] = useState(product.status || 'AVAILABLE');
+    const [categoryVal, setCategoryVal] = useState(product.category || '');
+    const [subcategoryVal, setSubcategoryVal] = useState(product.subcategory || '');
 
     // Keep fields in sync with prop changes
     useEffect(() => {
         setTitleVal(product.title[locale] || '');
         setPriceVal(product.basePrice || 0);
         setStatusVal(product.status || 'AVAILABLE');
+        setCategoryVal(product.category || '');
+        setSubcategoryVal(product.subcategory || '');
     }, [product, locale]);
 
     // Check if fields were modified
     const isDirty =
         titleVal !== (product.title[locale] || '') ||
         priceVal !== (product.basePrice || 0) ||
-        statusVal !== (product.status || 'AVAILABLE');
+        statusVal !== (product.status || 'AVAILABLE') ||
+        categoryVal !== (product.category || '') ||
+        subcategoryVal !== (product.subcategory || '');
 
     // The overlay is visible when hovered, focused, modified, or saving
     const showOverlay = isHovered || isFocused || isDirty || isSaving;
@@ -54,6 +64,8 @@ export function AdminProductCard({
         setTitleVal(product.title[locale] || '');
         setPriceVal(product.basePrice || 0);
         setStatusVal(product.status || 'AVAILABLE');
+        setCategoryVal(product.category || '');
+        setSubcategoryVal(product.subcategory || '');
         setIsFocused(false);
     };
 
@@ -70,7 +82,9 @@ export function AdminProductCard({
             await onUpdate(product.id, {
                 title: updatedTitle,
                 basePrice: Number(priceVal),
-                status: statusVal as ProductStatus
+                status: statusVal as ProductStatus,
+                category: categoryVal,
+                subcategory: subcategoryVal
             });
             setIsFocused(false);
         } catch (err) {
@@ -219,7 +233,7 @@ export function AdminProductCard({
                     )}
                 </div>
 
-                <div className="flex-1 flex flex-col gap-3">
+                <div className="flex-1 flex flex-col gap-2">
                     {/* Title Input */}
                     <div>
                         <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">
@@ -232,7 +246,7 @@ export function AdminProductCard({
                             onFocus={() => setIsFocused(true)}
                             onBlur={() => setIsFocused(false)}
                             onKeyDown={handleKeyDown}
-                            className="w-full text-sm font-bold text-gray-900 bg-transparent border-b border-gray-200 py-1 focus:border-primary focus:outline-none transition-colors"
+                            className="w-full text-sm font-bold text-gray-900 bg-transparent border-b border-gray-200 py-0.5 focus:border-primary focus:outline-none transition-colors"
                         />
                     </div>
 
@@ -249,37 +263,82 @@ export function AdminProductCard({
                                 onFocus={() => setIsFocused(true)}
                                 onBlur={() => setIsFocused(false)}
                                 onKeyDown={handleKeyDown}
-                                className="w-full text-sm font-bold text-gray-900 bg-transparent border-b border-gray-200 py-1 pr-5 focus:border-primary focus:outline-none transition-colors"
+                                className="w-full text-sm font-bold text-gray-900 bg-transparent border-b border-gray-200 py-0.5 pr-5 focus:border-primary focus:outline-none transition-colors"
                             />
                             <span className="absolute right-0 bottom-1 text-xs font-bold text-gray-400">₽</span>
                         </div>
                     </div>
 
-                    {/* Status Select */}
-                    <div>
-                        <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">
-                            {locale === 'ru' ? 'Статус наличия' : 'Availability Status'}
-                        </label>
-                        <select
-                            value={statusVal}
-                            onChange={(e) => setStatusVal(e.target.value as ProductStatus)}
-                            onFocus={() => setIsFocused(true)}
-                            onBlur={() => setIsFocused(false)}
-                            className="w-full text-sm font-medium text-gray-900 bg-transparent border-b border-gray-200 py-1 focus:border-primary focus:outline-none transition-colors cursor-pointer"
-                        >
-                            <option value="AVAILABLE">
-                                {locale === 'ru' ? '✅ В наличии' : '✅ Available'}
-                            </option>
-                            <option value="OUT_OF_STOCK">
-                                {locale === 'ru' ? '⏸️ Нет в наличии' : '⏸️ Out of Stock'}
-                            </option>
-                            <option value="COMING_SOON">
-                                {locale === 'ru' ? '🔜 Скоро в продаже' : '🔜 Coming Soon'}
-                            </option>
-                            <option value="HIDDEN">
-                                {locale === 'ru' ? '👁️‍🗨️ Скрыт' : '👁️‍🗨️ Hidden'}
-                            </option>
-                        </select>
+                    {/* Status, Category, Subcategory */}
+                    <div className="grid grid-cols-2 gap-2">
+                        {/* Status Select */}
+                        <div className="col-span-2">
+                            <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">
+                                {locale === 'ru' ? 'Статус наличия' : 'Availability Status'}
+                            </label>
+                            <select
+                                value={statusVal}
+                                onChange={(e) => setStatusVal(e.target.value as ProductStatus)}
+                                onFocus={() => setIsFocused(true)}
+                                onBlur={() => setIsFocused(false)}
+                                className="w-full text-sm font-medium text-gray-900 bg-transparent border-b border-gray-200 py-0.5 focus:border-primary focus:outline-none transition-colors cursor-pointer"
+                            >
+                                <option value="AVAILABLE">
+                                    {locale === 'ru' ? '✅ В наличии' : '✅ Available'}
+                                </option>
+                                <option value="OUT_OF_STOCK">
+                                    {locale === 'ru' ? '⏸️ Нет в наличии' : '⏸️ Out of Stock'}
+                                </option>
+                                <option value="COMING_SOON">
+                                    {locale === 'ru' ? '🔜 Скоро в продаже' : '🔜 Coming Soon'}
+                                </option>
+                                <option value="HIDDEN">
+                                    {locale === 'ru' ? '👁️‍🗨️ Скрыт' : '👁️‍🗨️ Hidden'}
+                                </option>
+                            </select>
+                        </div>
+
+                        {/* Category */}
+                        <div>
+                            <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">
+                                {locale === 'ru' ? 'Категория' : 'Category'}
+                            </label>
+                            <select
+                                value={categoryVal}
+                                onChange={(e) => {
+                                    setCategoryVal(e.target.value);
+                                    setSubcategoryVal('');
+                                }}
+                                onFocus={() => setIsFocused(true)}
+                                onBlur={() => setIsFocused(false)}
+                                className="w-full text-sm font-medium text-gray-900 bg-transparent border-b border-gray-200 py-0.5 focus:border-primary focus:outline-none transition-colors cursor-pointer"
+                            >
+                                <option value="">-</option>
+                                {categories.map(c => (
+                                    <option key={c.id} value={c.id}>{c.label[locale]}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Subcategory */}
+                        <div>
+                            <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">
+                                {locale === 'ru' ? 'Подкатегория' : 'Subcategory'}
+                            </label>
+                            <select
+                                value={subcategoryVal}
+                                onChange={(e) => setSubcategoryVal(e.target.value)}
+                                onFocus={() => setIsFocused(true)}
+                                onBlur={() => setIsFocused(false)}
+                                disabled={!categoryVal || !subcategoriesMap[categoryVal]?.length}
+                                className="w-full text-sm font-medium text-gray-900 bg-transparent border-b border-gray-200 py-0.5 focus:border-primary focus:outline-none transition-colors cursor-pointer disabled:opacity-50"
+                            >
+                                <option value="">-</option>
+                                {categoryVal && subcategoriesMap[categoryVal]?.map((s: any) => (
+                                    <option key={s.slug} value={s.slug}>{s.title[locale]}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
                 </div>
 

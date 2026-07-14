@@ -2,7 +2,7 @@
 
 import { Product, ProductStatus, getCardImageUrl } from '@/types/product';
 import Link from 'next/link';
-import { Copy, ExternalLink, Trash2, Check, Loader2, Save } from 'lucide-react';
+import { Copy, ExternalLink, Trash2, Check, Loader2, Save, Edit } from 'lucide-react';
 import { formatCurrency } from '@/utils/currency';
 import { useState, useEffect } from 'react';
 
@@ -284,30 +284,39 @@ export function AdminProductCard({
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2 mt-auto pt-3 border-t border-gray-100">
-                    <button
-                        onClick={handleCancel}
-                        disabled={isSaving}
-                        className="flex-1 py-2 text-xs font-semibold text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 disabled:opacity-50"
+                <div className="flex flex-col gap-2 mt-auto pt-3 border-t border-gray-100">
+                    <Link
+                        href={`/admin/products/edit?id=${product.id}`}
+                        className="w-full py-1.5 text-xs font-semibold text-primary hover:text-primary-dark bg-primary/5 hover:bg-primary/10 rounded-lg transition-colors flex items-center justify-center gap-1.5 border border-primary/20"
                     >
-                        {locale === 'ru' ? 'Отмена' : 'Cancel'}
-                    </button>
-                    <button
-                        onClick={handleSave}
-                        disabled={isSaving || !isDirty}
-                        className="flex-1 py-2 text-xs font-bold text-white bg-primary hover:bg-primary-dark rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1 disabled:opacity-50 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                    >
-                        {isSaving ? (
-                            <Loader2 size={12} className="animate-spin" />
-                        ) : (
-                            <Save size={12} />
-                        )}
-                        <span>
-                            {isSaving
-                                ? (locale === 'ru' ? 'Сохранение...' : 'Saving...')
-                                : (locale === 'ru' ? 'Сохранить' : 'Save')}
-                        </span>
-                    </button>
+                        <Edit size={12} />
+                        {locale === 'ru' ? 'Полное редактирование' : 'Full Edit'}
+                    </Link>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleCancel}
+                            disabled={isSaving}
+                            className="flex-1 py-2 text-xs font-semibold text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 disabled:opacity-50"
+                        >
+                            {locale === 'ru' ? 'Отмена' : 'Cancel'}
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            disabled={isSaving || !isDirty}
+                            className="flex-1 py-2 text-xs font-bold text-white bg-primary hover:bg-primary-dark rounded-lg transition-colors shadow-sm flex items-center justify-center gap-1 disabled:opacity-50 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                        >
+                            {isSaving ? (
+                                <Loader2 size={12} className="animate-spin" />
+                            ) : (
+                                <Save size={12} />
+                            )}
+                            <span>
+                                {isSaving
+                                    ? (locale === 'ru' ? 'Сохранение...' : 'Saving...')
+                                    : (locale === 'ru' ? 'Сохранить' : 'Save')}
+                            </span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

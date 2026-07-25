@@ -38,8 +38,9 @@ function ShildikPreview({ length, width, material, cornerType }: {
 
     useEffect(() => {
         const update = () => {
-            if (containerRef.current) {
-                setMaxSize(Math.min(280, containerRef.current.offsetWidth * 0.9));
+            if (containerRef.current && containerRef.current.offsetWidth > 0) {
+                const calculated = Math.min(280, containerRef.current.offsetWidth * 0.9);
+                setMaxSize(prev => (prev !== calculated ? calculated : prev));
             }
         };
         update();

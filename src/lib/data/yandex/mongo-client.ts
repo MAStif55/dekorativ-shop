@@ -18,19 +18,9 @@ const globalForMongo = globalThis as unknown as {
 };
 
 export async function getDb(): Promise<Db> {
-    // If we have a cached DB, verify the connection is still alive
+    // Return cached DB connection if client is already connected
     if (globalForMongo._mongoDb && globalForMongo._mongoClient) {
-        try {
-            // Lightweight ping to verify connection health
-            await globalForMongo._mongoClient.db('admin').command({ ping: 1 });
-            return globalForMongo._mongoDb;
-        } catch {
-            // Connection is dead — clean up and reconnect
-            console.warn('[MongoDB] Connection lost, reconnecting...');
-            globalForMongo._mongoClient = undefined;
-            globalForMongo._mongoDb = undefined;
-            globalForMongo._mongoConnecting = undefined;
-        }
+        return globalForMongo._mongoDb;
     }
 
     // Avoid multiple concurrent connection attempts
@@ -39,41 +29,50 @@ export async function getDb(): Promise<Db> {
     }
 
     globalForMongo._mongoConnecting = (async () => {
-        const client = new MongoClient(MONGODB_URI, {
-            maxPoolSize: 10,
-            minPoolSize: 2,
-            maxIdleTimeMS: 30000,
-            serverSelectionTimeoutMS: 5000,
-            connectTimeoutMS: 10000,
-        });
+        try {
+            const client = new MongoClient(MONGODB_URI, {
+                maxPoolSize: 10,
+                minPoolSize: 2,
+                maxIdleTimeMS: 30000,
+                serverSelectionTimeoutMS: 5000,
+                connectTimeoutMS: 10000,
+            });
 
-        await client.connect();
+            await client.connect();
 
-        // Monitor connection events
-        client.on('close', () => {
-            console.warn('[MongoDB] Connection closed');
+            // Monitor connection events
+            client.on('close', () => {
+                console.warn('[MongoDB] Connection closed');
+                globalForMongo._mongoClient = undefined;
+                globalForMongo._mongoDb = undefined;
+                globalForMongo._mongoConnecting = undefined;
+            });
+
+            client.on('error', (err) => {
+                console.error('[MongoDB] Connection error:', err.message);
+                globalForMongo._mongoClient = undefined;
+                globalForMongo._mongoDb = undefined;
+                globalForMongo._mongoConnecting = undefined;
+            });
+
+            const db = client.db(DB_NAME);
+
+            // Ensure TTL index for auth_tokens (expire after 1 hour)
+            db.collection('auth_tokens').createIndex(
+                { createdAt: 1 },
+                { expireAfterSeconds: 3600 }
+            ).catch(err => console.error('[MongoDB] Error creating TTL index for auth_tokens:', err));
+
+            globalForMongo._mongoClient = client;
+            globalForMongo._mongoDb = db;
+            return db;
+        } catch (error) {
             globalForMongo._mongoClient = undefined;
             globalForMongo._mongoDb = undefined;
+            throw error;
+        } finally {
             globalForMongo._mongoConnecting = undefined;
-        });
-
-        client.on('error', (err) => {
-            console.error('[MongoDB] Connection error:', err.message);
-        });
-
-        const db = client.db(DB_NAME);
-
-        // Ensure TTL index for auth_tokens (expire after 1 hour)
-        db.collection('auth_tokens').createIndex(
-            { createdAt: 1 },
-            { expireAfterSeconds: 3600 }
-        ).catch(err => console.error('[MongoDB] Error creating TTL index for auth_tokens:', err));
-
-        globalForMongo._mongoClient = client;
-        globalForMongo._mongoDb = db;
-        globalForMongo._mongoConnecting = undefined;
-
-        return db;
+        }
     })();
 
     return globalForMongo._mongoConnecting;

@@ -6,23 +6,36 @@ import { Category } from '@/types/category';
 const BASE_URL = 'https://dekorativ55.ru';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const products = await ProductRepository.getAll();
+    let productUrls: MetadataRoute.Sitemap = [];
+    let categoryUrls: MetadataRoute.Sitemap = [];
 
-    const productUrls = products.map((product) => ({
-        url: `${BASE_URL}/product/${product.slug}`,
-        lastModified: new Date(), // Ideally this would come from the product updated_at
-        changeFrequency: 'weekly' as const,
-        priority: 0.8,
-    }));
+    try {
+        const products = await ProductRepository.getAll();
+        if (products && Array.isArray(products)) {
+            productUrls = products.map((product) => ({
+                url: `${BASE_URL}/product/${product.slug}`,
+                lastModified: new Date(),
+                changeFrequency: 'weekly' as const,
+                priority: 0.8,
+            }));
+        }
+    } catch (error) {
+        console.warn("sitemap: ProductRepository fetch failed, omitting dynamic products", error);
+    }
 
-    const categories = await CategoryRepository.getAll();
-
-    const categoryUrls = categories.map((cat) => ({
-        url: `${BASE_URL}/catalog/${cat.slug}`,
-        lastModified: new Date(),
-        changeFrequency: 'weekly' as const,
-        priority: 0.85,
-    }));
+    try {
+        const categories = await CategoryRepository.getAll();
+        if (categories && Array.isArray(categories)) {
+            categoryUrls = categories.map((cat) => ({
+                url: `${BASE_URL}/catalog/${cat.slug}`,
+                lastModified: new Date(),
+                changeFrequency: 'weekly' as const,
+                priority: 0.85,
+            }));
+        }
+    } catch (error) {
+        console.warn("sitemap: CategoryRepository fetch failed, omitting dynamic categories", error);
+    }
 
     return [
         {

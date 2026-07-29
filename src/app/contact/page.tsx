@@ -67,7 +67,7 @@ export default function ContactPage() {
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-[#2D1B1F]">Email</h3>
-                                        <p className="text-[#666]">support@dekorativ55.ru</p>
+                                        <a href="mailto:aurifex55@yandex.ru" className="text-[#666] hover:text-[#8B4513] transition-colors">aurifex55@yandex.ru</a>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-4">
@@ -75,8 +75,13 @@ export default function ContactPage() {
                                         <MessageCircle size={24} />
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-[#2D1B1F]">WhatsApp / Telegram</h3>
-                                        <p className="text-[#666]">+66 12 345 6789</p>
+                                        <h3 className="font-bold text-[#2D1B1F]">Телефон / Мессенджеры</h3>
+                                        <a href="tel:+79236800515" className="text-[#666] hover:text-[#8B4513] transition-colors block mb-1">+7(923)-680-05-15</a>
+                                        <div className="flex items-center gap-3 text-xs font-semibold">
+                                            <a href="https://t.me/+79236800515" target="_blank" rel="noopener noreferrer" className="text-[#229ED9] hover:underline">Telegram</a>
+                                            <span className="text-gray-300">•</span>
+                                            <a href="https://max.ru/u/f9LHodD0cOIlYCiu6JCpIK2Ff9R6Bt7gvl52lF1RrxNto8IDaL6xTm-1W5M" target="_blank" rel="noopener noreferrer" className="text-[#FF6600] hover:underline">MAX</a>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-4">
@@ -86,8 +91,9 @@ export default function ContactPage() {
                                     <div>
                                         <h3 className="font-bold text-[#2D1B1F]">{locale === 'ru' ? 'Мастерская' : 'Workshop'}</h3>
                                         <p className="text-[#666]">
-                                            Koh Phangan, Thailand<br />
-                                            Surat Thani, 84280
+                                            {locale === 'ru'
+                                                ? 'г. Омск, ул. Красный путь 63, ТЦ Сибирские Огни, цокольный этаж, офис 10'
+                                                : 'Omsk, Krasny Put 63, Sibirskie Ogni, Ground Floor, Office 10'}
                                         </p>
                                     </div>
                                 </div>

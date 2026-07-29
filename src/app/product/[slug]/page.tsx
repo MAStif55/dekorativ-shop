@@ -24,70 +24,83 @@ export async function generateStaticParams() {
             slug: product.slug,
         }));
     } catch (error) {
-        console.error("Error generating static params:", error);
-        return [];
+        console.error("Error generating static params for products:", error);
+        return [{ slug: 'dummy-product' }];
     }
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-    const product = await ProductRepository.getBySlug(params.slug);
+    try {
+        const product = await ProductRepository.getBySlug(params.slug);
 
-    if (!product) {
+        if (!product) {
+            return {
+                title: 'Товар не найден | Dekorativ',
+                description: 'Запрашиваемый товар не найден.',
+            };
+        }
+
+        // Use Russian as primary (main audience), English as fallback
+        const titleRu = product.title?.ru || product.title?.en || 'Эксклюзивный декор';
+        const descriptionRu = product.description?.ru
+            ? product.description.ru.slice(0, 160).replace(/<[^>]*>/g, '').replace(/\n/g, ' ') + '...'
+            : `${titleRu} — Эксклюзивный декор для вашего интерьера.`;
+
         return {
-            title: 'Товар не найден | Dekorativ',
-            description: 'Запрашиваемый товар не найден.',
+            title: `${titleRu} | Dekorativ Store`,
+            description: descriptionRu,
+            alternates: {
+                canonical: `/product/${params.slug}`,
+            },
+            openGraph: {
+                title: `${titleRu} | Dekorativ`,
+                description: descriptionRu,
+                images: product.images?.[0] ? [getImageUrl(product.images[0])] : [],
+            },
+        };
+    } catch (error) {
+        return {
+            title: 'Товар | Dekorativ',
+            description: 'Мастерская по гравировке и изготовлению декоративной продукции Dekorativ',
         };
     }
-
-    // Use Russian as primary (main audience), English as fallback
-    const titleRu = product.title?.ru || product.title?.en || 'Эксклюзивный декор';
-    const titleEn = product.title?.en || product.title?.ru || 'Exclusive Decor';
-    const descriptionRu = product.description?.ru
-        ? product.description.ru.slice(0, 160).replace(/<[^>]*>/g, '').replace(/\n/g, ' ') + '...'
-        : `${titleRu} — Эксклюзивный декор для вашего интерьера.`;
-
-    return {
-        title: `${titleRu} | Dekorativ Store`,
-        description: descriptionRu,
-        alternates: {
-            canonical: `/product/${params.slug}`,
-        },
-        openGraph: {
-            title: `${titleRu} | Dekorativ`,
-            description: descriptionRu,
-            images: product.images?.[0] ? [getImageUrl(product.images[0])] : [],
-        },
-    };
 }
 
 export default async function ProductPage({ params }: { params: { slug: string } }) {
-    // Fetch product data for JSON-LD (server-side)
-    // We try to fetch it here to generate the JSON-LD script. 
-    // The client component will re-fetch or we could pass it down, 
-    // but to keep architecture simple for now we just fetch for SEO here.
-    const product = await ProductRepository.getBySlug(params.slug);
-
+    let product = null;
     let jsonLd = null;
-    if (product) {
-        const title = product.title?.en || 'Exclusive Decor';
-        const description = product.description?.en
-            ? product.description.en.replace(/<[^>]*>/g, '')
-            : 'Premium Interior Decor';
 
-        jsonLd = {
-            '@context': 'https://schema.org',
-            '@type': 'Product',
-            name: title,
-            image: product.images || [],
-            description: description,
-            sku: product.id,
-            offers: {
-                '@type': 'Offer',
-                price: product.basePrice,
-                priceCurrency: 'USD', // Assuming USD based on previous context, verify if needed
-                availability: 'https://schema.org/InStock',
-            },
-        };
+    try {
+        product = await ProductRepository.getBySlug(params.slug);
+
+        if (product) {
+            const title = product.title?.ru || product.title?.en || 'Эксклюзивный декор';
+            const description = product.description?.ru
+                ? product.description.ru.replace(/<[^>]*>/g, '')
+                : 'Премиум декор и гравировка';
+
+            jsonLd = {
+                '@context': 'https://schema.org',
+                '@type': 'Product',
+                name: title,
+                image: product.images?.map(img => getImageUrl(img)) || [],
+                description: description,
+                sku: product.id,
+                brand: {
+                    '@type': 'Brand',
+                    name: 'Dekorativ',
+                },
+                offers: {
+                    '@type': 'Offer',
+                    price: product.basePrice,
+                    priceCurrency: 'RUB',
+                    availability: product.status !== 'OUT_OF_STOCK' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+                    url: `https://dekorativ55.ru/product/${params.slug}`,
+                },
+            };
+        }
+    } catch (error) {
+        console.warn("ProductPage server fetch error (proceeding to client component):", error);
     }
 
     return (
@@ -98,9 +111,6 @@ export default async function ProductPage({ params }: { params: { slug: string }
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
                 />
             )}
-            {/* 
-              Pass the initial data to avoid double fetch.
-            */}
             <ProductDetailsContent initialProduct={product} />
         </>
     );

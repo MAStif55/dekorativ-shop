@@ -83,7 +83,7 @@ export default function AboutPage() {
                             </a>
 
                             <a
-                                href="https://max.ru/u/f9LHodD0cOIistNNtQFWq4OLPx_ZPYrqvTyLMwLrRY0P9hHA7Zd06uRLwCg"
+                                href="https://max.ru/u/f9LHodD0cOIlYCiu6JCpIK2Ff9R6Bt7gvl52lF1RrxNto8IDaL6xTm-1W5M"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-6 p-6 rounded-3xl bg-white border border-slate-100 hover:border-turquoise hover:shadow-md transition-all group"
